@@ -27,5 +27,18 @@ tags:
 exports:
   - police_uk
   - postcodes_io
+  - land_registry
+  - nomis
+  - fsa
+  - ea_floods
+  - parliament
   - UkPlace
   - CrimeIncident
+  - PropertySale
+  - AreaHousePrice
+  - AreaIncome
+  - EthnicGroupShare
+  - FoodPlace
+  - FloodAlert
+  - Seat
+  - SeatResult
