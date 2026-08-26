@@ -46,6 +46,7 @@
   auth: none
   operation-ids:
     - censusEthnicity
+    - censusDensity
     - medianPay
 
 # Official hygiene rating of every inspected food business. The API demands a
