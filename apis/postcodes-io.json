@@ -84,7 +84,7 @@
       "get": {
         "operationId": "reverseGeocode",
         "summary": "The postcodes nearest a coordinate pair",
-        "description": "`result` is an array (nearest first) with `postcode`, `admin_district`, `distance` in metres \u2014 or null when nothing is near (offshore, or outside the UK).",
+        "description": "`result` is an array (nearest first) with `postcode`, `admin_district`, `distance` in metres \u2014 or null when nothing is near. The DEFAULT radius is only 100 m; pass `radius` (max 2000) for anything resolved from a map click.",
         "parameters": [
           {
             "name": "lon",
@@ -103,6 +103,24 @@
               "type": "string"
             },
             "description": "Latitude, decimal degrees."
+          },
+          {
+            "name": "radius",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search radius in metres, max 2000. The 100 m default misses almost everything a coarse pointer produces."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Maximum results, default 10."
           }
         ],
         "responses": {
@@ -138,6 +156,54 @@
         "responses": {
           "200": {
             "description": "Outcode record under result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/outcodes": {
+      "get": {
+        "operationId": "reverseOutcode",
+        "summary": "The nearest outward postcode districts to a coordinate pair",
+        "description": "The wide-net fallback when no full postcode is within 2 km \u2014 remote uplands still belong to an outcode. `result` is nearest-first with `outcode` and centroid coordinates, or null offshore.",
+        "parameters": [
+          {
+            "name": "lon",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Longitude, decimal degrees."
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Latitude, decimal degrees."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Maximum results, default 10."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nearest outcodes under result, or null.",
             "content": {
               "application/json": {
                 "schema": {

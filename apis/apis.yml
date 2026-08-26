@@ -24,6 +24,7 @@
   operation-ids:
     - lookupPostcode
     - lookupOutcode
+    - reverseOutcode
     - searchPlaces
     - reverseGeocode
 
