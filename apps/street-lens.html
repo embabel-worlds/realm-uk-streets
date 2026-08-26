@@ -110,8 +110,8 @@ function drawMap() {
   const dots = places.map((p, i) =>
     `<circle class="dot${p === selected ? ' on' : ''}" r="${p === selected ? 6.5 : 5}"
        cx="${X(p.lon).toFixed(1)}" cy="${Y(p.lat).toFixed(1)}" data-i="${i}">
-       <title>${p.name}</title></circle>
-     <text class="dotlabel" x="${(X(p.lon) + 8).toFixed(1)}" y="${(Y(p.lat) + 3).toFixed(1)}">${p.name}</text>`).join('');
+       <title>${p.name}</title></circle>` +
+    (p === selected ? `<text class="dotlabel" x="${(X(p.lon) + 8).toFixed(1)}" y="${(Y(p.lat) + 3).toFixed(1)}">${p.name}</text>` : '')).join('');
   $('map').innerHTML =
     `<path class="land dim" d="${window.IRELAND_PATH || ''}"></path>` +
     `<path class="land" d="${window.UK_PATH || ''}"></path>` + dots;
@@ -154,7 +154,12 @@ async function watch() {
     } else {
       let pc = q;
       if (!/\d/.test(q)) { // a name: find the place, then its nearest postcode
-        const hit = ((await gateway.postcodesIo.searchPlaces({ q, limit: '1' })).result || [])[0];
+        // OS Open Names ranks alphabetically-ish, so bare "York" first matches a
+        // Lancashire hamlet. Prefer the most significant settlement type.
+        const hits = (await gateway.postcodesIo.searchPlaces({ q, limit: '10' })).result || [];
+        const weight = { City: 0, Town: 1, Suburban_Area: 2, Village: 3 };
+        hits.sort((a, b) => (weight[a.local_type] ?? 9) - (weight[b.local_type] ?? 9));
+        const hit = hits[0];
         if (!hit) return status('no UK place called "' + q + '"', true);
         const near = (await gateway.postcodesIo.reverseGeocode({ lat: String(hit.latitude), lon: String(hit.longitude) })).result;
         if (!near || !near[0]) return status('found ' + hit.name_1 + ' but no postcode near it', true);
