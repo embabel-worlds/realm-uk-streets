@@ -74,3 +74,13 @@
   operation-ids:
     - constituencySearch
     - electionResult
+
+# OpenStreetMap via the public Overpass instance — schools near a place.
+# Keyless but shared infrastructure: the producer keeps the radius tight and
+# the cache long.
+- url: overpass.json
+  name: overpass
+  type: openapi
+  auth: none
+  operation-ids:
+    - overpassQuery

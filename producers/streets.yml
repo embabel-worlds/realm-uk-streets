@@ -202,3 +202,26 @@
     turnout: turnout
     winningParty: winningParty.name
   cache: { kind: ttl, seconds: 604800 }
+
+# Schools within 1.5 km, from OpenStreetMap. Keyed on the place's stored
+# `latlon` ("lat,lon") because the Overpass query embeds the pair INSIDE one
+# query string — a template substitution, which a composite key's separator
+# would break. The week-long cache is politeness to a shared public instance.
+- name: schoolsNear
+  kind: remote
+  operation: overpassQuery
+  records: "$.elements[*]"
+  keyTemplate: "{key}"
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    data: "[out:json];(node(around:1500,{keys})[amenity=school];way(around:1500,{keys})[amenity=school];);out center 40;"
+  project:
+    id: id
+    name: tags.name
+    kind: tags.amenity
+    schoolLat: lat
+    schoolLon: lon
+    centerLat: center.lat
+    centerLon: center.lon
+  cache: { kind: ttl, seconds: 604800 }

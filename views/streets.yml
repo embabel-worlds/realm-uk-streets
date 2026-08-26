@@ -193,3 +193,11 @@
     MATCH (p:UkPlace)-[:HAS_FLOOD_ALERT]->(f:FloodAlert)
     RETURN p.name AS place, f.severity AS severity, f.area AS area, f.raisedAt AS raisedAt
     ORDER BY toInteger(f.severityLevel) ASC
+
+- name: SchoolsNearMyPlaces
+  description: Schools within 1.5 km of each watched place, from OpenStreetMap — counts plus the named ones. Where schools are, not how they are rated.
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_SCHOOL]->(s:School)
+    WITH p, count(s) AS schools, [x IN collect(s.name) WHERE x IS NOT NULL][..8] AS named
+    RETURN p.name AS place, schools, named
+    ORDER BY schools DESC

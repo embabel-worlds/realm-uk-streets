@@ -55,6 +55,9 @@
     constituency:
       type: string
       description: "Parliamentary constituency name — the key the seat join uses."
+    latlon:
+      type: string
+      description: "The pair as one string, 'lat,lon' — the key for joins that embed coordinates inside a query template (schools)."
 
 # A police-recorded crime near a watched place — VIRTUAL, one month deep.
 #   Which of my places is safest?
@@ -261,3 +264,29 @@
     electorate: "Registered electors."
     turnout: "Votes cast."
     winningParty: "The winning party's name."
+
+# A school near a watched place, from OpenStreetMap — names and positions, not
+# ratings: Ofsted publishes judgements as downloads, not an API, so this realm
+# reports what is THERE and never grades it.
+- name: School
+  description: "A school within 1.5 km of a watched place, from OpenStreetMap. Reached via HAS_SCHOOL. Coordinates arrive as lat/lon for point features and centerLat/centerLon for drawn outlines — coalesce() when mapping. No ratings: OSM knows where schools are, not how they are judged."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_SCHOOL
+      keyField: latlon
+      recordKeyField: key
+      producer: schoolsNear
+      maxAnchors: 8
+      description: "Schools within 1.5 km — for 'how many schools are near X', count; unnamed OSM entries are real but anonymous, so count all and name the named."
+  properties:
+    id:
+      description: "OSM element id. Identity."
+      metadata:
+        identity: "true"
+    key: "The lat,lon pair searched — the join link."
+    name: "The school's name, when OSM has it — absent entries are still schools."
+    kind: "Always 'school' today; kept so nurseries/colleges can join later."
+    schoolLat: "Latitude for point features."
+    schoolLon: "Longitude for point features."
+    centerLat: "Centre latitude for outline features."
+    centerLon: "Centre longitude for outline features."
