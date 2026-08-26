@@ -287,7 +287,9 @@ async function select(p) {
     $('cards').innerHTML = cards.join('');
   })();
 
-  // Crime: the month's incidents within a mile, by category.
+  // Crime: the month's incidents within a mile, by category — then the same
+  // call walked back six months for the trend. Sequential with a courtesy gap:
+  // the source 429s bursts.
   (async () => {
     try {
       const cs = await gateway.policeUk.streetCrimes({ lat, lng: lon });
@@ -295,7 +297,37 @@ async function select(p) {
       const by = {};
       for (const c of cs) by[c.category] = (by[c.category] || 0) + 1;
       const rows = Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([t, n]) => ({ t: t.replace(/-/g, ' '), n }));
-      $('crime').innerHTML = section(`crime · ${cs[0].month} · 1 mile · ${cs.length} recorded`, bars(rows, '#e05c5c') + (cs.length < 30 ? '<p class="quiet">low counts can be coverage: Scotland and Greater Manchester publish nothing street-level here</p>' : ''));
+      $('crime').innerHTML = section(`crime · ${cs[0].month} · 1 mile · ${cs.length} recorded`,
+        bars(rows, '#e05c5c') +
+        (cs.length < 30 ? '<p class="quiet">low counts can be coverage: Scotland and Greater Manchester publish nothing street-level here</p>' : '') +
+        '<div id="trend" class="qmeta">fetching the last six months…</div>');
+      // Walk back from the latest published month.
+      const [y0, m0] = cs[0].month.split('-').map(Number);
+      const months = [], counts = [cs.length];
+      months.push(cs[0].month);
+      for (let i = 1; i < 6; i++) {
+        const d = new Date(y0, m0 - 1 - i, 1);
+        const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        await new Promise((res) => setTimeout(res, 1100));
+        if (selected !== p) return; // the user moved on
+        try {
+          const past = await gateway.policeUk.streetCrimes({ lat, lng: lon, date: ym });
+          months.push(ym); counts.push(past.length);
+        } catch (e) { break; }
+      }
+      if (selected !== p || counts.length < 3) { const t = $('trend'); if (t) t.remove(); return; }
+      const seq = counts.slice().reverse(), mseq = months.slice().reverse();
+      const max = Math.max(...seq, 1);
+      const chg = seq[0] ? Math.round(100 * (seq[seq.length - 1] - seq[0]) / seq[0]) : 0;
+      const bars6 = seq.map((n, i) =>
+        `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+           <div style="width:70%;height:${Math.max(3, 46 * n / max)}px;background:${i === seq.length - 1 ? 'var(--sl-red)' : '#7a4040'};border-radius:2px 2px 0 0" title="${mseq[i]}: ${n}"></div>
+           <span style="font-size:8.5px;color:var(--sl-dim);font-family:ui-monospace,monospace">${mseq[i].slice(5)}</span>
+         </div>`).join('');
+      const t = $('trend');
+      if (t) t.outerHTML = `<div style="margin-top:10px">
+        <div class="qmeta" style="margin:0 0 5px">six-month trend · ${chg >= 0 ? '▲' : '▼'} ${Math.abs(chg)}% vs ${mseq[0]}</div>
+        <div style="display:flex;align-items:flex-end;gap:4px;height:62px">${bars6}</div></div>`;
     } catch (e) { $('crime').innerHTML = section('crime', '<p class="quiet">unavailable</p>'); }
   })();
 
