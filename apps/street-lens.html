@@ -70,6 +70,20 @@
   td { padding: 4px 8px 4px 0; border-bottom: 1px dotted #23262c; color: var(--sl-dim); }
   td b { color: var(--sl-ink); font-family: ui-monospace, monospace; }
   .quiet { color: var(--sl-dim); font-size: 12.5px; font-style: italic; }
+  .paneltabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid var(--sl-line); }
+  .paneltab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--sl-dim);
+    font-family: inherit; font-size: 13px; padding: 6px 14px 9px; cursor: pointer; letter-spacing: 0.06em; }
+  .paneltab.on { color: var(--sl-ink); border-bottom-color: var(--sl-accent); }
+  .qgroup { margin-bottom: 4px; }
+  .qgroup h4 { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sl-dim);
+    font-family: ui-monospace, monospace; margin: 14px 0 8px; }
+  .qbtn { display: block; width: 100%; text-align: left; background: #0e1013; border: 1px solid var(--sl-line);
+    border-radius: 8px; color: var(--sl-ink); font-family: inherit; font-size: 13.5px; padding: 9px 13px;
+    margin-bottom: 6px; cursor: pointer; }
+  .qbtn:hover { border-color: var(--sl-accent); }
+  .qmeta { color: var(--sl-dim); font-size: 11.5px; font-family: ui-monospace, monospace; margin: 10px 0 8px; }
+  th { text-align: left; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sl-dim);
+    padding: 4px 8px 6px 0; border-bottom: 1px solid var(--sl-line); font-family: ui-monospace, monospace; }
   .foot { color: #565c68; font-size: 10.5px; margin-top: 16px; line-height: 1.6; }
 </style>
 </head>
@@ -91,7 +105,14 @@
       postcodes.io · UK Parliament · FSA · Environment Agency · Wikidata. Street-level points are anonymised by the
       police by design. Outline: Natural Earth 50m, vendored.</p>
   </div>
-  <div class="panel" id="dossier"><p class="quiet">Watch a place — full postcode for street level, outcode (SE10) for the district view — then click its dot.</p></div>
+  <div class="panel">
+    <div class="paneltabs">
+      <button class="paneltab on" id="tab-place">This place</button>
+      <button class="paneltab" id="tab-ask">Ask across my places</button>
+    </div>
+    <div id="dossier"><p class="quiet">Watch a place — full postcode for street level, outcode (SE10) for the district view — click its dot, or click anywhere on the map.</p></div>
+    <div id="ask" hidden></div>
+  </div>
 </div>
 
 <script>
@@ -199,6 +220,7 @@ function bars(rows, colour) {
 
 async function select(p) {
   selected = p; drawMap();
+  showPane('place');
   const d = $('dossier');
   d.innerHTML = `<div class="dhead"><h2>${p.name}</h2>
       <span class="dsub">${p.district || ''} · ${p.level || 'postcode'}${p.lsoaName ? ' · ' + p.lsoaName : ''}</span>
@@ -371,6 +393,74 @@ $('map').addEventListener('click', async (e) => {
     select(ep);
   } catch (err) { status(String(err).slice(0, 120), true); }
 });
+/* ── the questions pane: every saved question, phrased as a person would ask it ── */
+const QUESTIONS = [
+  ['Safety', [
+    ['Which of my places is safest?', 'SafestPlace'],
+    ["What's happening around each place?", 'CrimeAroundMyPlaces'],
+    ['Which streets see the most incidents?', 'TopCrimeStreets'],
+    ['Where are violence and robbery worst?', 'ViolenceAndRobbery'],
+  ]],
+  ['Money', [
+    ['What have homes actually sold for?', 'WhatHomesActuallySold'],
+    ['Which way are house prices moving?', 'PriceTrendAtMyPlaces'],
+    ['Crime against income — where is the mismatch?', 'CrimeVsIncome'],
+    ["Anywhere I shouldn't eat?", 'WhereNotToEat'],
+  ]],
+  ['People & politics', [
+    ['Who are my MPs, and how safe are their seats?', 'SeatsAndMargins'],
+    ["What does each party's ground earn?", 'IncomeByParty'],
+    ['How does crime split by the party holding the seat?', 'CrimeByParty'],
+    ['Who lives in each neighbourhood?', 'NeighbourhoodMosaic'],
+    ['How many schools near each place?', 'SchoolsNearMyPlaces'],
+  ]],
+  ['Everything', [
+    ['The full dossier, one line per place', 'PlaceDossier'],
+    ['Any flood alerts right now?', 'FloodWatch'],
+  ]],
+];
+function fmtCell(v) {
+  if (v == null) return '—';
+  if (Array.isArray(v)) return v.filter((x) => x != null).join(' · ');
+  if (typeof v === 'number') return Number.isInteger(v) ? v.toLocaleString('en-GB') : v.toLocaleString('en-GB', { maximumFractionDigits: 1 });
+  return String(v);
+}
+function askHome() {
+  $('ask').innerHTML = QUESTIONS.map(([group, qs]) =>
+    `<div class="qgroup"><h4>${group}</h4>` +
+    qs.map(([q, view]) => `<button class="qbtn" data-view="${view}">${q}</button>`).join('') + '</div>').join('');
+  $('ask').querySelectorAll('.qbtn').forEach((btn) => btn.addEventListener('click', () => askRun(btn.dataset.view, btn.textContent)));
+}
+async function askRun(view, question) {
+  $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet">asking the sources…</p>`;
+  try {
+    const res = await gateway.view.run({ name: view });
+    const rows = res.rows || [];
+    const back = '<button class="qbtn" id="askback" style="width:auto;margin-top:12px">← other questions</button>';
+    if (!rows.length) {
+      $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet">nothing — which for floods and bad kitchens is the answer you want</p>${back}`;
+    } else {
+      const cols = Object.keys(rows[0]);
+      $('ask').innerHTML = `<p class="qmeta">${question} · ${rows.length} row${rows.length === 1 ? '' : 's'}` +
+        (res.apiCalls ? ` · ${res.apiCalls} live fetch${res.apiCalls === 1 ? '' : 'es'}` : ' · answered from the warm graph') + `</p>
+        <div style="overflow-x:auto"><table><tr>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>` +
+        rows.map((r) => `<tr>${cols.map((c) => `<td>${fmtCell(r[c])}</td>`).join('')}</tr>`).join('') + '</table></div>' + back;
+    }
+    $('askback').onclick = askHome;
+  } catch (e) {
+    $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet">${String(e).slice(0, 160)}</p>`;
+    setTimeout(askHome, 4000);
+  }
+}
+function showPane(which) {
+  $('tab-place').classList.toggle('on', which === 'place');
+  $('tab-ask').classList.toggle('on', which === 'ask');
+  $('dossier').hidden = which !== 'place';
+  $('ask').hidden = which !== 'ask';
+}
+$('tab-place').addEventListener('click', () => showPane('place'));
+$('tab-ask').addEventListener('click', () => { showPane('ask'); askHome(); });
+
 $('add').addEventListener('click', watch);
 $('q').addEventListener('keydown', (e) => { if (e.key === 'Enter') watch(); });
 loadPlaces().then(() => { if (places.length) select(places[0]); })
