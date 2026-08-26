@@ -75,8 +75,11 @@ wrong place.
 - **Compare crime as a RATE, never a raw radius count.** Incidents-within-a-mile
   rewards emptiness. The realm's denominator: census density (HAS_DENSITY,
   persons/km²) x 8.14 km² (the 1-mile circle) estimates residents in the
-  radius; `SafestPlace` already ranks by incidents per 1,000 estimated
-  residents. State the assumption when presenting — the neighbourhood's
+  radius; EVERY cross-place crime view (`SafestPlace`,
+  `ViolenceAndRobbery`, `CrimeAroundMyPlaces`, `CrimeVsIncome`, `CrimeByParty`,
+  `PlaceDossier`) leads with that rate; raw counts are context, never the
+  ranking. `TopCrimeStreets` alone stays raw — an anonymised street locality
+  has no population — so compare its streets within one place only. State the assumption when presenting — the neighbourhood's
   density is assumed to hold across the mile — and fall back to raw counts
   (saying so) where density is absent (outcode-level places, Scotland).
 

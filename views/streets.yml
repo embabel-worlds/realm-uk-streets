@@ -4,7 +4,7 @@
 # AGGREGATES rather than listing raw rows.
 
 - name: CrimeAroundMyPlaces
-  description: Recorded crime around each watched UK place, latest month, broken down by category — the headline table.
+  description: Recorded crime around each watched UK place, latest month, by category — as a RATE per 1,000 estimated residents within the mile (census density x 8.14 km²), raw count beside it. Rate null where density is unknown (outcodes).
   params:
     limit:
       type: int
@@ -13,7 +13,11 @@
   cypher: |
     MATCH (p:UkPlace)-[:HAS_CRIME]->(c:CrimeIncident)
     WITH p, c.category AS category, count(*) AS incidents
-    RETURN p.name AS place, category, incidents
+    OPTIONAL MATCH (p)-[:HAS_DENSITY]->(d:AreaDensity)
+    WITH p, category, incidents, max(toFloat(d.density)) AS density
+    RETURN p.name AS place, category, incidents,
+           CASE WHEN density IS NULL OR density = 0 THEN null
+                ELSE round(1000.0 * incidents / (density * 8.14), 2) END AS perThousandResidents
     ORDER BY place, incidents DESC LIMIT $limit
 
 - name: SafestPlace
@@ -36,7 +40,7 @@
     LIMIT $limit
 
 - name: TopCrimeStreets
-  description: The streets with the most recorded incidents around your watched places, latest month — street names are anonymised localities, not addresses.
+  description: The streets with the most recorded incidents around your watched places, latest month — raw counts BY NECESSITY (no population exists for an anonymised street locality), so compare streets within one place, never places against each other; the place views carry the rates.
   params:
     limit:
       type: int
@@ -49,7 +53,7 @@
     ORDER BY incidents DESC LIMIT $limit
 
 - name: ViolenceAndRobbery
-  description: Just the violent-crime and robbery counts around each watched place, latest month — the categories people usually mean by "is it safe".
+  description: Violent crime and robbery around each watched place, latest month, RANKED BY RATE per 1,000 estimated residents within the mile — the categories people mean by "is it safe", corrected for how many people are actually there. Raw counts ride beside; rate null where density is unknown (outcodes rank last).
   params:
     limit:
       type: int
@@ -58,9 +62,13 @@
   cypher: |
     MATCH (p:UkPlace)-[:HAS_CRIME]->(c:CrimeIncident)
     WHERE c.category IN ['violent-crime', 'robbery']
-    WITH p.name AS place, c.category AS category, count(*) AS incidents
-    RETURN place, category, incidents
-    ORDER BY incidents DESC LIMIT $limit
+    WITH p, c.category AS category, count(*) AS incidents
+    OPTIONAL MATCH (p)-[:HAS_DENSITY]->(d:AreaDensity)
+    WITH p, category, incidents, max(toFloat(d.density)) AS density
+    RETURN p.name AS place, category, incidents,
+           CASE WHEN density IS NULL OR density = 0 THEN null
+                ELSE round(1000.0 * incidents / (density * 8.14), 2) END AS perThousandResidents
+    ORDER BY perThousandResidents IS NULL, perThousandResidents DESC LIMIT $limit
 
 # ── The cross-source views — questions no single source can answer ───────────
 # Each of these joins two or more national datasets AT the user's places. The
@@ -77,8 +85,13 @@
     MATCH (p:UkPlace)
     OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
     WITH p, count(c) AS crimes
+    OPTIONAL MATCH (p)-[:HAS_DENSITY]->(dn:AreaDensity)
+    WITH p, crimes, max(toFloat(dn.density)) AS density
+    WITH p, crimes,
+         CASE WHEN density IS NULL OR density = 0 THEN null
+              ELSE round(1000.0 * crimes / (density * 8.14), 2) END AS crimeRatePerThousand
     OPTIONAL MATCH (p)-[:HAS_INCOME]->(i:AreaIncome)
-    WITH p, crimes, max(toFloat(i.annualPay)) AS medianPay
+    WITH p, crimes, crimeRatePerThousand, max(toFloat(i.annualPay)) AS medianPay
     OPTIONAL MATCH (p)-[:HAS_HOUSE_PRICES]->(h:AreaHousePrice)
     WITH p, crimes, medianPay, max(toFloat(h.averagePrice)) AS peakAvgPrice
     OPTIONAL MATCH (p)-[:HAS_ETHNICITY]->(e:EthnicGroupShare)
@@ -87,6 +100,7 @@
     OPTIONAL MATCH (p)-[:HAS_SEAT]->(s:Seat)
     OPTIONAL MATCH (s)-[:HAS_RESULT]->(r:SeatResult)
     RETURN p.name AS place, p.district AS district,
+           crimeRatePerThousand,
            crimes AS crimesLastMonth,
            medianPay AS districtMedianPay,
            peakAvgPrice AS districtAvgPrice,
@@ -95,7 +109,7 @@
     ORDER BY place LIMIT $limit
 
 - name: CrimeVsIncome
-  description: Recorded crime within a mile against the district's median full-time pay, per watched place — the affluence-and-safety scatter, from two sources that never meet anywhere else.
+  description: Crime RATE (per 1,000 estimated residents within the mile) against the district's median full-time pay, per watched place — the affluence-and-safety scatter, population-corrected, from sources that never meet anywhere else.
   params:
     limit:
       type: int
@@ -105,10 +119,14 @@
     MATCH (p:UkPlace)-[:HAS_INCOME]->(i:AreaIncome)
     OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
     WITH p, i, count(c) AS crimes
-    RETURN p.name AS place, crimes AS crimesLastMonth,
-           toFloat(i.annualPay) AS districtMedianPay,
-           round(1000.0 * crimes / toFloat(i.annualPay), 2) AS crimesPerThousandPoundsPay
-    ORDER BY crimes DESC LIMIT $limit
+    OPTIONAL MATCH (p)-[:HAS_DENSITY]->(d:AreaDensity)
+    WITH p, i, crimes, max(toFloat(d.density)) AS density
+    RETURN p.name AS place,
+           CASE WHEN density IS NULL OR density = 0 THEN null
+                ELSE round(1000.0 * crimes / (density * 8.14), 2) END AS crimeRatePerThousand,
+           crimes AS crimesLastMonth,
+           toFloat(i.annualPay) AS districtMedianPay
+    ORDER BY crimeRatePerThousand IS NULL, crimeRatePerThousand DESC LIMIT $limit
 
 - name: SeatsAndMargins
   description: Every watched place's MP, party, majority and turnout — with the district's median pay beside it, so "what do the safe seats earn" is the same table as "who holds the marginals".
@@ -208,13 +226,18 @@
     ORDER BY schools DESC
 
 - name: CrimeByParty
-  description: Watched places grouped by the party holding each seat, with recorded crime beside them — "Labour seats with the lowest crime" or "how does crime look across Reform seats" is a filter on this table.
+  description: Watched places grouped by the party holding each seat, ranked within party by crime RATE per 1,000 estimated residents — "Labour seats with the lowest crime" corrected for how many people live there. Raw count beside; rate null where density is unknown.
   cypher: |
     MATCH (p:UkPlace)-[:HAS_SEAT]->(s:Seat)
     OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
-    WITH s.party AS party, p.name AS place, count(c) AS crimes
-    RETURN party, place, crimes
-    ORDER BY party, crimes ASC
+    WITH s, p, count(c) AS crimes
+    OPTIONAL MATCH (p)-[:HAS_DENSITY]->(d:AreaDensity)
+    WITH s.party AS party, p.name AS place, crimes, max(toFloat(d.density)) AS density
+    RETURN party, place,
+           CASE WHEN density IS NULL OR density = 0 THEN null
+                ELSE round(1000.0 * crimes / (density * 8.14), 2) END AS ratePerThousand,
+           crimes
+    ORDER BY party, ratePerThousand IS NULL, ratePerThousand ASC
 
 - name: CrimeTrend
   description: Each watched place's monthly crime counts over the last year, with the percent change from the first to the latest month — rising first. The first run per place is twelve paced source calls; after that the past is cached and only the newest month refreshes.
