@@ -42,6 +42,9 @@
 - name: awardsInWindow
   kind: remote
   operation: searchAwards
+  # Contracts Finder 429s bursts — a 28-day daily-partitioned walk is exactly
+  # that. One call a second; the backend retries a limited day after the pause.
+  cost: { rate: "1/second" }
   records: "$.releases[*]"
   keyArgs: [publishedFrom, publishedTo]
   echoKeyAs: publishedWindow
