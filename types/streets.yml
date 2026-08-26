@@ -125,9 +125,9 @@
   properties:
     id:
       description: "Source URI of the month's index row. Identity."
-    key: "The district slug the series belongs to — the join link."
       metadata:
         identity: "true"
+    key: "The district slug the series belongs to — the join link."
     month: "The index month."
     averagePrice: "Average price across all property types, GBP."
     detached: "Average detached price, GBP."
@@ -149,9 +149,9 @@
   properties:
     id:
       description: "NOMIS observation URN. Identity."
-    key: "The district GSS code — the join link."
       metadata:
         identity: "true"
+    key: "The district GSS code — the join link."
     annualPay: "Median gross annual pay, GBP, full-time workers."
     area: "The district's name as ONS states it."
     year: "The ASHE reference year."
@@ -170,9 +170,9 @@
   properties:
     id:
       description: "NOMIS observation URN — unique per area and group. Identity."
-    key: "The LSOA GSS code — the join link."
       metadata:
         identity: "true"
+    key: "The LSOA GSS code — the join link."
     group: "The census group, e.g. 'Asian, Asian British or Asian Welsh'."
     percent: "Percent of the neighbourhood's residents, Census 2021."
     area: "The LSOA name."
