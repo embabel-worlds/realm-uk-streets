@@ -1,0 +1,67 @@
+# Civic views: petitions and public contracts. The petition hop is 650 rows per
+# petition — every view narrows the petitions BEFORE taking it.
+
+- name: WhatBritainSigns
+  description: The most-signed open petitions to Parliament right now — what the country is asking for, top of the list first.
+  params:
+    limit:
+      type: int
+      default: 10
+      description: "How many petitions."
+  cypher: |
+    MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)
+    RETURN pt.action AS petition, toInteger(pt.signatures) AS signatures
+    ORDER BY signatures DESC LIMIT $limit
+
+- name: WhatMySeatsCareAbout
+  description: The top open petitions' signature counts in YOUR constituencies — with a per-10,000-signature share so a small seat's passion reads beside a big one's. What each of your places' seats is asking Parliament for.
+  params:
+    petitions:
+      type: int
+      default: 6
+      description: "How many top petitions to split by seat."
+  cypher: |
+    MATCH (p:UkPlace) WHERE p.constituencyCode IS NOT NULL
+    WITH collect(DISTINCT p.constituencyCode) AS mine, collect(DISTINCT p.constituency)[0..9] AS names
+    MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)
+    WITH mine, pt ORDER BY toInteger(pt.signatures) DESC LIMIT $petitions
+    MATCH (pt)-[:HAS_SIGNATURES]->(cs:ConstituencySignal)
+    WHERE cs.onsCode IN mine
+    RETURN cs.constituency AS seat, pt.action AS petition,
+           toInteger(cs.signatures) AS seatSignatures,
+           toInteger(pt.signatures) AS nationwide,
+           round(10000.0 * toInteger(cs.signatures) / toInteger(pt.signatures), 1) AS perTenThousand
+    ORDER BY seat, seatSignatures DESC
+
+- name: AwardsNearMyPlaces
+  description: Contract awards from the last 28 days whose winning supplier is REGISTERED in one of your places' outward postcode areas — where public money lands on your streets. Registered address, not delivery location; the window is fetched completely, day by day.
+  cypher: |
+    MATCH (p:UkPlace) WHERE p.outcode IS NOT NULL
+    WITH collect(DISTINCT p.outcode) AS codes
+    MATCH (w:AwardWindow)-[:PUBLISHED]->(c:ContractAward)
+    WHERE w.window = toString(datetime.truncate('day', datetime()) - duration('P28D')) + '/' + toString(datetime.truncate('day', datetime()))
+      AND any(oc IN codes WHERE c.supplierAddress CONTAINS (oc + ' '))
+    RETURN c.supplier AS supplier, c.title AS contract, c.buyer AS buyer,
+           toFloat(c.amount) AS amount, c.awardDate AS awarded, c.supplierAddress AS registeredAt
+    ORDER BY amount DESC
+
+- name: BiggestAwardsThisMonth
+  description: The largest UK contract awards published in the last 28 days, feed-wide — the week's public spending headlines, fetched completely day by day.
+  params:
+    limit:
+      type: int
+      default: 15
+      description: "How many awards, largest first."
+  cypher: |
+    MATCH (w:AwardWindow)-[:PUBLISHED]->(c:ContractAward)
+    WHERE w.window = toString(datetime.truncate('day', datetime()) - duration('P28D')) + '/' + toString(datetime.truncate('day', datetime()))
+    RETURN c.title AS contract, c.buyer AS buyer, c.supplier AS supplier,
+           toFloat(c.amount) AS amount, c.awardDate AS awarded
+    ORDER BY amount DESC LIMIT $limit
+
+- name: CareNearMyPlaces
+  description: CQC-registered care locations in your places' outward postcode areas with their official ratings, worst first — needs the free CQC_SUBSCRIPTION_KEY; without it the warning names the missing credential.
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_CARE]->(c:CareLocation)
+    RETURN p.name AS place, c.name AS location, c.rating AS rating, c.postcode AS postcode
+    ORDER BY CASE c.rating WHEN 'Inadequate' THEN 0 WHEN 'Requires improvement' THEN 1 WHEN 'Good' THEN 2 WHEN 'Outstanding' THEN 3 ELSE 4 END

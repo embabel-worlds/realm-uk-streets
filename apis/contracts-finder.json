@@ -1,0 +1,26 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Contracts Finder (OCDS)",
+    "version": "1.0.0",
+    "description": "UK government contract notices as Open Contracting releases — keyless. Award releases carry the buyer, the winning supplier with its registered address, and the award value. The search CANNOT filter by supplier, place or text (parameters are accepted and ignored) — narrow AFTER the fetch. Windows use ISO instants; pagination is a cursor inside links.next."
+  },
+  "servers": [ { "url": "https://www.contractsfinder.service.gov.uk" } ],
+  "paths": {
+    "/Published/Notices/OCDS/Search": {
+      "get": {
+        "operationId": "searchAwards",
+        "summary": "Contract notices published in a window, newest first, cursor-paged",
+        "description": "`releases[]` are OCDS releases: `tender.title`, `buyer.name`, `parties[]` (role `supplier` carries `address.streetAddress` — the postcode is the tail of that text), `awards[].value.amount` and `awards[].date`. ~100-400 releases per business day feed-wide.",
+        "parameters": [
+          { "name": "stages", "in": "query", "required": false, "schema": { "type": "string" }, "description": "`award` for awarded contracts; omit for all notice stages." },
+          { "name": "publishedFrom", "in": "query", "required": true, "schema": { "type": "string" }, "description": "ISO instant, e.g. 2026-08-01T00:00:00Z." },
+          { "name": "publishedTo", "in": "query", "required": true, "schema": { "type": "string" }, "description": "ISO instant." },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Page size, max 100." },
+          { "name": "cursor", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Opaque cursor from links.next." }
+        ],
+        "responses": { "200": { "description": "OCDS release package; releases[] may be empty for a quiet window.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    }
+  }
+}

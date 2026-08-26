@@ -29,6 +29,9 @@ exports:
   - fsa
   - ea_floods
   - parliament
+  - contracts_finder
+  - petitions
+  - cqc
   - UkPlace
   - CrimeIncident
   - PropertySale
@@ -40,3 +43,7 @@ exports:
   - Seat
   - SeatResult
   - School
+  - Petition
+  - ConstituencySignal
+  - ContractAward
+  - CareLocation

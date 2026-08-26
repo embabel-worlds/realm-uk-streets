@@ -77,3 +77,35 @@
     - constituencySearch
     - electionResult
 
+
+# UK government contract awards as OCDS releases — keyless. No server-side
+# text/place filter exists (parameters are ignored, not rejected); windows +
+# post-fetch narrowing are the contract, exactly as realm-gov-au learned on
+# AusTender.
+- url: contracts-finder.json
+  name: contracts_finder
+  type: openapi
+  auth: none
+  operation-ids:
+    - searchAwards
+
+# Petitions to Parliament — keyless, signature-sorted, with per-seat counts.
+- url: petitions.json
+  name: petitions
+  type: openapi
+  auth: none
+  operation-ids:
+    - listPetitions
+    - petitionDetail
+
+# Care Quality Commission — official care ratings. Needs a FREE key
+# (CQC_SUBSCRIPTION_KEY); stays inert until it is set, and the skill says so
+# rather than pretending care data does not exist.
+- url: cqc.json
+  name: cqc
+  type: openapi
+  auth: none
+  headers:
+    Ocp-Apim-Subscription-Key: "${CQC_SUBSCRIPTION_KEY}"
+  operation-ids:
+    - careLocations

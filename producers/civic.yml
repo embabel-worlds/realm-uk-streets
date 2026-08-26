@@ -1,0 +1,80 @@
+# ── Petitions ────────────────────────────────────────────────────────────────
+# The open-petitions list, keyed on the literal state — a literal-seeded anchor
+# (`MATCH (f:PetitionFeed {state:'open'})`) is all a query needs, no stored
+# node. Signature-sorted by the source, 25 per page, top page only: the tail of
+# a 5,000-petition list moves nothing.
+- name: openPetitions
+  kind: remote
+  operation: listPetitions
+  records: "$.data[*]"
+  keyArg: state
+  echoKeyAs: feedState
+  maxKeysPerCall: 1
+  project:
+    id: id
+    action: attributes.action
+    signatures: attributes.signature_count
+    petitionState: attributes.state
+  cache: { kind: ttl, seconds: 3600 }
+
+# One petition's per-seat signature map — 650 records per petition, keyed by
+# the petition id the Petition node carries. Aggregate or filter to seats of
+# interest; never enumerate 650 rows into an answer.
+- name: petitionSignatures
+  kind: remote
+  operation: petitionDetail
+  records: "$.data.attributes.signatures_by_constituency[*]"
+  keyArgs: [id]
+  echoKeyAs: petitionId
+  maxKeysPerCall: 1
+  project:
+    onsCode: ons_code
+    constituency: name
+    mp: mp
+    signatures: signature_count
+  cache: { kind: ttl, seconds: 3600 }
+
+# ── Contract awards ──────────────────────────────────────────────────────────
+# Awards published in an ISO window ('from/to' instants), the AusTender shape:
+# newest-first, cursor-paged, daily-partitioned so a broad window is fetched
+# COMPLETELY rather than silently returning its newest pageful. The feed cannot
+# filter by supplier, place or text — narrows happen after the fetch.
+- name: awardsInWindow
+  kind: remote
+  operation: searchAwards
+  records: "$.releases[*]"
+  keyArgs: [publishedFrom, publishedTo]
+  echoKeyAs: publishedWindow
+  args:
+    stages: award
+  paging: { style: cursor, cursorParam: cursor, cursorPath: "$.links.next", size: 100, sizeParam: limit, maxPages: 10 }
+  partition: { unit: day, maxUnits: 92 }
+  project:
+    ocid: ocid
+    title: tender.title
+    buyer: buyer.name
+    supplier: awards.0.suppliers.0.name
+    supplierAddress: parties.0.address.streetAddress
+    amount: awards.0.value.amount
+    currency: awards.0.value.currency
+    awardDate: awards.0.date
+  cache: { kind: ttl, seconds: 21600 }
+
+# ── Care quality (inert until CQC_SUBSCRIPTION_KEY is set) ───────────────────
+# Registered care locations for the place's OUTWARD code, with the official
+# inspection rating. Free key from api-portal.service.cqc.org.uk.
+- name: careNear
+  kind: remote
+  operation: careLocations
+  records: "$.locations[*]"
+  keyArg: postalCode
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    perPage: "40"
+  project:
+    id: locationId
+    name: locationName
+    postcode: postalCode
+    rating: currentRatings.overall.rating
+  cache: { kind: ttl, seconds: 604800 }

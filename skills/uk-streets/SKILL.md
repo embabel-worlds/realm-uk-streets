@@ -118,6 +118,23 @@ const brief = await gateway.ai.complete({ prompt:
 Never let the model add facts the rows don't carry — the whole value of this
 realm is that every claim traces to an official register.
 
+## Civic surfaces
+
+- **Petitions**: `MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)`
+  is the country's most-signed asks (literal-seeded anchor, nothing stored);
+  one more hop (`HAS_SIGNATURES`) splits any petition across all 650 seats by
+  ONS code — ALWAYS `ORDER BY signatures DESC LIMIT n` the petitions first.
+  Views: `WhatBritainSigns`, `WhatMySeatsCareAbout`.
+- **Contract awards**: `MATCH (w:AwardWindow {window:'from/to'})-[:PUBLISHED]->
+  (c:ContractAward)` — ISO instants, daily-partitioned, fetched completely.
+  The feed filters NOTHING server-side; narrow after. A supplier's address is
+  its REGISTERED office (say so). Views: `BiggestAwardsThisMonth`,
+  `AwardsNearMyPlaces`.
+- **Care quality (CQC)**: `HAS_CARE` gives every registered care location in a
+  place's outward code with its OFFICIAL rating — but only once the free
+  `CQC_SUBSCRIPTION_KEY` is set (api-portal.service.cqc.org.uk). Until then
+  say the credential is missing; never say there is no care nearby.
+
 ## Chaining with other realms
 
 - **gov-uk**: a company's registered postcode → `lookupPostcode` →

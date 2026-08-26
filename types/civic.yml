@@ -1,0 +1,88 @@
+# ── Petitions: what the country, and each seat, is asking for ────────────────
+# PetitionFeed is a LITERAL-SEEDED anchor — `MATCH (f:PetitionFeed
+# {state:'open'})` mints it per query; nothing is stored.
+- name: Petition
+  description: "A petition to Parliament from the most-signed page of a state's list (top 25). Reached from the literal-seeded feed: MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition). `signatures` is the nationwide total; the per-seat split is one more hop (HAS_SIGNATURES)."
+  virtualJoins:
+    - anchorLabel: PetitionFeed
+      relationship: LISTS
+      keyField: state
+      recordKeyField: feedState
+      producer: openPetitions
+      maxAnchors: 3
+      description: "The state's most-signed petitions, top page — 'what is Britain asking for'."
+  properties:
+    id:
+      description: "The petition's id. Identity, and the key its signature map joins on."
+      metadata:
+        identity: "true"
+    feedState: "The feed state that listed it — the join link."
+    action: "The petition's demand, verbatim."
+    signatures: "Nationwide signature count."
+    petitionState: "open | closed | rejected."
+
+# A petition's per-seat signature counts — 650 rows per petition, so ALWAYS
+# narrow the petitions upstream (ORDER BY signatures DESC LIMIT n) before
+# taking this hop, and aggregate rather than enumerate.
+- name: ConstituencySignal
+  description: "One constituency's signature count on one petition — the per-seat map of who cares, keyed by ONS constituency code (UkPlace.constituencyCode matches it). Reached from Petition via HAS_SIGNATURES; 650 rows per petition, narrow upstream."
+  virtualJoins:
+    - anchorLabel: Petition
+      relationship: HAS_SIGNATURES
+      keyField: id
+      recordKeyField: petitionId
+      producer: petitionSignatures
+      maxAnchors: 8
+      description: "The petition's 650-seat signature split — LIMIT the petitions before this hop."
+  properties:
+    petitionId: "The petition it belongs to — the join link."
+    onsCode: "ONS constituency code (E14…) — equals UkPlace.constituencyCode."
+    constituency: "The seat's name."
+    mp: "The sitting MP as the petition site styles them."
+    signatures: "Signatures from this seat."
+
+# ── Contract awards: where public money lands ────────────────────────────────
+- name: ContractAward
+  description: "A UK government contract award published in a window, from Contracts Finder (OCDS). Reached from the literal-seeded window: MATCH (w:AwardWindow {window:'2026-08-01T00:00:00Z/2026-08-27T00:00:00Z'})-[:PUBLISHED]->(c:ContractAward). The supplier's registered address is free text whose tail is a postcode — match outcodes with CONTAINS, and present it as the supplier's REGISTERED location, not where work happens."
+  virtualJoins:
+    - anchorLabel: AwardWindow
+      relationship: PUBLISHED
+      keyField: window
+      recordKeyField: publishedWindow
+      producer: awardsInWindow
+      maxAnchors: 2
+      description: "Awards first published in the ISO 'from/to' window, daily-partitioned and fetched completely — a capped day is reported by name, never passed off as the whole period."
+  properties:
+    ocid:
+      description: "Open Contracting id. Identity."
+      metadata:
+        identity: "true"
+    publishedWindow: "The window that found it — the join link."
+    title: "The tender's title."
+    buyer: "The public body awarding."
+    supplier: "The winning supplier's name (first supplier of the first award)."
+    supplierAddress: "The supplier's registered address, free text ending in a postcode."
+    amount: "Award value."
+    currency: "Its currency."
+    awardDate: "The award's date."
+
+# ── Care quality (inert until CQC_SUBSCRIPTION_KEY is set) ───────────────────
+- name: CareLocation
+  description: "A CQC-registered care location (care home, GP practice, hospital) in a watched place's outward postcode area, with its OFFICIAL inspection rating. Reached from UkPlace via HAS_CARE. Requires the free CQC_SUBSCRIPTION_KEY; without it this join reports the missing credential rather than pretending there is no care nearby."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_CARE
+      keyField: outcode
+      recordKeyField: key
+      producer: careNear
+      maxAnchors: 15
+      description: "Registered care locations in the outward code, ratings included — 'Inadequate' near a place is the row that matters."
+  properties:
+    id:
+      description: "CQC location id. Identity."
+      metadata:
+        identity: "true"
+    key: "The outward code searched — the join link."
+    name: "The location's registered name."
+    postcode: "Its own postcode."
+    rating: "Overall CQC rating: Outstanding | Good | Requires improvement | Inadequate — or absent when not yet rated."

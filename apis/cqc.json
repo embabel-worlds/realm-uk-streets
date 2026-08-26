@@ -1,0 +1,23 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Care Quality Commission",
+    "version": "1.0.0",
+    "description": "Every registered care location in England — care homes, GP practices, hospitals — with its official inspection rating. Requires a FREE subscription key (register at api-portal.service.cqc.org.uk, set CQC_SUBSCRIPTION_KEY); until the key is present this integration stays inert, by design."
+  },
+  "servers": [ { "url": "https://api.service.cqc.org.uk" } ],
+  "paths": {
+    "/public/v1/locations": {
+      "get": {
+        "operationId": "careLocations",
+        "summary": "Registered care locations for a postcode area, with overall ratings",
+        "description": "`locations[]` carries `locationName`, `postalCode`, and `currentRatings.overall.rating` ('Outstanding' | 'Good' | 'Requires improvement' | 'Inadequate'). Search by outward code (SE10) for the neighbourhood's providers.",
+        "parameters": [
+          { "name": "postalCode", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Full postcode or outward code, e.g. SE10." },
+          { "name": "perPage", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Page size, e.g. 40." }
+        ],
+        "responses": { "200": { "description": "Care locations under locations.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    }
+  }
+}

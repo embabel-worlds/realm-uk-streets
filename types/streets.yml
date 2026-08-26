@@ -55,6 +55,9 @@
     constituency:
       type: string
       description: "Parliamentary constituency name — the key the seat join uses."
+    constituencyCode:
+      type: string
+      description: "ONS constituency code (E14…) — the key petition signature maps join on."
     latlon:
       type: string
       description: "The pair as one string, 'lat,lon' — a convenience key for query templates."

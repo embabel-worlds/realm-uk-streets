@@ -1,0 +1,33 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "UK Parliament Petitions",
+    "version": "1.0.0",
+    "description": "Official petitions to Parliament — keyless JSON. The list is signature-sorted (biggest first, 25 per page); each petition's detail carries per-constituency signature counts for all 650 seats, keyed by ONS code."
+  },
+  "servers": [ { "url": "https://petition.parliament.uk" } ],
+  "paths": {
+    "/petitions.json": {
+      "get": {
+        "operationId": "listPetitions",
+        "summary": "Petitions by state, most-signed first (25 per page)",
+        "description": "`data[]` carries `id` and `attributes` (`action` — the petition's demand, `signature_count`, `state`).",
+        "parameters": [
+          { "name": "state", "in": "query", "required": true, "schema": { "type": "string" }, "description": "`open`, `closed`, or `rejected`." }
+        ],
+        "responses": { "200": { "description": "Signature-sorted petitions under data.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/petitions/{id}.json": {
+      "get": {
+        "operationId": "petitionDetail",
+        "summary": "One petition with signature counts for all 650 constituencies",
+        "description": "`data.attributes.signatures_by_constituency[]` carries `ons_code`, `name`, `mp` and `signature_count` — the per-seat map of who cares.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "The petition id from listPetitions." }
+        ],
+        "responses": { "200": { "description": "The petition with its constituency breakdown.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    }
+  }
+}

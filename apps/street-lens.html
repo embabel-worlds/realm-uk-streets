@@ -197,7 +197,8 @@ async function watch() {
         latlon: r.latitude + ',' + r.longitude, wkt: 'Point(' + r.longitude + ' ' + r.latitude + ')',
         district: r.admin_district, districtCode: r.codes.admin_district, districtSlug: slugify(r.admin_district),
         lsoa: r.codes.lsoa, lsoaName: r.lsoa, ward: r.admin_ward,
-        constituency: r.parliamentary_constituency, region: r.region || r.country };
+        constituency: r.parliamentary_constituency, constituencyCode: r.codes.parliamentary_constituency,
+        region: r.region || r.country };
     }
     await gateway.repository.createEntry({ type: 'UkPlace', data });
     status('watching ' + data.name);
@@ -236,7 +237,8 @@ async function select(p) {
         latlon: r.latitude + ',' + r.longitude, wkt: 'Point(' + r.longitude + ' ' + r.latitude + ')',
         outcode: r.outcode, district: r.admin_district, districtCode: r.codes.admin_district,
         districtSlug: slugify(r.admin_district), lsoa: r.codes.lsoa, lsoaName: r.lsoa,
-        ward: r.admin_ward, constituency: r.parliamentary_constituency, region: r.region || r.country,
+        ward: r.admin_ward, constituency: r.parliamentary_constituency,
+        constituencyCode: r.codes.parliamentary_constituency, region: r.region || r.country,
       }});
       ghost = null; status('watching ' + p.name);
       await loadPlaces();
@@ -446,6 +448,12 @@ const QUESTIONS = [
     ['How does crime split by the party holding the seat?', 'CrimeByParty'],
     ['Who lives in each neighbourhood?', 'NeighbourhoodMosaic'],
     ['How many schools near each place?', 'SchoolsNearMyPlaces'],
+  ]],
+  ['Civic', [
+    ['What is Britain signing petitions about?', 'WhatBritainSigns'],
+    ['What do my seats care about?', 'WhatMySeatsCareAbout'],
+    ['Where has public money landed near my places?', 'AwardsNearMyPlaces'],
+    ["The month's biggest contract awards?", 'BiggestAwardsThisMonth'],
   ]],
   ['Everything', [
     ['The full dossier, one line per place', 'PlaceDossier'],
