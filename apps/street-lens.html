@@ -269,11 +269,11 @@ async function select(p) {
   (async () => {
     try {
       const cs = await gateway.policeUk.streetCrimes({ lat, lng: lon });
-      if (!cs.length) { $('crime').innerHTML = section('crime · last month · 1 mile', '<p class="quiet">nothing recorded — note: Scottish forces are not in this source</p>'); return; }
+      if (!cs.length) { $('crime').innerHTML = section('crime · last month · 1 mile', '<p class="quiet">little or nothing recorded — Scotland and Greater Manchester do not publish street-level data here</p>'); return; }
       const by = {};
       for (const c of cs) by[c.category] = (by[c.category] || 0) + 1;
       const rows = Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([t, n]) => ({ t: t.replace(/-/g, ' '), n }));
-      $('crime').innerHTML = section(`crime · ${cs[0].month} · 1 mile · ${cs.length} recorded`, bars(rows, '#e05c5c'));
+      $('crime').innerHTML = section(`crime · ${cs[0].month} · 1 mile · ${cs.length} recorded`, bars(rows, '#e05c5c') + (cs.length < 30 ? '<p class="quiet">low counts can be coverage: Scotland and Greater Manchester publish nothing street-level here</p>' : ''));
     } catch (e) { $('crime').innerHTML = section('crime', '<p class="quiet">unavailable</p>'); }
   })();
 

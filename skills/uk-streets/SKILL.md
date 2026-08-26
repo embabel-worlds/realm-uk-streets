@@ -71,7 +71,8 @@ wrong place.
 
 - **Aggregate, don't enumerate.** A city-centre place is thousands of crime
   rows a month. Count by category or street; never paste incident lists.
-- **A zero is not always safety.** Scotland is absent from police.uk; a
+- **A zero is not always safety.** Scotland is absent from police.uk, and so
+  is GREATER MANCHESTER (GMP stopped publishing street-level data in 2019); a
   commercial postcode has no sales; Wikidata's school coverage is partial.
   State the coverage fact.
 - **Projected values arrive as STRINGS** — `toFloat()`/`toInteger()` before

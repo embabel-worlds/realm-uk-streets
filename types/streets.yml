@@ -67,7 +67,7 @@
 #     MATCH (p:UkPlace) OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
 #     RETURN p.name, count(c) AS incidents ORDER BY incidents ASC
 - name: CrimeIncident
-  description: "A police-recorded street-level crime within one mile of a watched UkPlace, latest published month, from data.police.uk. Reached via HAS_CRIME. Street names are anonymised localities ('On or near Shopping Area'), not addresses; outcome is absent while under investigation. Coverage: England, Wales, NI — Scottish places return nothing, which is a coverage fact, not safety."
+  description: "A police-recorded street-level crime within one mile of a watched UkPlace, latest published month, from data.police.uk. Reached via HAS_CRIME. Street names are anonymised localities ('On or near Shopping Area'), not addresses; outcome is absent while under investigation. Coverage: England, Wales, NI — but NOT Scotland, and NOT Greater Manchester (GMP stopped publishing street-level data in 2019 after its records-system failure). A low count in those areas is a coverage fact, not calm."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_CRIME
