@@ -17,17 +17,23 @@
     ORDER BY place, incidents DESC LIMIT $limit
 
 - name: SafestPlace
-  description: Watched UK places ranked by total recorded crime within a mile, quietest first — zero can also mean Scotland, where this source has no coverage.
+  description: Watched UK places ranked by recorded crime PER 1,000 estimated residents within the mile (radius count ÷ census density x 8.14 km²), safest first — a raw count rewards emptiness, so the rate is the ranking and the count rides beside it. Places without a neighbourhood density (outcodes) rank by raw count at the end. Zero can also mean Scotland or Greater Manchester, where the source has no coverage.
   params:
     limit:
       type: int
       default: 10
-      description: "How many places to return, quietest first."
+      description: "How many places to return, safest first."
   cypher: |
     MATCH (p:UkPlace)
     OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
-    RETURN p.name AS place, count(c) AS incidents
-    ORDER BY incidents ASC LIMIT $limit
+    WITH p, count(c) AS incidents
+    OPTIONAL MATCH (p)-[:HAS_DENSITY]->(d:AreaDensity)
+    WITH p, incidents, max(toFloat(d.density)) AS density
+    RETURN p.name AS place, incidents,
+           CASE WHEN density IS NULL OR density = 0 THEN null
+                ELSE round(1000.0 * incidents / (density * 8.14), 2) END AS perThousandResidents
+    ORDER BY perThousandResidents IS NULL, perThousandResidents ASC, incidents ASC
+    LIMIT $limit
 
 - name: TopCrimeStreets
   description: The streets with the most recorded incidents around your watched places, latest month — street names are anonymised localities, not addresses.

@@ -465,9 +465,22 @@ function askHome() {
   $('ask').querySelectorAll('.qbtn').forEach((btn) => btn.addEventListener('click', () => askRun(btn.dataset.view, btn.textContent)));
 }
 async function askRun(view, question) {
-  $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet">asking the sources…</p>`;
+  $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet" id="askwait">asking the sources…</p><div id="askprog" class="qmeta" style="margin-top:6px"></div>`;
+  // THE STANDARD PROGRESS FEED: the appliance streams one event per producer
+  // fetch at /api/v1/virtual-cypher/events (same-origin, cookie-authed) — so a
+  // 20-second fan-out narrates itself instead of freezing on "asking…".
+  let fetches = 0;
+  const es = new EventSource('/api/v1/virtual-cypher/events');
+  es.addEventListener('producer.fetch', (e) => {
+    fetches++;
+    let line = '';
+    try { const d = JSON.parse(e.data); line = d.producer || d.name || ''; } catch (err) { /* count still moves */ }
+    const el = $('askprog');
+    if (el) el.textContent = `${fetches} source call${fetches === 1 ? '' : 's'}${line ? ' · latest: ' + line : ''}`;
+  });
   try {
     const res = await gateway.view.run({ name: view });
+    es.close();
     const rows = res.rows || [];
     const back = '<button class="qbtn" id="askback" style="width:auto;margin-top:12px">← other questions</button>';
     if (!rows.length) {
@@ -481,6 +494,7 @@ async function askRun(view, question) {
     }
     $('askback').onclick = askHome;
   } catch (e) {
+    es.close();
     $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet">${String(e).slice(0, 160)}</p>`;
     setTimeout(askHome, 4000);
   }

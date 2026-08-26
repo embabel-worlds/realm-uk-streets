@@ -258,3 +258,21 @@
     category: category
     street: location.street.name
   cache: { kind: ttl, seconds: 21600 }
+
+# Census 2021 population density at the place's LSOA — the DENOMINATOR that
+# turns raw radius counts into comparable rates. Persons per square kilometre;
+# a census moves once a decade, the week cache is politeness.
+- name: densityLsoa
+  kind: remote
+  operation: censusDensity
+  records: "$.obs[*]"
+  keyArg: geography
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    measures: "20100"
+  project:
+    id: urn
+    density: obs_value.value
+    area: geography.description
+  cache: { kind: ttl, seconds: 604800 }

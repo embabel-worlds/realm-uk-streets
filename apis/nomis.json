@@ -3,37 +3,174 @@
   "info": {
     "title": "NOMIS (ONS official labour market and census statistics)",
     "version": "1.0.0",
-    "description": "Keyless API over ONS datasets. Geography is a GSS code — an LSOA (E01…), district (E09…/E06…/E07…/E08…), or ward — which postcodes.io hands back for any postcode, so the same query zooms from neighbourhood to borough by swapping the code."
+    "description": "Keyless API over ONS datasets. Geography is a GSS code \u2014 an LSOA (E01\u2026), district (E09\u2026/E06\u2026/E07\u2026/E08\u2026), or ward \u2014 which postcodes.io hands back for any postcode, so the same query zooms from neighbourhood to borough by swapping the code."
   },
-  "servers": [ { "url": "https://www.nomisweb.co.uk" } ],
+  "servers": [
+    {
+      "url": "https://www.nomisweb.co.uk"
+    }
+  ],
   "paths": {
     "/api/v01/dataset/NM_2041_1.data.json": {
       "get": {
         "operationId": "censusEthnicity",
         "summary": "Census 2021 ethnic-group composition of an area, as percentages",
-        "description": "`obs[]` has one row per group: `c2021_eth_20.description` (the group) and `obs_value.value` (percent of residents). Works at LSOA (E01…) for the immediate neighbourhood or district (E09…) for the borough.",
+        "description": "`obs[]` has one row per group: `c2021_eth_20.description` (the group) and `obs_value.value` (percent of residents). Works at LSOA (E01\u2026) for the immediate neighbourhood or district (E09\u2026) for the borough.",
         "parameters": [
-          { "name": "geography", "in": "query", "required": true, "schema": { "type": "string" }, "description": "GSS code, e.g. E01001641 (LSOA) or E09000011 (district)." },
-          { "name": "c2021_eth_20", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Group ids; `1001,1002,1003,1004,1005` = the five top-level groups." },
-          { "name": "measures", "in": "query", "required": false, "schema": { "type": "string" }, "description": "`20301` = percent, `20100` = count." }
+          {
+            "name": "geography",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GSS code, e.g. E01001641 (LSOA) or E09000011 (district)."
+          },
+          {
+            "name": "c2021_eth_20",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Group ids; `1001,1002,1003,1004,1005` = the five top-level groups."
+          },
+          {
+            "name": "measures",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`20301` = percent, `20100` = count."
+          }
         ],
-        "responses": { "200": { "description": "Observations under obs.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+        "responses": {
+          "200": {
+            "description": "Observations under obs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v01/dataset/NM_30_1.data.json": {
       "get": {
         "operationId": "medianPay",
         "summary": "Median gross annual pay for full-time workers in a district (ASHE)",
-        "description": "`obs[]` carries `obs_value.value` — median gross ANNUAL pay in GBP for full-time jobs held in the district. District-level only (E06/E07/E08/E09 codes); LSOA codes return nothing.",
+        "description": "`obs[]` carries `obs_value.value` \u2014 median gross ANNUAL pay in GBP for full-time jobs held in the district. District-level only (E06/E07/E08/E09 codes); LSOA codes return nothing.",
         "parameters": [
-          { "name": "geography", "in": "query", "required": true, "schema": { "type": "string" }, "description": "District GSS code, e.g. E09000011." },
-          { "name": "sex", "in": "query", "required": false, "schema": { "type": "string" }, "description": "`8` = full-time workers." },
-          { "name": "item", "in": "query", "required": false, "schema": { "type": "string" }, "description": "`2` = median." },
-          { "name": "pay", "in": "query", "required": false, "schema": { "type": "string" }, "description": "`7` = gross annual pay." },
-          { "name": "measures", "in": "query", "required": false, "schema": { "type": "string" }, "description": "`20100` = value." },
-          { "name": "time", "in": "query", "required": false, "schema": { "type": "string" }, "description": "`latest`." }
+          {
+            "name": "geography",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "District GSS code, e.g. E09000011."
+          },
+          {
+            "name": "sex",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`8` = full-time workers."
+          },
+          {
+            "name": "item",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`2` = median."
+          },
+          {
+            "name": "pay",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`7` = gross annual pay."
+          },
+          {
+            "name": "measures",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`20100` = value."
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`latest`."
+          }
         ],
-        "responses": { "200": { "description": "Observations under obs.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+        "responses": {
+          "200": {
+            "description": "Observations under obs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v01/dataset/NM_2026_1.data.json": {
+      "get": {
+        "operationId": "censusDensity",
+        "summary": "Census 2021 population density of an area (persons per square kilometre)",
+        "description": "`obs[]` carries `obs_value.value` \u2014 usual residents per square kilometre (TS006). Works at LSOA (E01\u2026) and district codes alike.",
+        "parameters": [
+          {
+            "name": "geography",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GSS code, e.g. E01001641."
+          },
+          {
+            "name": "measures",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`20100` = value."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Observations under obs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

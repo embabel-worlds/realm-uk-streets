@@ -314,3 +314,27 @@
     month: "The month the incident belongs to, YYYY-MM — the period stamp."
     category: "Crime category slug."
     street: "Anonymised street-level locality."
+
+
+# The neighbourhood's population density — the honest denominator for radius
+# counts. A raw "crimes within a mile" rewards emptiness: 300 incidents in a
+# packed city centre is SAFER per person than 300 on a quiet coast. The rate
+# assumes the LSOA's density holds across the mile — say so when presenting.
+- name: AreaDensity
+  description: "Census 2021 population density (persons per square km) of a watched place's immediate neighbourhood (LSOA). Reached via HAS_DENSITY. The denominator for crime rates: estimated residents within the 1-mile circle = density x 8.14 km². Absent at outcode level."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_DENSITY
+      keyField: lsoa
+      recordKeyField: key
+      producer: densityLsoa
+      maxAnchors: 15
+      description: "The neighbourhood's density — multiply by 8.14 (the 1-mile circle's area in km²) for estimated residents in crime-radius comparisons."
+  properties:
+    id:
+      description: "NOMIS observation URN. Identity."
+      metadata:
+        identity: "true"
+    key: "The LSOA GSS code — the join link."
+    density: "Usual residents per square kilometre, Census 2021."
+    area: "The LSOA name."

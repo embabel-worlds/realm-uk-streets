@@ -63,6 +63,23 @@ wrong place.
 
 ## Rules that keep answers honest
 
+- **Slow fan-outs must narrate, never freeze.** A whole-watchlist question fires
+  one producer call per place per source and can take tens of seconds cold.
+  The STANDARD approach: say what is fanning out BEFORE running ("checking N
+  places against the crime register…"); in an app, subscribe to the live event
+  stream — `new EventSource('/api/v1/virtual-cypher/events')`, one
+  `producer.fetch` event per source call — and show the count; for anything
+  deep (a `periods:` history, an open sweep) start a FILL
+  (`POST /api/v1/admin/kg/fills`) and report its ticking progress instead of
+  blocking anyone.
+- **Compare crime as a RATE, never a raw radius count.** Incidents-within-a-mile
+  rewards emptiness. The realm's denominator: census density (HAS_DENSITY,
+  persons/km²) x 8.14 km² (the 1-mile circle) estimates residents in the
+  radius; `SafestPlace` already ranks by incidents per 1,000 estimated
+  residents. State the assumption when presenting — the neighbourhood's
+  density is assumed to hold across the mile — and fall back to raw counts
+  (saying so) where density is absent (outcode-level places, Scotland).
+
 - **Every saved view MUST be tested with its DEFAULT parameters** against a
   world with a realistic number of watched places before it ships or changes —
   defaults are what the ask layer and the app actually run. A view that only
