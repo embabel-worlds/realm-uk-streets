@@ -57,7 +57,10 @@
       description: "Parliamentary constituency name — the key the seat join uses."
     latlon:
       type: string
-      description: "The pair as one string, 'lat,lon' — the key for joins that embed coordinates inside a query template (schools)."
+      description: "The pair as one string, 'lat,lon' — a convenience key for query templates."
+    wkt:
+      type: string
+      description: "The pair as a WKT point, 'Point(lon lat)' — the key SPARQL radius joins centre on (schools)."
 
 # A police-recorded crime near a watched place — VIRTUAL, one month deep.
 #   Which of my places is safest?
@@ -273,7 +276,7 @@
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_SCHOOL
-      keyField: latlon
+      keyField: wkt
       recordKeyField: key
       producer: schoolsNear
       maxAnchors: 8
@@ -283,7 +286,7 @@
       description: "Wikidata entity id (Q…). Identity."
       metadata:
         identity: "true"
-    key: "The lat,lon pair searched — the join link."
+    key: "The WKT point searched — the join link."
     name: "The school's English label on Wikidata."
     schoolLat: "The school's latitude."
     schoolLon: "The school's longitude."

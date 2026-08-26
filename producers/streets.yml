@@ -203,33 +203,35 @@
     winningParty: winningParty.name
   cache: { kind: ttl, seconds: 604800 }
 
-# Schools within ~1.5 km, from Wikidata — CC0, keyless, and an endpoint run to
+# Schools within 1.5 km, from Wikidata — CC0, keyless, and an endpoint run to
 # be queried (the OSM Overpass instances shed load with 406/500s midway through
 # a batch, which is how this producer learned to stop calling them). Keyed on
-# the place's stored `latlon` ("lat,lon"); the query rebuilds the WKT point and
-# radius-searches entities that are schools (Q3914 and subclasses).
+# the place's stored WKT point, ONE key per call, because {{keys}} lands
+# TWICE in the template: once as the echoed ?key and once — with the datatype
+# appended — as the around-service's centre. A VALUES batch with a VARIABLE
+# centre makes the optimizer scan every located entity and time out; a literal
+# centre answers in under a second.
 - name: schoolsNear
   kind: sparql
   endpoint: "https://query.wikidata.org/sparql"
   query: |
-    PREFIX geo: <http://www.opengis.net/ont/geosparql#>
     SELECT ?key (STRAFTER(STR(?school), "entity/") AS ?id) ?name ?schoolLat ?schoolLon
     WHERE {
-      VALUES ?key { {{keys}} }
-      BIND(STRDT(CONCAT("Point(", STRAFTER(?key, ","), " ", STRBEFORE(?key, ","), ")"), geo:wktLiteral) AS ?center)
+      BIND({{keys}} AS ?key)
       SERVICE wikibase:around {
         ?school wdt:P625 ?coord .
-        bd:serviceParam wikibase:center ?center ;
+        bd:serviceParam wikibase:center {{keys}}^^geo:wktLiteral ;
                         wikibase:radius "1.5" .
       }
-      ?school wdt:P31/wdt:P279* wd:Q3914 .
+      VALUES ?cls { wd:Q3914 wd:Q9842 wd:Q159334 wd:Q149566 wd:Q23002054 wd:Q2143781 }
+      ?school wdt:P31 ?cls .
       OPTIONAL { ?school rdfs:label ?name . FILTER(LANG(?name) = "en") }
       BIND(geof:latitude(?coord) AS ?schoolLat)
       BIND(geof:longitude(?coord) AS ?schoolLon)
     }
   keyVar: key
   fetch:
-    maxKeysPerCall: 5
+    maxKeysPerCall: 1
     timeoutSeconds: 60
     userAgent: "EmbabelRealmUkStreets/0.1 (https://github.com/embabel-worlds/realm-uk-streets)"
   cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 86400 }
