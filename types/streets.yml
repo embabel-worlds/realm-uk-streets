@@ -269,7 +269,7 @@
 # ratings: Ofsted publishes judgements as downloads, not an API, so this realm
 # reports what is THERE and never grades it.
 - name: School
-  description: "A school within 1.5 km of a watched place, from OpenStreetMap. Reached via HAS_SCHOOL. Coordinates arrive as lat/lon for point features and centerLat/centerLon for drawn outlines — coalesce() when mapping. No ratings: OSM knows where schools are, not how they are judged."
+  description: "A school within ~1.5 km of a watched place, from Wikidata (Q3914 and subclasses). Reached via HAS_SCHOOL. Coverage tracks Wikidata: real schools can be absent, so a low count means poorly-mapped, not school-less. No ratings: Ofsted publishes judgements as downloads, not an API."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_SCHOOL
@@ -280,13 +280,10 @@
       description: "Schools within 1.5 km — for 'how many schools are near X', count; unnamed OSM entries are real but anonymous, so count all and name the named."
   properties:
     id:
-      description: "OSM element id. Identity."
+      description: "Wikidata entity id (Q…). Identity."
       metadata:
         identity: "true"
     key: "The lat,lon pair searched — the join link."
-    name: "The school's name, when OSM has it — absent entries are still schools."
-    kind: "Always 'school' today; kept so nurseries/colleges can join later."
-    schoolLat: "Latitude for point features."
-    schoolLon: "Longitude for point features."
-    centerLat: "Centre latitude for outline features."
-    centerLon: "Centre longitude for outline features."
+    name: "The school's English label on Wikidata."
+    schoolLat: "The school's latitude."
+    schoolLon: "The school's longitude."

@@ -203,28 +203,33 @@
     winningParty: winningParty.name
   cache: { kind: ttl, seconds: 604800 }
 
-# Schools within 1.5 km, from OpenStreetMap. Keyed on the place's stored
-# `latlon` ("lat,lon") because the Overpass query embeds the pair INSIDE one
-# query string — a template substitution, which a composite key's separator
-# would break. The week-long cache is politeness to a shared public instance.
+# Schools within ~1.5 km, from Wikidata — CC0, keyless, and an endpoint run to
+# be queried (the OSM Overpass instances shed load with 406/500s midway through
+# a batch, which is how this producer learned to stop calling them). Keyed on
+# the place's stored `latlon` ("lat,lon"); the query rebuilds the WKT point and
+# radius-searches entities that are schools (Q3914 and subclasses).
 - name: schoolsNear
-  kind: remote
-  operation: overpassQuery
-  records: "$.elements[*]"
-  keyTemplate: "{key}"
-  echoKeyAs: key
-  maxKeysPerCall: 1
-  # The public instance rejects parallel bursts — one call per second, retried on
-  # a 429, is the difference between five places and two.
-  cost: { rate: "1/second" }
-  args:
-    data: "[out:json];(node(around:1550,{keys})[amenity=school];way(around:1550,{keys})[amenity=school];);out center 40;"
-  project:
-    id: id
-    name: tags.name
-    kind: tags.amenity
-    schoolLat: lat
-    schoolLon: lon
-    centerLat: center.lat
-    centerLon: center.lon
-  cache: { kind: ttl, seconds: 604800 }
+  kind: sparql
+  endpoint: "https://query.wikidata.org/sparql"
+  query: |
+    PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+    SELECT ?key (STRAFTER(STR(?school), "entity/") AS ?id) ?name ?schoolLat ?schoolLon
+    WHERE {
+      VALUES ?key { {{keys}} }
+      BIND(STRDT(CONCAT("Point(", STRAFTER(?key, ","), " ", STRBEFORE(?key, ","), ")"), geo:wktLiteral) AS ?center)
+      SERVICE wikibase:around {
+        ?school wdt:P625 ?coord .
+        bd:serviceParam wikibase:center ?center ;
+                        wikibase:radius "1.5" .
+      }
+      ?school wdt:P31/wdt:P279* wd:Q3914 .
+      OPTIONAL { ?school rdfs:label ?name . FILTER(LANG(?name) = "en") }
+      BIND(geof:latitude(?coord) AS ?schoolLat)
+      BIND(geof:longitude(?coord) AS ?schoolLon)
+    }
+  keyVar: key
+  fetch:
+    maxKeysPerCall: 5
+    timeoutSeconds: 60
+    userAgent: "EmbabelRealmUkStreets/0.1 (https://github.com/embabel-worlds/realm-uk-streets)"
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 86400 }
