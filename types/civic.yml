@@ -32,8 +32,11 @@
       keyField: id
       recordKeyField: petitionId
       producer: petitionSignatures
-      maxAnchors: 8
-      description: "The petition's 650-seat signature split — LIMIT the petitions before this hop."
+      # The feed page is 25 petitions and the planner binds the page, not the
+      # view's downstream LIMIT — so the cap declares the page: 25 calls,
+      # ~16k transient rows, one hour of cache. The real cost, stated.
+      maxAnchors: 25
+      description: "The petition's 650-seat signature split — one call per petition, 650 rows each; the whole feed page is the unit of cost."
   properties:
     petitionId: "The petition it belongs to — the join link."
     onsCode: "ONS constituency code (E14…) — equals UkPlace.constituencyCode."
