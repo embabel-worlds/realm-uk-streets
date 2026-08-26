@@ -198,6 +198,5 @@
   description: Schools within 1.5 km of each watched place, from OpenStreetMap — counts plus the named ones. Where schools are, not how they are rated.
   cypher: |
     MATCH (p:UkPlace)-[:HAS_SCHOOL]->(s:School)
-    WITH p, count(s) AS schools, [x IN collect(s.name) WHERE x IS NOT NULL][..8] AS named
-    RETURN p.name AS place, schools, named
+    RETURN p.name AS place, count(s) AS schools, collect(s.name)[0..8] AS sample
     ORDER BY schools DESC

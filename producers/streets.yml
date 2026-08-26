@@ -214,8 +214,11 @@
   keyTemplate: "{key}"
   echoKeyAs: key
   maxKeysPerCall: 1
+  # The public instance rejects parallel bursts — one call per second, retried on
+  # a 429, is the difference between five places and two.
+  cost: { rate: "1/second" }
   args:
-    data: "[out:json];(node(around:1500,{keys})[amenity=school];way(around:1500,{keys})[amenity=school];);out center 40;"
+    data: "[out:json];(node(around:1600,{keys})[amenity=school];way(around:1600,{keys})[amenity=school];);out center 40;"
   project:
     id: id
     name: tags.name
