@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Street Lens</title>
+<link rel="stylesheet" href="/api/v1/apps-runtime/v1/theme.css">
+<script src="/api/v1/apps-runtime/v1/embabel.js"></script>
+<script src="/api/v1/apps-runtime/gateway.js"></script>
+<script src="uk-path.js"></script>
+<style>
+  :root {
+    --sl-bg: #0c0d10; --sl-panel: #131519; --sl-line: #26292f; --sl-ink: #eceae4;
+    --sl-dim: #8d93a1; --sl-accent: #e0b64f; --sl-red: #e05c5c; --sl-green: #58c98a;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--sl-bg); color: var(--sl-ink); font-family: Georgia, 'Times New Roman', serif;
+         min-height: 100vh; padding: 26px 22px; }
+  .frame { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: 400px 1fr; gap: 22px; }
+  @media (max-width: 900px) { .frame { grid-template-columns: 1fr; } }
+  h1 { font-size: 27px; letter-spacing: 0.16em; font-weight: 700; }
+  h1 span { color: var(--sl-accent); }
+  .strap { color: var(--sl-dim); font-size: 13px; margin: 3px 0 16px; font-style: italic; }
+  .panel { background: var(--sl-panel); border: 1px solid var(--sl-line); border-radius: 10px; padding: 16px; }
+  .searchrow { display: flex; gap: 8px; margin-bottom: 12px; }
+  .searchrow input { flex: 1; background: #0a0b0e; border: 1px solid var(--sl-line); border-radius: 6px;
+    color: var(--sl-ink); padding: 9px 12px; font: inherit; font-size: 14px; }
+  .searchrow input::placeholder { color: #565c68; }
+  .searchrow button, .del { background: var(--sl-accent); color: #14100a; border: none; border-radius: 6px;
+    padding: 9px 14px; font-family: inherit; font-weight: 700; cursor: pointer; font-size: 13px; }
+  .status { min-height: 18px; font-size: 12px; color: var(--sl-dim); margin-bottom: 8px; font-family: ui-monospace, monospace; }
+  .status.err { color: var(--sl-red); }
+  svg.map { width: 100%; height: auto; display: block; }
+  .land { fill: #1a1e26; stroke: #39404d; stroke-width: 0.7; }
+  .land.dim { fill: #14161c; stroke: #262b34; }
+  .dot { fill: var(--sl-accent); stroke: #14100a; stroke-width: 0.8; cursor: pointer; transition: r 0.15s; }
+  .dot:hover { r: 7; }
+  .dot.on { fill: #fff; stroke: var(--sl-accent); stroke-width: 2.2; }
+  .dotlabel { font-size: 8.5px; fill: var(--sl-dim); font-family: ui-monospace, monospace; pointer-events: none; }
+  .placelist { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .placechip { border: 1px solid var(--sl-line); border-radius: 999px; padding: 4px 12px; cursor: pointer;
+    font-size: 12.5px; color: var(--sl-dim); background: none; font-family: inherit; }
+  .placechip.on { border-color: var(--sl-accent); color: var(--sl-ink); }
+  .lvl { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; margin-left: 5px; }
+  /* dossier */
+  .dhead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .dhead h2 { font-size: 24px; }
+  .dhead .del { background: none; border: 1px solid var(--sl-line); color: var(--sl-dim); font-weight: 400; padding: 4px 10px; }
+  .dsub { color: var(--sl-dim); font-size: 13px; margin-bottom: 14px; }
+  .mp { border-left: 6px solid var(--sl-line); padding: 10px 14px; margin-bottom: 14px; background: #0e1013; border-radius: 0 8px 8px 0; }
+  .mp b { font-size: 16px; }
+  .mp .party { font-size: 13px; }
+  .mp .margin { color: var(--sl-dim); font-size: 12.5px; margin-top: 2px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .stat { background: #0e1013; border: 1px solid var(--sl-line); border-radius: 8px; padding: 10px 12px; }
+  .stat i { font-style: normal; display: block; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-dim); }
+  .stat b { font-size: 20px; }
+  .stat small { color: var(--sl-dim); font-size: 11px; display: block; }
+  .up { color: var(--sl-green); } .down { color: var(--sl-red); }
+  section { border-top: 1px solid var(--sl-line); padding-top: 12px; margin-top: 12px; }
+  section h3 { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sl-dim); margin-bottom: 10px; font-family: ui-monospace, monospace; }
+  .bar { display: grid; grid-template-columns: 170px 1fr 46px; gap: 8px; align-items: center; font-size: 12.5px; margin-bottom: 5px; }
+  .bar .t { color: var(--sl-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar .v { height: 11px; border-radius: 3px; background: var(--sl-accent); min-width: 2px; }
+  .bar .n { text-align: right; font-family: ui-monospace, monospace; color: var(--sl-ink); }
+  .eth { display: flex; height: 20px; border-radius: 5px; overflow: hidden; margin-bottom: 8px; }
+  .ethkey { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--sl-dim); }
+  .ethkey i { font-style: normal; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  td { padding: 4px 8px 4px 0; border-bottom: 1px dotted #23262c; color: var(--sl-dim); }
+  td b { color: var(--sl-ink); font-family: ui-monospace, monospace; }
+  .quiet { color: var(--sl-dim); font-size: 12.5px; font-style: italic; }
+  .foot { color: #565c68; font-size: 10.5px; margin-top: 16px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div>
+    <h1>STREET <span>LENS</span></h1>
+    <p class="strap">crime · prices · income · census · schools · the seat itself — official sources, joined at a place</p>
+    <div class="panel">
+      <div class="searchrow">
+        <input id="q" placeholder="SE10 9JY · SE10 · or a place name" autocomplete="off">
+        <button id="add">Watch</button>
+      </div>
+      <div class="status" id="status"></div>
+      <svg class="map" viewBox="0 0 348 529" id="map" role="img" aria-label="Map of Britain and Ireland with watched places"></svg>
+      <div class="placelist" id="chips"></div>
+    </div>
+    <p class="foot">Sources: data.police.uk · HM Land Registry (PPD + UKHPI) · ONS via NOMIS (Census 2021, ASHE) ·
+      postcodes.io · UK Parliament · FSA · Environment Agency · Wikidata. Street-level points are anonymised by the
+      police by design. Outline: Natural Earth 50m, vendored.</p>
+  </div>
+  <div class="panel" id="dossier"><p class="quiet">Watch a place — full postcode for street level, outcode (SE10) for the district view — then click its dot.</p></div>
+</div>
+
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const X = (lon) => (Number(lon) + 11) * 26.38466;
+const Y = (lat) => (61.2 - Number(lat)) * 46;
+const ETH_COLOURS = { 'Asian': '#e0b64f', 'Black': '#7d9df0', 'Mixed': '#58c98a', 'White': '#b9beca', 'Other': '#e05c5c' };
+const money = (n) => n == null || isNaN(+n) ? '—' : '£' + Math.round(+n).toLocaleString('en-GB');
+let places = [], selected = null, ghost = null;
+
+function status(text, err) { const s = $('status'); s.textContent = text || ''; s.className = 'status' + (err ? ' err' : ''); }
+
+/* ── the map ── */
+function drawMap() {
+  const dots = places.map((p, i) =>
+    `<circle class="dot${p === selected ? ' on' : ''}" r="${p === selected ? 6.5 : 5}"
+       cx="${X(p.lon).toFixed(1)}" cy="${Y(p.lat).toFixed(1)}" data-i="${i}">
+       <title>${p.name}</title></circle>` +
+    (p === selected ? `<text class="dotlabel" x="${(X(p.lon) + 8).toFixed(1)}" y="${(Y(p.lat) + 3).toFixed(1)}">${p.name}</text>` : '')).join('');
+  const ghostMark = ghost
+    ? `<circle class="dot ghost" r="6" cx="${X(ghost.lon).toFixed(1)}" cy="${Y(ghost.lat).toFixed(1)}"
+         style="fill:none;stroke:var(--sl-accent);stroke-width:1.6;stroke-dasharray:3 2"></circle>
+       <text class="dotlabel" x="${(X(ghost.lon) + 9).toFixed(1)}" y="${(Y(ghost.lat) + 3).toFixed(1)}">${ghost.name}</text>`
+    : '';
+  $('map').innerHTML =
+    `<path class="land dim" d="${window.IRELAND_PATH || ''}"></path>` +
+    `<path class="land" d="${window.UK_PATH || ''}"></path>` + dots + ghostMark;
+  $('map').querySelectorAll('.dot').forEach((d) =>
+    d.addEventListener('click', () => select(places[+d.dataset.i])));
+  $('chips').innerHTML = places.map((p, i) =>
+    `<button class="placechip${p === selected ? ' on' : ''}" data-i="${i}">${p.name}<span class="lvl">${p.level || 'postcode'}</span></button>`).join('');
+  $('chips').querySelectorAll('.placechip').forEach((c) =>
+    c.addEventListener('click', () => select(places[+c.dataset.i])));
+}
+
+async function loadPlaces() {
+  const res = await gateway.kg.query({ cypher:
+    'MATCH (p:UkPlace) RETURN p.id AS id, p.name AS name, p.postcode AS postcode, p.level AS level, ' +
+    'p.latitude AS lat, p.longitude AS lon, p.district AS district, p.districtCode AS districtCode, ' +
+    'p.districtSlug AS districtSlug, p.lsoa AS lsoa, p.lsoaName AS lsoaName, p.constituency AS constituency ORDER BY p.name' });
+  places = res.rows || [];
+  drawMap();
+}
+
+/* ── watching a place: the two-level search ── */
+const OUTCODE = /^[A-Za-z]{1,2}\d[A-Za-z\d]?$/;
+const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+async function watch() {
+  const q = $('q').value.trim();
+  if (!q) return;
+  status('resolving ' + q + '…');
+  try {
+    let data;
+    if (OUTCODE.test(q)) {
+      const oc = (await gateway.postcodesIo.lookupOutcode({ outcode: q })).result;
+      const near = (await gateway.postcodesIo.reverseGeocode({ lat: String(oc.latitude), lon: String(oc.longitude), radius: '2000', limit: '1' })).result;
+      const full = near && near[0] ? (await gateway.postcodesIo.lookupPostcode({ postcode: near[0].postcode })).result : null;
+      data = { name: q.toUpperCase(), level: 'outcode', postcode: q.toUpperCase(), outcode: q.toUpperCase(),
+        latitude: oc.latitude, longitude: oc.longitude,
+        latlon: oc.latitude + ',' + oc.longitude, wkt: 'Point(' + oc.longitude + ' ' + oc.latitude + ')',
+        district: (oc.admin_district || [])[0] || (full && full.admin_district),
+        districtCode: full && full.codes.admin_district, districtSlug: full && slugify(full.admin_district),
+        constituency: full && full.parliamentary_constituency, region: full && (full.region || full.country) };
+    } else {
+      let pc = q;
+      if (!/\d/.test(q)) { // a name: find the place, then its nearest postcode
+        // OS Open Names ranks alphabetically-ish, so bare "York" first matches a
+        // Lancashire hamlet. Prefer the most significant settlement type.
+        const hits = (await gateway.postcodesIo.searchPlaces({ q, limit: '10' })).result || [];
+        const weight = { City: 0, Town: 1, Suburban_Area: 2, Village: 3 };
+        hits.sort((a, b) => (weight[a.local_type] ?? 9) - (weight[b.local_type] ?? 9));
+        const hit = hits[0];
+        if (!hit) return status('no UK place called "' + q + '"', true);
+        const near = (await gateway.postcodesIo.reverseGeocode({ lat: String(hit.latitude), lon: String(hit.longitude), radius: '2000', limit: '1' })).result;
+        if (!near || !near[0]) return status('found ' + hit.name_1 + ' but no postcode near it', true);
+        pc = near[0].postcode;
+      }
+      const r = (await gateway.postcodesIo.lookupPostcode({ postcode: pc })).result;
+      data = { name: /\d/.test(q) ? r.postcode : q, level: 'postcode', postcode: r.postcode.toUpperCase(),
+        outcode: r.outcode, latitude: r.latitude, longitude: r.longitude,
+        latlon: r.latitude + ',' + r.longitude, wkt: 'Point(' + r.longitude + ' ' + r.latitude + ')',
+        district: r.admin_district, districtCode: r.codes.admin_district, districtSlug: slugify(r.admin_district),
+        lsoa: r.codes.lsoa, lsoaName: r.lsoa, ward: r.admin_ward,
+        constituency: r.parliamentary_constituency, region: r.region || r.country };
+    }
+    await gateway.repository.createEntry({ type: 'UkPlace', data });
+    status('watching ' + data.name);
+    $('q').value = '';
+    await loadPlaces();
+    const mine = places.find((p) => p.name === data.name);
+    if (mine) select(mine);
+  } catch (e) { status(String(e).slice(0, 120), true); }
+}
+
+/* ── the dossier ── */
+function section(title, body) { return `<section><h3>${title}</h3>${body}</section>`; }
+function bars(rows, colour) {
+  const max = Math.max(...rows.map((r) => r.n), 1);
+  return rows.map((r) =>
+    `<div class="bar"><span class="t" title="${r.t}">${r.t}</span>
+     <span><span class="v" style="width:${(100 * r.n / max).toFixed(1)}%;${colour ? 'background:' + colour : ''}"></span></span>
+     <span class="n">${r.n}</span></div>`).join('');
+}
+
+async function select(p) {
+  selected = p; drawMap();
+  const d = $('dossier');
+  d.innerHTML = `<div class="dhead"><h2>${p.name}</h2>
+      <span class="dsub">${p.district || ''} · ${p.level || 'postcode'}${p.lsoaName ? ' · ' + p.lsoaName : ''}</span>
+      <button class="del" id="unwatch">${p.ephemeral ? 'Watch' : 'Unwatch'}</button></div>
+    <div class="mp" id="mp">…</div><div class="cards" id="cards"></div>
+    <div id="crime"></div><div id="eth"></div><div id="sales"></div><div id="schools"></div><div id="food"></div><div id="floods"></div>`;
+  $('unwatch').onclick = async () => {
+    if (p.ephemeral) {
+      const r = p.full;
+      await gateway.repository.createEntry({ type: 'UkPlace', data: {
+        name: p.name, level: 'postcode', postcode: r.postcode.toUpperCase(),
+        latitude: r.latitude, longitude: r.longitude,
+        latlon: r.latitude + ',' + r.longitude, wkt: 'Point(' + r.longitude + ' ' + r.latitude + ')',
+        outcode: r.outcode, district: r.admin_district, districtCode: r.codes.admin_district,
+        districtSlug: slugify(r.admin_district), lsoa: r.codes.lsoa, lsoaName: r.lsoa,
+        ward: r.admin_ward, constituency: r.parliamentary_constituency, region: r.region || r.country,
+      }});
+      ghost = null; status('watching ' + p.name);
+      await loadPlaces();
+      const mine = places.find((x) => x.postcode === r.postcode.toUpperCase());
+      if (mine) select(mine);
+      return;
+    }
+    await gateway.repository.deleteEntry({ type: 'UkPlace', id: p.id });
+    selected = null; $('dossier').innerHTML = '<p class="quiet">Unwatched.</p>'; loadPlaces();
+  };
+  const lat = String(p.lat), lon = String(p.lon);
+
+  // The seat: search → result, party colour straight from Parliament.
+  (async () => {
+    try {
+      if (!p.constituency) throw 0;
+      const c = ((await gateway.parliament.constituencySearch({ searchText: p.constituency, take: '1' })).items || [])[0].value;
+      const m = c.currentRepresentation.member.value;
+      let margin = '';
+      try {
+        const r = (await gateway.parliament.electionResult({ id: String(c.id) })).value;
+        margin = `<div class="margin">${r.result} · majority ${(+r.majority).toLocaleString('en-GB')} · turnout ${Math.round(100 * r.turnout / r.electorate)}%</div>`;
+      } catch (e) { /* margin optional */ }
+      $('mp').style.borderLeftColor = '#' + (m.latestParty.backgroundColour || '444');
+      $('mp').innerHTML = `<b>${m.nameDisplayAs}</b> <span class="party">· ${m.latestParty.name}</span>
+        <div class="margin">${c.name}</div>${margin}`;
+    } catch (e) { $('mp').innerHTML = '<span class="quiet">seat unknown for this level</span>'; }
+  })();
+
+  // Headline stats: pay (ONS) and the district's house-price index.
+  (async () => {
+    const cards = [];
+    try {
+      if (!p.districtCode) throw 0;
+      const pay = (await gateway.nomis.medianPay({ geography: p.districtCode, sex: '8', item: '2', pay: '7', measures: '20100', time: 'latest' })).obs[0];
+      cards.push(`<div class="stat"><i>median pay</i><b>${money(pay.obs_value.value)}</b><small>full-time, ${p.district}</small></div>`);
+    } catch (e) {}
+    try {
+      if (!p.districtSlug) throw 0;
+      const months = ((await gateway.landRegistry.ukhpiRegion({ region: p.districtSlug, _pageSize: '13', _sort: '-refMonth', _view: 'all' })).result || {}).items || [];
+      if (months.length) {
+        const now = months[0], ago = months[months.length - 1];
+        const chg = 100 * (now.averagePrice - ago.averagePrice) / ago.averagePrice;
+        cards.push(`<div class="stat"><i>avg house price</i><b>${money(now.averagePrice)}</b>
+          <small class="${chg < 0 ? 'down' : 'up'}">${chg >= 0 ? '▲' : '▼'} ${Math.abs(chg).toFixed(1)}% on a year ago</small></div>`);
+      }
+    } catch (e) {}
+    $('cards').innerHTML = cards.join('');
+  })();
+
+  // Crime: the month's incidents within a mile, by category.
+  (async () => {
+    try {
+      const cs = await gateway.policeUk.streetCrimes({ lat, lng: lon });
+      if (!cs.length) { $('crime').innerHTML = section('crime · last month · 1 mile', '<p class="quiet">little or nothing recorded — Scotland and Greater Manchester do not publish street-level data here</p>'); return; }
+      const by = {};
+      for (const c of cs) by[c.category] = (by[c.category] || 0) + 1;
+      const rows = Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([t, n]) => ({ t: t.replace(/-/g, ' '), n }));
+      $('crime').innerHTML = section(`crime · ${cs[0].month} · 1 mile · ${cs.length} recorded`, bars(rows, '#e05c5c') + (cs.length < 30 ? '<p class="quiet">low counts can be coverage: Scotland and Greater Manchester publish nothing street-level here</p>' : ''));
+    } catch (e) { $('crime').innerHTML = section('crime', '<p class="quiet">unavailable</p>'); }
+  })();
+
+  // Census: the LSOA's ethnic composition (postcode level only).
+  (async () => {
+    try {
+      if (!p.lsoa) { $('eth').innerHTML = ''; return; }
+      const obs = (await gateway.nomis.censusEthnicity({ geography: p.lsoa, c2021_eth_20: '1001,1002,1003,1004,1005', measures: '20301' })).obs;
+      const segs = obs.map((o) => { const label = o.c2021_eth_20.description.split(',')[0];
+        return { label, pct: +o.obs_value.value, colour: ETH_COLOURS[label.split(' ')[0]] || '#888' }; });
+      $('eth').innerHTML = section('neighbourhood · census 2021',
+        `<div class="eth">${segs.map((s) => `<span style="width:${s.pct}%;background:${s.colour}" title="${s.label} ${s.pct}%"></span>`).join('')}</div>
+         <div class="ethkey">${segs.map((s) => `<span><i style="background:${s.colour}"></i>${s.label} ${s.pct}%</span>`).join('')}</div>`);
+    } catch (e) { $('eth').innerHTML = ''; }
+  })();
+
+  // What homes actually sold for at this postcode (register, not estimates).
+  (async () => {
+    try {
+      if (p.level === 'outcode') { $('sales').innerHTML = ''; return; }
+      const items = ((await gateway.landRegistry.pricesPaid({ 'propertyAddress.postcode': p.postcode, _pageSize: '6', _sort: '-transactionDate' })).result || {}).items || [];
+      if (!items.length) { $('sales').innerHTML = section('sales at this postcode', '<p class="quiet">no registered sales — commercial or newly-built postcodes are often empty</p>'); return; }
+      $('sales').innerHTML = section('sales at this postcode · land registry',
+        '<table>' + items.map((s) => `<tr><td><b>${money(s.pricePaid)}</b></td>
+          <td>${(s.propertyAddress.paon || '')} ${(s.propertyAddress.street || '').toLowerCase()}</td>
+          <td>${(s.propertyType.prefLabel[0] || {})._value || ''}</td><td>${s.transactionDate}</td></tr>`).join('') + '</table>');
+    } catch (e) { $('sales').innerHTML = ''; }
+  })();
+
+  // Schools — read THROUGH THE GRAPH, so the virtual join does the work.
+  (async () => {
+    try {
+      if (p.ephemeral) { $('schools').innerHTML = section('schools', '<p class="quiet">watch this place to index its schools</p>'); return; }
+      const r = await gateway.kg.query({ cypher:
+        `MATCH (p:UkPlace {id:'${p.id}'})-[:HAS_SCHOOL]->(s:School) RETURN s.name AS name ORDER BY name` });
+      const names = (r.rows || []).map((x) => x.name).filter(Boolean);
+      $('schools').innerHTML = section(`schools within 1.5 km · ${(r.rows || []).length}`,
+        names.length ? `<p style="font-size:12.5px;line-height:1.8;color:var(--sl-dim)">${names.slice(0, 10).join(' · ')}</p>`
+                     : '<p class="quiet">none mapped — coverage tracks Wikidata, not reality</p>');
+    } catch (e) { $('schools').innerHTML = ''; }
+  })();
+
+  // Food hygiene: the worst-rated within a mile.
+  (async () => {
+    try {
+      const es = (await gateway.fsa.foodPlaces({ latitude: lat, longitude: lon, maxDistanceLimit: '1', pageSize: '40' })).establishments || [];
+      const rated = es.filter((e) => /^\d$/.test(e.RatingValue));
+      const bad = rated.filter((e) => +e.RatingValue <= 2);
+      const body = bad.length
+        ? '<table>' + bad.slice(0, 6).map((e) => `<tr><td><b>${e.RatingValue}★</b></td><td>${e.BusinessName}</td><td>${e.BusinessType.split('/')[0]}</td></tr>`).join('') + '</table>'
+        : `<p class="quiet">${rated.length} rated businesses nearby, none below 3★</p>`;
+      $('food').innerHTML = section('food hygiene · 1 mile', body);
+    } catch (e) { $('food').innerHTML = ''; }
+  })();
+
+  // Floods: live, and usually — rightly — empty.
+  (async () => {
+    try {
+      const items = (await gateway.eaFloods.floodWarnings({ lat, long: lon, dist: '15' })).items || [];
+      $('floods').innerHTML = items.length
+        ? section('flood alerts · live', '<table>' + items.map((f) => `<tr><td><b>${f.severity}</b></td><td>${f.description}</td></tr>`).join('') + '</table>')
+        : '';
+    } catch (e) { $('floods').innerHTML = ''; }
+  })();
+}
+
+$('map').addEventListener('click', async (e) => {
+  if (e.target.closest('.dot')) return; // dots keep their own handler
+  const rect = $('map').getBoundingClientRect();
+  const lon = ((e.clientX - rect.left) / rect.width * 348) / 26.38466 - 11;
+  const lat = 61.2 - ((e.clientY - rect.top) / rect.height * 529) / 46;
+  status('resolving ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + '…');
+  try {
+    // A map pixel is kilometres, and reverse geocoding DEFAULTS to a 100 m
+    // radius — so ask for the 2 km maximum, and when even that misses (remote
+    // uplands) fall back to the nearest OUTCODE: everywhere on land resolves.
+    const near = (await gateway.postcodesIo.reverseGeocode({ lat: lat.toFixed(5), lon: lon.toFixed(5), radius: '2000', limit: '1' })).result;
+    let r;
+    if (near && near[0]) {
+      r = (await gateway.postcodesIo.lookupPostcode({ postcode: near[0].postcode })).result;
+    } else {
+      const oc = (await gateway.postcodesIo.reverseOutcode({ lat: lat.toFixed(5), lon: lon.toFixed(5), limit: '1' })).result;
+      if (!oc || !oc[0]) return status('nothing near that point — that really is the sea', true);
+      const near2 = (await gateway.postcodesIo.reverseGeocode({ lat: String(oc[0].latitude), lon: String(oc[0].longitude), radius: '2000', limit: '1' })).result;
+      if (!near2 || !near2[0]) return status('nearest area is ' + oc[0].outcode + ' but no postcode resolved — try the search box', true);
+      r = (await gateway.postcodesIo.lookupPostcode({ postcode: near2[0].postcode })).result;
+    }
+    const ep = { name: r.admin_ward || r.admin_district, ephemeral: true, full: r,
+      postcode: r.postcode, level: 'postcode', lat: r.latitude, lon: r.longitude,
+      district: r.admin_district, districtCode: r.codes.admin_district,
+      districtSlug: slugify(r.admin_district), lsoa: r.codes.lsoa, lsoaName: r.lsoa,
+      constituency: r.parliamentary_constituency };
+    ghost = ep;
+    status('resolved ' + r.postcode + ' · ' + (r.admin_ward || r.admin_district));
+    select(ep);
+  } catch (err) { status(String(err).slice(0, 120), true); }
+});
+$('add').addEventListener('click', watch);
+$('q').addEventListener('keydown', (e) => { if (e.key === 'Enter') watch(); });
+loadPlaces().then(() => { if (places.length) select(places[0]); })
+  .catch((e) => status(String(e).slice(0, 120), true));
+</script>
+</body>
+</html>
