@@ -63,7 +63,8 @@
   kind: remote
   operation: ukhpiRegion
   records: "$.result.items[*]"
-  keyArg: region
+  # keyArgs (path-param mode): keyArg would wrap the slug in a JSON list.
+  keyArgs: [region]
   echoKeyAs: key
   maxKeysPerCall: 1
   args:
