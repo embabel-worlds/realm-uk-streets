@@ -33,10 +33,15 @@
   kind: remote
   operation: pricesPaid
   records: "$.result.items[*]"
-  keyArg: "propertyAddress.postcode"
+  # TEMPLATE mode, not keyArg: a dotted keyArg ("propertyAddress.postcode")
+  # would be NESTED into {propertyAddress:{postcode:…}} by the args builder,
+  # and the source rejects the map with "illegal IRI". The placeholder keeps
+  # the dotted query-param name flat and verbatim.
+  keyTemplate: "{key}"
   echoKeyAs: key
   maxKeysPerCall: 1
   args:
+    propertyAddress.postcode: "{keys}"
     _pageSize: "30"
     _sort: "-transactionDate"
   project:
