@@ -74,7 +74,7 @@
       producerKeyFields: [latitude, longitude]
       recordKeyField: key
       producer: streetCrimes
-      maxAnchors: 6
+      maxAnchors: 15
       description: "All recorded crimes within a mile of the place, latest month — city centres return THOUSANDS of rows per place, hence maxAnchors. Aggregate (count by category/street) rather than listing raw incidents."
   properties:
     id:
@@ -100,7 +100,7 @@
       keyField: postcode
       recordKeyField: key
       producer: priceHistory
-      maxAnchors: 8
+      maxAnchors: 15
       description: "Sales recorded at the place's exact postcode — for 'what do homes actually go for here', ORDER BY toFloat(s.price) or take the newest rows."
   properties:
     id:
@@ -126,7 +126,7 @@
       keyField: districtSlug
       recordKeyField: key
       producer: areaHousePrices
-      maxAnchors: 8
+      maxAnchors: 15
       description: "The district's monthly price index — for 'what's the average price around X and which way is it moving'."
   properties:
     id:
@@ -150,7 +150,7 @@
       keyField: districtCode
       recordKeyField: key
       producer: medianPay
-      maxAnchors: 10
+      maxAnchors: 15
       description: "The district's median full-time annual pay — the income half of 'crime level vs income around my places'."
   properties:
     id:
@@ -171,7 +171,7 @@
       keyField: lsoa
       recordKeyField: key
       producer: censusEthnicity
-      maxAnchors: 10
+      maxAnchors: 15
       description: "The neighbourhood's census composition — five rows per place, one per group."
   properties:
     id:
@@ -192,7 +192,7 @@
       producerKeyFields: [latitude, longitude]
       recordKeyField: key
       producer: foodHygiene
-      maxAnchors: 8
+      maxAnchors: 15
       description: "The 30 nearest inspected food businesses — for 'anywhere I shouldn't eat near X', filter rating IN ['0','1','2']."
   properties:
     fhrsId:
@@ -214,7 +214,7 @@
       producerKeyFields: [latitude, longitude]
       recordKeyField: key
       producer: floodWarnings
-      maxAnchors: 10
+      maxAnchors: 15
       description: "Active flood alerts near the place, live (10-minute cache)."
   properties:
     key: "The coordinate pair searched — the join link."
@@ -232,7 +232,7 @@
       keyField: constituency
       recordKeyField: key
       producer: mpForSeat
-      maxAnchors: 10
+      maxAnchors: 15
       description: "The place's MP and party — join through to HAS_RESULT for majority and turnout."
   properties:
     seatId:
@@ -255,7 +255,7 @@
       keyField: seatId
       recordKeyField: key
       producer: seatResult
-      maxAnchors: 10
+      maxAnchors: 15
       description: "Majority and turnout for the seat — the margin half of 'which of my places is in a marginal'."
   properties:
     key:
@@ -279,7 +279,7 @@
       keyField: wkt
       recordKeyField: key
       producer: schoolsNear
-      maxAnchors: 8
+      maxAnchors: 15
       description: "Schools within 1.5 km — for 'how many schools are near X', count; unnamed OSM entries are real but anonymous, so count all and name the named."
   properties:
     id:
