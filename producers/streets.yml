@@ -239,26 +239,6 @@
     userAgent: "EmbabelRealmUkStreets/0.1 (https://github.com/embabel-worlds/realm-uk-streets)"
   cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 86400 }
 
-# TWELVE MONTHS of crime per place — the trend axis (`periods:`, realm-spec
-# §5.17). One call per (place, month), paced at the source's one-a-second;
-# a CLOSED month is immutable and caches effectively forever, so the cold
-# fill is paid once — drive it with a fill (§9.1) rather than one long query.
-# lag: 2 because police.uk publishes one to two months in arrears.
-- name: crimeMonths
-  kind: remote
-  operation: streetCrimes
-  records: "$[*]"
-  keyArgs: [lat, lng]
-  echoKeyAs: key
-  maxKeysPerCall: 1
-  cost: { rate: "1/second" }
-  periods: { param: date, unit: month, count: 12, lag: 2, stampAs: month }
-  project:
-    id: id
-    category: category
-    street: location.street.name
-  cache: { kind: ttl, seconds: 21600 }
-
 # Census 2021 population density at the place's LSOA — the DENOMINATOR that
 # turns raw radius counts into comparable rates. Persons per square kilometre;
 # a census moves once a decade, the week cache is politeness.
