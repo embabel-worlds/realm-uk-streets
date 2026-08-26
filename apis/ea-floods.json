@@ -1,0 +1,24 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Environment Agency Flood Monitoring",
+    "version": "1.0.0",
+    "description": "Live flood warnings and alerts for England, keyless. An empty result is the normal, good answer."
+  },
+  "servers": [ { "url": "https://environment.data.gov.uk" } ],
+  "paths": {
+    "/flood-monitoring/id/floods": {
+      "get": {
+        "operationId": "floodWarnings",
+        "summary": "Current flood alerts and warnings near a coordinate pair",
+        "description": "`items[]` carries `severity` ('Flood alert', 'Flood warning', 'Severe flood warning'), `severityLevel` (3, 2, 1 — LOWER is worse), `description` (the area) and `timeRaised`.",
+        "parameters": [
+          { "name": "lat", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Latitude, decimal degrees." },
+          { "name": "long", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Longitude, decimal degrees." },
+          { "name": "dist", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Radius in km, e.g. 15." }
+        ],
+        "responses": { "200": { "description": "Active alerts under items; empty means no flood risk right now.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    }
+  }
+}

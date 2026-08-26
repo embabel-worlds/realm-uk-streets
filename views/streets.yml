@@ -1,0 +1,195 @@
+# Saved views over the HAS_CRIME join. Each read fans out one police.uk call
+# per watched place (1-mile radius, latest month, 6-hour cache) — and a city
+# centre can bring back thousands of transient incident nodes, so every view
+# AGGREGATES rather than listing raw rows.
+
+- name: CrimeAroundMyPlaces
+  description: Recorded crime around each watched UK place, latest month, broken down by category — the headline table.
+  params:
+    limit:
+      type: int
+      default: 60
+      description: "Maximum place-category rows."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_CRIME]->(c:CrimeIncident)
+    WITH p, c.category AS category, count(*) AS incidents
+    RETURN p.name AS place, category, incidents
+    ORDER BY place, incidents DESC LIMIT $limit
+
+- name: SafestPlace
+  description: Watched UK places ranked by total recorded crime within a mile, quietest first — zero can also mean Scotland, where this source has no coverage.
+  params:
+    limit:
+      type: int
+      default: 10
+      description: "How many places to return, quietest first."
+  cypher: |
+    MATCH (p:UkPlace)
+    OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
+    RETURN p.name AS place, count(c) AS incidents
+    ORDER BY incidents ASC LIMIT $limit
+
+- name: TopCrimeStreets
+  description: The streets with the most recorded incidents around your watched places, latest month — street names are anonymised localities, not addresses.
+  params:
+    limit:
+      type: int
+      default: 15
+      description: "Maximum streets to return, busiest first."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_CRIME]->(c:CrimeIncident)
+    WITH p.name AS place, c.street AS street, count(*) AS incidents
+    RETURN street, place, incidents
+    ORDER BY incidents DESC LIMIT $limit
+
+- name: ViolenceAndRobbery
+  description: Just the violent-crime and robbery counts around each watched place, latest month — the categories people usually mean by "is it safe".
+  params:
+    limit:
+      type: int
+      default: 20
+      description: "Maximum rows."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_CRIME]->(c:CrimeIncident)
+    WHERE c.category IN ['violent-crime', 'robbery']
+    WITH p.name AS place, c.category AS category, count(*) AS incidents
+    RETURN place, category, incidents
+    ORDER BY incidents DESC LIMIT $limit
+
+# ── The cross-source views — questions no single source can answer ───────────
+# Each of these joins two or more national datasets AT the user's places. The
+# rows are all public data; the join is what nobody else serves.
+
+- name: PlaceDossier
+  description: The whole picture per watched place, one row each — crime level, median income, average house price, top ethnic group, MP, party and majority. Fires every producer; the first read is the slow one.
+  params:
+    limit:
+      type: int
+      default: 10
+      description: "Maximum places."
+  cypher: |
+    MATCH (p:UkPlace)
+    OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
+    WITH p, count(c) AS crimes
+    OPTIONAL MATCH (p)-[:HAS_INCOME]->(i:AreaIncome)
+    WITH p, crimes, max(toFloat(i.annualPay)) AS medianPay
+    OPTIONAL MATCH (p)-[:HAS_HOUSE_PRICES]->(h:AreaHousePrice)
+    WITH p, crimes, medianPay, max(toFloat(h.averagePrice)) AS peakAvgPrice
+    OPTIONAL MATCH (p)-[:HAS_ETHNICITY]->(e:EthnicGroupShare)
+    WITH p, crimes, medianPay, peakAvgPrice, e ORDER BY toFloat(e.percent) DESC
+    WITH p, crimes, medianPay, peakAvgPrice, collect(e)[0] AS topGroup
+    OPTIONAL MATCH (p)-[:HAS_SEAT]->(s:Seat)
+    OPTIONAL MATCH (s)-[:HAS_RESULT]->(r:SeatResult)
+    RETURN p.name AS place, p.district AS district,
+           crimes AS crimesLastMonth,
+           medianPay AS districtMedianPay,
+           peakAvgPrice AS districtAvgPrice,
+           topGroup.group AS largestEthnicGroup, toFloat(topGroup.percent) AS groupPercent,
+           s.mp AS mp, s.party AS party, toInteger(r.majority) AS majority
+    ORDER BY place LIMIT $limit
+
+- name: CrimeVsIncome
+  description: Recorded crime within a mile against the district's median full-time pay, per watched place — the affluence-and-safety scatter, from two sources that never meet anywhere else.
+  params:
+    limit:
+      type: int
+      default: 10
+      description: "Maximum places."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_INCOME]->(i:AreaIncome)
+    OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
+    WITH p, i, count(c) AS crimes
+    RETURN p.name AS place, crimes AS crimesLastMonth,
+           toFloat(i.annualPay) AS districtMedianPay,
+           round(1000.0 * crimes / toFloat(i.annualPay), 2) AS crimesPerThousandPoundsPay
+    ORDER BY crimes DESC LIMIT $limit
+
+- name: SeatsAndMargins
+  description: Every watched place's MP, party, majority and turnout — with the district's median pay beside it, so "what do the safe seats earn" is the same table as "who holds the marginals".
+  params:
+    limit:
+      type: int
+      default: 15
+      description: "Maximum rows."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_SEAT]->(s:Seat)
+    OPTIONAL MATCH (s)-[:HAS_RESULT]->(r:SeatResult)
+    OPTIONAL MATCH (p)-[:HAS_INCOME]->(i:AreaIncome)
+    RETURN p.name AS place, s.seat AS seat, s.mp AS mp, s.party AS party,
+           toInteger(r.majority) AS majority,
+           round(100.0 * toInteger(r.turnout) / toInteger(r.electorate), 1) AS turnoutPct,
+           max(toFloat(i.annualPay)) AS districtMedianPay
+    ORDER BY majority ASC LIMIT $limit
+
+- name: IncomeByParty
+  description: Average district median pay grouped by the party holding each watched place's seat — "what does a Labour street earn vs a Reform one", computed live from ONS pay and Parliament's own record.
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_SEAT]->(s:Seat)
+    MATCH (p)-[:HAS_INCOME]->(i:AreaIncome)
+    WITH s.party AS party, p.name AS place, max(toFloat(i.annualPay)) AS pay
+    RETURN party, count(place) AS places, round(avg(pay)) AS avgDistrictMedianPay,
+           collect(place) AS across
+    ORDER BY avgDistrictMedianPay DESC
+
+- name: NeighbourhoodMosaic
+  description: Census 2021 ethnic composition of each watched place's immediate neighbourhood — five groups, percentages, LSOA-level, so two places in the same borough can still read completely differently.
+  params:
+    limit:
+      type: int
+      default: 60
+      description: "Maximum rows."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_ETHNICITY]->(e:EthnicGroupShare)
+    RETURN p.name AS place, e.area AS neighbourhood, e.group AS group,
+           toFloat(e.percent) AS percent
+    ORDER BY place, percent DESC LIMIT $limit
+
+- name: WhatHomesActuallySold
+  description: The latest registered sales at each watched place's postcode — real prices paid from the Land Registry, not estimates. Empty for outcode-level places.
+  params:
+    limit:
+      type: int
+      default: 25
+      description: "Maximum sales."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_SALE]->(s:PropertySale)
+    RETURN p.name AS place, toInteger(s.price) AS pricePaid, s.date AS whenSold,
+           s.paon + ' ' + s.street AS address, s.propertyType AS type, s.estate AS estate
+    ORDER BY place LIMIT $limit
+
+- name: PriceTrendAtMyPlaces
+  description: The official average house price in each watched place's district, this month against a year ago, with the annual change computed — the estate agent's chart, from the actual index.
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_HOUSE_PRICES]->(h:AreaHousePrice)
+    WITH p, h ORDER BY h.month DESC
+    WITH p, collect(h) AS months
+    WITH p, months[0] AS now, months[-1] AS yearAgo
+    RETURN p.name AS place, p.district AS district, now.month AS month,
+           toInteger(now.averagePrice) AS avgPrice,
+           toInteger(yearAgo.averagePrice) AS avgPriceYearAgo,
+           round(100.0 * (toFloat(now.averagePrice) - toFloat(yearAgo.averagePrice))
+                 / toFloat(yearAgo.averagePrice), 1) AS annualChangePct
+    ORDER BY annualChangePct DESC
+
+- name: WhereNotToEat
+  description: Food businesses within a mile of watched places rated 2 or worse at their last official hygiene inspection — with the district's median pay beside them, because a low rating in a wealthy postcode is a story.
+  params:
+    limit:
+      type: int
+      default: 20
+      description: "Maximum businesses."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_FOOD]->(f:FoodPlace)
+    WHERE f.rating IN ['0', '1', '2']
+    OPTIONAL MATCH (p)-[:HAS_INCOME]->(i:AreaIncome)
+    RETURN f.name AS business, f.businessType AS type, f.rating AS hygieneRating,
+           f.ratedOn AS lastInspected, p.name AS nearPlace,
+           max(toFloat(i.annualPay)) AS districtMedianPay
+    ORDER BY f.rating ASC LIMIT $limit
+
+- name: FloodWatch
+  description: Live Environment Agency flood alerts near watched places, worst first — empty is the answer you want.
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_FLOOD_ALERT]->(f:FloodAlert)
+    RETURN p.name AS place, f.severity AS severity, f.area AS area, f.raisedAt AS raisedAt
+    ORDER BY toInteger(f.severityLevel) ASC

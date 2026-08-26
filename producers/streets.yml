@@ -1,0 +1,193 @@
+# Street-level crimes, keyed on a COORDINATE PAIR — the same composite-key join
+# realm-weather and realm-planet use. The engine composes latitude+longitude
+# into one key per place; `keyArgs` splits it back into the API's `lat`/`lng`
+# query params; `echoKeyAs` stamps the key onto EVERY incident the call
+# returns, which is what the join's `recordKeyField: key` links on.
+#
+# VOLUME WARNING, stated where it matters: this is all-crime within a 1-mile
+# radius for a whole month, and a city-centre place can return thousands of
+# rows in one call. The nodes are transient (gone at rollback) but they are
+# real work — the join declares `maxAnchors` for the same reason.
+- name: streetCrimes
+  kind: remote
+  operation: streetCrimes
+  records: "$[*]"
+  keyArgs: [lat, lng]
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  project:
+    id: id
+    category: category
+    month: month
+    street: location.street.name
+    outcome: outcome_status.category
+    crimeLat: location.latitude
+    crimeLon: location.longitude
+  cache: { kind: ttl, seconds: 21600 }
+
+# ── The postcode axis ────────────────────────────────────────────────────────
+# Every registered sale at the place's FULL postcode since 1995, newest first.
+# Postcodes are case-sensitive at the source; UkPlace stores them UPPERCASE.
+# Sales data changes monthly at most — cache a day.
+- name: priceHistory
+  kind: remote
+  operation: pricesPaid
+  records: "$.result.items[*]"
+  keyArg: "propertyAddress.postcode"
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    _pageSize: "30"
+    _sort: "-transactionDate"
+  project:
+    price: pricePaid
+    date: transactionDate
+    paon: propertyAddress.paon
+    street: propertyAddress.street
+    town: propertyAddress.town
+    propertyType: propertyType.prefLabel.0._value
+    estate: estateType.prefLabel.0._value
+    newBuild: newBuild
+    id: hasTransaction
+  cache: { kind: ttl, seconds: 86400 }
+
+# ── The district axis ────────────────────────────────────────────────────────
+# The official House Price Index for the place's local authority: monthly
+# average prices by property type. Keyed on the district SLUG UkPlace stores.
+- name: areaHousePrices
+  kind: remote
+  operation: ukhpiRegion
+  records: "$.result.items[*]"
+  keyArg: region
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    _pageSize: "13"
+    _sort: "-refMonth"
+    _view: all
+  project:
+    month: refMonth
+    averagePrice: averagePrice
+    detached: averagePriceDetached
+    terraced: averagePriceTerraced
+    flat: averagePriceFlatMaisonette
+    index: housePriceIndex
+  cache: { kind: ttl, seconds: 86400 }
+
+# Median gross ANNUAL pay for full-time workers in the district (ONS ASHE).
+# Annual statistic — cache a week.
+- name: medianPay
+  kind: remote
+  operation: medianPay
+  records: "$.obs[*]"
+  keyArg: geography
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    sex: "8"
+    item: "2"
+    pay: "7"
+    measures: "20100"
+    time: latest
+  project:
+    annualPay: obs_value.value
+    area: geography.description
+    year: time.description
+  cache: { kind: ttl, seconds: 604800 }
+
+# ── The neighbourhood (LSOA) axis ────────────────────────────────────────────
+# Census 2021 ethnic composition of the place's IMMEDIATE neighbourhood —
+# five top-level groups as percentages. A census updates once a decade;
+# the week-long cache is about politeness, not freshness.
+- name: censusEthnicity
+  kind: remote
+  operation: censusEthnicity
+  records: "$.obs[*]"
+  keyArg: geography
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    c2021_eth_20: "1001,1002,1003,1004,1005"
+    measures: "20301"
+  project:
+    group: c2021_eth_20.description
+    percent: obs_value.value
+    area: geography.description
+  cache: { kind: ttl, seconds: 604800 }
+
+# ── The coordinate axis (beside streetCrimes above) ──────────────────────────
+# Official hygiene rating of every inspected food business within a mile.
+- name: foodHygiene
+  kind: remote
+  operation: foodPlaces
+  records: "$.establishments[*]"
+  keyArgs: [latitude, longitude]
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    maxDistanceLimit: "1"
+    pageSize: "30"
+  project:
+    fhrsId: FHRSID
+    name: BusinessName
+    businessType: BusinessType
+    rating: RatingValue
+    ratedOn: RatingDate
+    distanceMiles: Distance
+  cache: { kind: ttl, seconds: 86400 }
+
+# Live flood alerts near the place. LIVE means live — ten minutes, not a day.
+- name: floodWarnings
+  kind: remote
+  operation: floodWarnings
+  records: "$.items[*]"
+  keyArgs: [lat, long]
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    dist: "15"
+  project:
+    severity: severity
+    severityLevel: severityLevel
+    area: description
+    raisedAt: timeRaised
+  cache: { kind: ttl, seconds: 600 }
+
+# ── The constituency axis ────────────────────────────────────────────────────
+# The seat: current MP, party (with the party's brand colour). Keyed on the
+# constituency NAME postcodes.io stored on the place.
+- name: mpForSeat
+  kind: remote
+  operation: constituencySearch
+  records: "$.items[*]"
+  keyArg: searchText
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    take: "1"
+  project:
+    seatId: value.id
+    seat: value.name
+    mp: value.currentRepresentation.member.value.nameDisplayAs
+    party: value.currentRepresentation.member.value.latestParty.name
+    partyAbbrev: value.currentRepresentation.member.value.latestParty.abbreviation
+    partyColour: value.currentRepresentation.member.value.latestParty.backgroundColour
+  cache: { kind: ttl, seconds: 604800 }
+
+# The seat's latest general-election result, keyed on the seatId the Seat node
+# carries — a virtual node anchoring ANOTHER virtual join, which is what turns
+# "who is my MP" into "by what margin, on what turnout".
+- name: seatResult
+  kind: remote
+  operation: electionResult
+  records: "$.value"
+  keyArg: id
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  project:
+    result: result
+    majority: majority
+    electorate: electorate
+    turnout: turnout
+    winningParty: winningParty.name
+  cache: { kind: ttl, seconds: 604800 }

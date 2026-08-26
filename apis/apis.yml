@@ -1,0 +1,76 @@
+# Two keyless, unauthenticated UK public APIs, specs VENDORED next to this file
+# (the realm-weather choice): neither source publishes an OpenAPI document, so a
+# hand-curated pin is the only stable contract available. Each spec is
+# deliberately NARROW — only the operations the producer, the skill and the
+# Street Lens app actually call.
+#
+# NO `auth:` and NO `token-env:` anywhere: both sources are open. Police-recorded
+# crime is official Home Office open data; postcodes.io serves OS/ONS open data.
+
+- url: police-uk.json
+  name: police_uk
+  type: openapi
+  auth: none
+  operation-ids:
+    - streetCrimes
+    - locateNeighbourhood
+    - neighbourhoodDetails
+    - crimeLastUpdated
+
+- url: postcodes-io.json
+  name: postcodes_io
+  type: openapi
+  auth: none
+  operation-ids:
+    - lookupPostcode
+    - lookupOutcode
+    - searchPlaces
+    - reverseGeocode
+
+# Every registered sale since 1995 (Price Paid Data) and the official House
+# Price Index by local authority. Both keyless linked-data APIs on one host.
+- url: land-registry.json
+  name: land_registry
+  type: openapi
+  auth: none
+  operation-ids:
+    - pricesPaid
+    - ukhpiRegion
+
+# ONS official statistics: Census 2021 ethnicity (LSOA or district) and ASHE
+# median pay (district). Keyed by the GSS codes postcodes.io hands back.
+- url: nomis.json
+  name: nomis
+  type: openapi
+  auth: none
+  operation-ids:
+    - censusEthnicity
+    - medianPay
+
+# Official hygiene rating of every inspected food business. The API demands a
+# version header; pinning it HERE is what keeps the producer and skill clean.
+- url: fsa.json
+  name: fsa
+  type: openapi
+  auth: none
+  headers:
+    x-api-version: "2"
+  operation-ids:
+    - foodPlaces
+
+# Live flood warnings for England. Empty = no risk, the normal answer.
+- url: ea-floods.json
+  name: ea_floods
+  type: openapi
+  auth: none
+  operation-ids:
+    - floodWarnings
+
+# Who represents the place, for which party, by what margin.
+- url: parliament.json
+  name: parliament
+  type: openapi
+  auth: none
+  operation-ids:
+    - constituencySearch
+    - electionResult

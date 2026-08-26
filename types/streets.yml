@@ -1,0 +1,248 @@
+# One persisted anchor and one virtual decoration — the realm-weather posture:
+# the set of places is small, hand-curated and the user's own, so it belongs in
+# the graph; the crimes around each place are a large, monthly-changing
+# external collection, so they are fetched per query and gone at rollback.
+
+# A place in the United Kingdom the user is watching. Coordinates are stored ON
+# the place, resolved once via `gateway.postcodesIo.lookupPostcode` (or
+# `searchPlaces`) when it is added — the same reasoning as WeatherLocation:
+# every downstream surface is keyed on the pair, so resolve once, store, reuse.
+- name: UkPlace
+  description: "A UK place the user is watching, with coordinates already resolved from its postcode so crime, weather and air lookups need no further geocoding."
+  properties:
+    name:
+      type: string
+      description: "How the user refers to the place, e.g. 'Shoreditch' or 'Mum's street'. Shown as the headline."
+    postcode:
+      type: string
+      description: "The postcode it was resolved from, e.g. SW1A 1AA."
+    latitude:
+      type: number
+      description: "Latitude in decimal degrees, from postcodes.io."
+    longitude:
+      type: number
+      description: "Longitude in decimal degrees, from postcodes.io."
+    district:
+      type: string
+      description: "Local authority district, e.g. 'Hackney'."
+    region:
+      type: string
+      description: "Region or country within the UK, e.g. 'London', 'Wales'."
+    notes:
+      type: string
+      description: "Why the user watches this place — free text, optional."
+    level:
+      type: string
+      description: "'postcode' for a full postcode (SE10 9JY), 'outcode' for a district-level watch (SE10) — the two zoom levels of the search."
+    outcode:
+      type: string
+      description: "The outward code, e.g. SE10 — shared by both levels."
+    lsoa:
+      type: string
+      description: "GSS code of the LSOA (E01…) — the neighbourhood key census data joins on. Absent at outcode level."
+    lsoaName:
+      type: string
+      description: "The LSOA's human name, e.g. 'Greenwich 038B'."
+    districtCode:
+      type: string
+      description: "GSS code of the local authority (E09…/E06…) — the key income data joins on."
+    districtSlug:
+      type: string
+      description: "The local authority as a lowercase slug (greenwich, tower-hamlets) — the key the House Price Index joins on."
+    ward:
+      type: string
+      description: "Electoral ward name."
+    constituency:
+      type: string
+      description: "Parliamentary constituency name — the key the seat join uses."
+
+# A police-recorded crime near a watched place — VIRTUAL, one month deep.
+#   Which of my places is safest?
+#     MATCH (p:UkPlace) OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
+#     RETURN p.name, count(c) AS incidents ORDER BY incidents ASC
+- name: CrimeIncident
+  description: "A police-recorded street-level crime within one mile of a watched UkPlace, latest published month, from data.police.uk. Reached via HAS_CRIME. Street names are anonymised localities ('On or near Shopping Area'), not addresses; outcome is absent while under investigation. Coverage: England, Wales, NI — Scottish places return nothing, which is a coverage fact, not safety."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_CRIME
+      producerKeyFields: [latitude, longitude]
+      recordKeyField: key
+      producer: streetCrimes
+      maxAnchors: 6
+      description: "All recorded crimes within a mile of the place, latest month — city centres return THOUSANDS of rows per place, hence maxAnchors. Aggregate (count by category/street) rather than listing raw incidents."
+  properties:
+    id:
+      description: "police.uk incident id. Identity — the same incident near two watched places is one node with two HAS_CRIME edges."
+      metadata:
+        identity: "true"
+    key: "The coordinate pair whose 1-mile radius found this incident — the join link, not the incident's location."
+    category: "Crime category slug: violent-crime, anti-social-behaviour, burglary, vehicle-crime, shoplifting, robbery, drugs, criminal-damage-arson, public-order, theft-from-the-person, bicycle-theft, other-theft, possession-of-weapons, other-crime."
+    month: "The month the incident was recorded, YYYY-MM."
+    street: "Anonymised street-level locality, e.g. 'On or near Petticoat Lane'."
+    outcome: "Latest outcome category, e.g. 'Investigation complete; no suspect identified' — absent while under investigation."
+    crimeLat: "Anonymised snap-point latitude — approximate by design."
+    crimeLon: "Anonymised snap-point longitude — approximate by design."
+
+# ── The postcode axis ────────────────────────────────────────────────────────
+# A registered sale at the place's postcode — every sale since 1995, so this is
+# the street's actual market history, not an estimate.
+- name: PropertySale
+  description: "A registered property sale at a watched place's postcode, from HM Land Registry Price Paid Data — actual prices paid since 1995, newest first, up to 30 per place. Reached via HAS_SALE. Absent at outcode-level places (sales are keyed on full postcodes)."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_SALE
+      keyField: postcode
+      recordKeyField: key
+      producer: priceHistory
+      maxAnchors: 8
+      description: "Sales recorded at the place's exact postcode — for 'what do homes actually go for here', ORDER BY toFloat(s.price) or take the newest rows."
+  properties:
+    id:
+      description: "Land Registry transaction URI. Identity."
+      metadata:
+        identity: "true"
+    key: "The postcode the sale was found at — the join link."
+    price: "Price paid, GBP — the real figure from the register, not an estimate."
+    date: "Transaction date, display string, already newest-first from the source."
+    paon: "Primary addressable object — usually the house number."
+    street: "Street name, uppercase as registered."
+    town: "Town as registered."
+    propertyType: "detached / semi-detached / terraced / flat-maisonette / other."
+    estate: "Freehold or Leasehold."
+    newBuild: "true when the sale was a new build."
+
+# The district's official House Price Index — a monthly average-price series.
+- name: AreaHousePrice
+  description: "One month of the UK House Price Index for a watched place's local authority — official average prices by property type. Reached via HAS_HOUSE_PRICES; 13 months per place, newest first, so month-on-year change is computable in Cypher."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_HOUSE_PRICES
+      keyField: districtSlug
+      recordKeyField: key
+      producer: areaHousePrices
+      maxAnchors: 8
+      description: "The district's monthly price index — for 'what's the average price around X and which way is it moving'."
+  properties:
+    key: "The district slug the series belongs to — the join link."
+    month: "The index month."
+    averagePrice: "Average price across all property types, GBP."
+    detached: "Average detached price, GBP."
+    terraced: "Average terraced price, GBP."
+    flat: "Average flat/maisonette price, GBP."
+    index: "The index value (Jan 2015 = 100)."
+
+# ── The district axis ────────────────────────────────────────────────────────
+- name: AreaIncome
+  description: "Median gross ANNUAL pay for full-time workers in a watched place's local authority, from ONS ASHE. One row per place, reached via HAS_INCOME. District-level: it describes where the place is, not the person next door."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_INCOME
+      keyField: districtCode
+      recordKeyField: key
+      producer: medianPay
+      maxAnchors: 10
+      description: "The district's median full-time annual pay — the income half of 'crime level vs income around my places'."
+  properties:
+    key: "The district GSS code — the join link."
+    annualPay: "Median gross annual pay, GBP, full-time workers."
+    area: "The district's name as ONS states it."
+    year: "The ASHE reference year."
+
+# ── The neighbourhood (LSOA) axis ────────────────────────────────────────────
+- name: EthnicGroupShare
+  description: "One ethnic group's share of residents in a watched place's immediate neighbourhood (LSOA), Census 2021 — five top-level groups per place, percentages. Reached via HAS_ETHNICITY. Absent at outcode level."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_ETHNICITY
+      keyField: lsoa
+      recordKeyField: key
+      producer: censusEthnicity
+      maxAnchors: 10
+      description: "The neighbourhood's census composition — five rows per place, one per group."
+  properties:
+    key: "The LSOA GSS code — the join link."
+    group: "The census group, e.g. 'Asian, Asian British or Asian Welsh'."
+    percent: "Percent of the neighbourhood's residents, Census 2021."
+    area: "The LSOA name."
+
+# ── The coordinate axis ──────────────────────────────────────────────────────
+- name: FoodPlace
+  description: "An inspected food business within a mile of a watched place, with its official hygiene rating. Reached via HAS_FOOD. RatingValue is a STRING — '0'-'5' but also 'AwaitingInspection'/'Exempt' — guard before toFloat()."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_FOOD
+      producerKeyFields: [latitude, longitude]
+      recordKeyField: key
+      producer: foodHygiene
+      maxAnchors: 8
+      description: "The 30 nearest inspected food businesses — for 'anywhere I shouldn't eat near X', filter rating IN ['0','1','2']."
+  properties:
+    fhrsId:
+      description: "FSA establishment id. Identity — the same restaurant near two places is one node."
+      metadata:
+        identity: "true"
+    key: "The coordinate pair that found it — the join link."
+    name: "The business's name."
+    businessType: "Restaurant/Cafe/Canteen, Takeaway, School, Pub…"
+    rating: "The official rating: '5' (best) to '0', or 'AwaitingInspection'/'Exempt'."
+    ratedOn: "When it was last inspected."
+    distanceMiles: "Distance from the place, miles."
+
+- name: FloodAlert
+  description: "A LIVE Environment Agency flood alert within 15 km of a watched place (England only). Reached via HAS_FLOOD_ALERT; empty is the normal, good answer. severityLevel: LOWER is WORSE (1 severe, 2 warning, 3 alert)."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_FLOOD_ALERT
+      producerKeyFields: [latitude, longitude]
+      recordKeyField: key
+      producer: floodWarnings
+      maxAnchors: 10
+      description: "Active flood alerts near the place, live (10-minute cache)."
+  properties:
+    key: "The coordinate pair searched — the join link."
+    severity: "'Flood alert', 'Flood warning' or 'Severe flood warning'."
+    severityLevel: "1 severe, 2 warning, 3 alert — lower is worse."
+    area: "The area the alert covers."
+    raisedAt: "When it was raised."
+
+# ── The constituency axis ────────────────────────────────────────────────────
+- name: Seat
+  description: "The parliamentary seat covering a watched place: current MP, party and the party's brand colour. Reached via HAS_SEAT. The seat then anchors ITS OWN join — (:Seat)-[:HAS_RESULT]->(:SeatResult) — for the margin."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_SEAT
+      keyField: constituency
+      recordKeyField: key
+      producer: mpForSeat
+      maxAnchors: 10
+      description: "The place's MP and party — join through to HAS_RESULT for majority and turnout."
+  properties:
+    seatId:
+      description: "Parliament's constituency id. Identity — two places in one seat share the node — and the key HAS_RESULT joins on."
+      metadata:
+        identity: "true"
+    key: "The constituency name searched — the join link."
+    seat: "The constituency's official name."
+    mp: "The sitting MP's display name."
+    party: "The MP's party."
+    partyAbbrev: "Lab, Con, LD, RUK…"
+    partyColour: "The party's brand colour as a hex string, straight from Parliament."
+
+# A virtual node anchoring a virtual join: the Seat's latest election result.
+- name: SeatResult
+  description: "The seat's latest general-election result: winner, majority, electorate, turnout. Reached from Seat via HAS_RESULT — so 'my places, their MPs, and how safe each seat is' is a two-hop MATCH."
+  virtualJoins:
+    - anchorLabel: Seat
+      relationship: HAS_RESULT
+      keyField: seatId
+      recordKeyField: key
+      producer: seatResult
+      maxAnchors: 10
+      description: "Majority and turnout for the seat — the margin half of 'which of my places is in a marginal'."
+  properties:
+    key: "The seat id — the join link."
+    result: "'Lab Hold', 'Con Gain'…"
+    majority: "Votes between first and second place."
+    electorate: "Registered electors."
+    turnout: "Votes cast."
+    winningParty: "The winning party's name."

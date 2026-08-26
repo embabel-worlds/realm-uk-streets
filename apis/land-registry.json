@@ -1,0 +1,38 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "HM Land Registry Open Data",
+    "version": "1.0.0",
+    "description": "Price Paid Data (every registered property sale in England and Wales since 1995) and the UK House Price Index, both keyless linked-data APIs. Postcodes are CASE-SENSITIVE and uppercase with the space, e.g. 'E1 6AN'."
+  },
+  "servers": [ { "url": "https://landregistry.data.gov.uk" } ],
+  "paths": {
+    "/data/ppi/transaction-record.json": {
+      "get": {
+        "operationId": "pricesPaid",
+        "summary": "Registered property sales at a full postcode, most recent first",
+        "description": "Every recorded sale at the postcode since 1995. `result.items[]` carries `pricePaid` (GBP), `transactionDate` (display string, server-sorted), `propertyAddress` (paon/street/town), `propertyType.prefLabel[0]._value` and `newBuild`.",
+        "parameters": [
+          { "name": "propertyAddress.postcode", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Full postcode, UPPERCASE with space, e.g. 'SE10 9JY'." },
+          { "name": "_pageSize", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Rows to return, e.g. 30." },
+          { "name": "_sort", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Use `-transactionDate` for newest first." }
+        ],
+        "responses": { "200": { "description": "Sales under result.items; empty when the postcode has no registered sales.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/data/ukhpi/region/{region}.json": {
+      "get": {
+        "operationId": "ukhpiRegion",
+        "summary": "The UK House Price Index for a local authority — monthly average prices and annual change",
+        "description": "`result.items[]` (with `_view=all`) carries `averagePrice`, `averagePriceDetached/FlatMaisonette/Terraced/SemiDetached`, `refMonth` and index values. The region is the local authority as a lowercase slug, e.g. `greenwich`, `tower-hamlets`, `city-of-westminster`.",
+        "parameters": [
+          { "name": "region", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Local-authority slug: lowercase, spaces to hyphens." },
+          { "name": "_pageSize", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Months to return." },
+          { "name": "_sort", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Use `-refMonth` for newest first." },
+          { "name": "_view", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Use `all` so items come back as full records." }
+        ],
+        "responses": { "200": { "description": "Monthly index rows under result.items.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "UK Parliament Members API",
+    "version": "1.0.0",
+    "description": "Official, keyless. Who represents a constituency, for which party, and by what margin at the last election — including the party's brand colour for rendering."
+  },
+  "servers": [ { "url": "https://members-api.parliament.uk" } ],
+  "paths": {
+    "/api/Location/Constituency/Search": {
+      "get": {
+        "operationId": "constituencySearch",
+        "summary": "Find a constituency by name, with its current MP and party",
+        "description": "`items[].value` carries `id` (for electionResult), `name`, and `currentRepresentation.member.value` with `nameDisplayAs` and `latestParty` (name, abbreviation, backgroundColour). Search with the constituency name postcodes.io returned.",
+        "parameters": [
+          { "name": "searchText", "in": "query", "required": true, "schema": { "type": "string" }, "description": "The constituency name, e.g. 'Greenwich and Woolwich'." },
+          { "name": "take", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Maximum results, e.g. 1." }
+        ],
+        "responses": { "200": { "description": "Matching constituencies under items.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/api/Location/Constituency/{id}/ElectionResult/Latest": {
+      "get": {
+        "operationId": "electionResult",
+        "summary": "The seat's latest general-election result — winner, majority, turnout, every candidate",
+        "description": "`value` carries `result` ('Lab Hold', 'Con Gain'…), `majority`, `electorate`, `turnout`, `winningParty` and `candidates[]` with `votes` and `voteShare`.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Constituency id from constituencySearch." }
+        ],
+        "responses": { "200": { "description": "The latest result under value.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    }
+  }
+}

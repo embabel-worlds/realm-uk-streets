@@ -1,0 +1,25 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Food Standards Agency — Food Hygiene Ratings",
+    "version": "1.0.0",
+    "description": "Every inspected food business in England, Wales and NI with its official hygiene rating (0-5; Scotland uses Pass/Improvement Required). Keyless; requires the x-api-version header, which this realm pins."
+  },
+  "servers": [ { "url": "https://api.ratings.food.gov.uk" } ],
+  "paths": {
+    "/Establishments": {
+      "get": {
+        "operationId": "foodPlaces",
+        "summary": "Inspected food businesses near a coordinate pair, nearest first",
+        "description": "`establishments[]` carries `BusinessName`, `BusinessType`, `RatingValue` ('0'-'5', or 'AwaitingInspection'/'Exempt' — not numbers, guard before toFloat), `RatingDate`, `Distance` (miles) and `FHRSID`.",
+        "parameters": [
+          { "name": "latitude", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Latitude, decimal degrees." },
+          { "name": "longitude", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Longitude, decimal degrees." },
+          { "name": "maxDistanceLimit", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Radius in MILES, e.g. 1." },
+          { "name": "pageSize", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Maximum businesses to return." }
+        ],
+        "responses": { "200": { "description": "Businesses under establishments.", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    }
+  }
+}

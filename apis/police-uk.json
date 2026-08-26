@@ -1,0 +1,112 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "data.police.uk",
+    "version": "1.0.0",
+    "description": "The official UK street-level crime API — Home Office open data, no key, no account. Coverage is England, Wales and Northern Ireland (Scotland's forces publish separately, so Scottish coordinates return few or no records — say so rather than reporting 'no crime'). Data is published MONTHLY with a lag of one to two months; `crimeLastUpdated` names the latest month."
+  },
+  "servers": [
+    { "url": "https://data.police.uk" }
+  ],
+  "paths": {
+    "/api/crimes-street/all-crime": {
+      "get": {
+        "operationId": "streetCrimes",
+        "summary": "All police-recorded street-level crimes within one mile of a coordinate pair, for one month",
+        "description": "Returns a JSON ARRAY of incidents within a 1-mile radius. Each has `category` (slug like burglary, violent-crime, vehicle-crime, anti-social-behaviour), `month` (YYYY-MM), `location.street.name` (an anonymised street-level locality, e.g. 'On or near Shopping Area'), `location.latitude`/`longitude` (anonymised snap-points, not exact addresses), and `outcome_status` (`null` while under investigation). City centres can return thousands of rows for one month.",
+        "parameters": [
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Latitude of the search centre, decimal degrees."
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Longitude of the search centre, decimal degrees."
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Month as YYYY-MM. Omit for the latest published month."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of incidents; empty for quiet areas, Scotland, or months not yet published.",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object" } } } }
+          }
+        }
+      }
+    },
+    "/api/locate-neighbourhood": {
+      "get": {
+        "operationId": "locateNeighbourhood",
+        "summary": "The police force and neighbourhood policing team covering a coordinate pair",
+        "description": "Returns `{force, neighbourhood}` — both IDs. Pass them to `neighbourhoodDetails` for the human-readable name. 404 outside England/Wales/NI.",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Comma-joined coordinates: `lat,lng` — e.g. `51.500,-0.124`."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Force and neighbourhood identifiers.",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/api/{force}/{id}": {
+      "get": {
+        "operationId": "neighbourhoodDetails",
+        "summary": "A neighbourhood policing team's name and description",
+        "parameters": [
+          {
+            "name": "force",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Force id from locateNeighbourhood, e.g. `metropolitan`."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Neighbourhood id from locateNeighbourhood."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Neighbourhood details; `name` is the human-readable team name.",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/api/crime-last-updated": {
+      "get": {
+        "operationId": "crimeLastUpdated",
+        "summary": "The most recent month of published crime data",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "`{date: 'YYYY-MM-01'}` — the latest published month.",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    }
+  }
+}

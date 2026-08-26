@@ -1,0 +1,31 @@
+name: realm-uk-streets
+description: |
+  Street-level Britain: police-recorded crime (data.police.uk) and postcode
+  geography (postcodes.io) for places you choose in the United Kingdom — both
+  keyless, both official. Anchor a `UkPlace` (saved with coordinates resolved
+  from its postcode) and it grows a `HAS_CRIME` neighbourhood: every
+  police-recorded incident within a mile, latest month, category by category —
+  so "which of my places is safest" and "what happens on which street" are one
+  line of Cypher.
+
+  Ships two typed APIs (`police_uk`, `postcodes_io`), the persisted `UkPlace`
+  anchor, the virtual `CrimeIncident` join, saved views, and the Street Lens
+  app (`apps/street-lens.html`): a map of Britain you navigate place by place —
+  crime breakdown, top streets, outcomes, and (when realm-weather or
+  realm-planet are installed) live weather and air quality on the same panel.
+
+  No API keys and no accounts — the realm works the moment it is installed.
+version: 0.1.0
+author: rod
+url: https://github.com/embabel-worlds/realm-uk-streets
+tags:
+  - united-kingdom
+  - crime
+  - open-data
+  - maps
+  - apps
+exports:
+  - police_uk
+  - postcodes_io
+  - UkPlace
+  - CrimeIncident
