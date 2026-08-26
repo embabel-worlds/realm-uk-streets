@@ -65,3 +65,43 @@
     MATCH (p:UkPlace)-[:HAS_CARE]->(c:CareLocation)
     RETURN p.name AS place, c.name AS location, c.rating AS rating, c.postcode AS postcode
     ORDER BY CASE c.rating WHEN 'Inadequate' THEN 0 WHEN 'Requires improvement' THEN 1 WHEN 'Good' THEN 2 WHEN 'Outstanding' THEN 3 ELSE 4 END
+
+- name: WhoCaresAbout
+  description: Which constituencies care most about a TOPIC — open petitions whose demand mentions it, summed per seat across all 650. Absolute signatures favour engaged seats; the per-seat view of one petition is WherePetitionIsHot.
+  params:
+    topic:
+      type: string
+      default: "animal"
+      description: "A word or phrase to match in petition demands, e.g. 'animal', 'water', 'school'."
+    limit:
+      type: int
+      default: 15
+      description: "How many seats, most signatures first."
+  cypher: |
+    MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)
+    WHERE toLower(pt.action) CONTAINS toLower($topic)
+    MATCH (pt)-[:HAS_SIGNATURES]->(cs:ConstituencySignal)
+    WITH cs.constituency AS seat, cs.mp AS mp, sum(toInteger(cs.signatures)) AS signatures,
+         collect(DISTINCT pt.action)[0..3] AS petitions
+    RETURN seat, mp, signatures, petitions
+    ORDER BY signatures DESC LIMIT $limit
+
+- name: WherePetitionIsHot
+  description: The reverse lens — pick a petition by a word from its demand and see which constituencies signed it most. Matches the most-signed open petition containing the phrase.
+  params:
+    petition:
+      type: string
+      default: "water"
+      description: "A word or phrase from the petition's demand, e.g. 'water', 'surrogacy'."
+    limit:
+      type: int
+      default: 15
+      description: "How many seats, most signatures first."
+  cypher: |
+    MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)
+    WHERE toLower(pt.action) CONTAINS toLower($petition)
+    WITH pt ORDER BY toInteger(pt.signatures) DESC LIMIT 1
+    MATCH (pt)-[:HAS_SIGNATURES]->(cs:ConstituencySignal)
+    RETURN pt.action AS petition, cs.constituency AS seat, cs.mp AS mp,
+           toInteger(cs.signatures) AS signatures
+    ORDER BY signatures DESC LIMIT $limit

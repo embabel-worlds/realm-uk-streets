@@ -305,11 +305,15 @@ async function select(p) {
         '<div id="trend" class="qmeta">fetching the last six months…</div>');
       // Walk back from the latest published month.
       const [y0, m0] = cs[0].month.split('-').map(Number);
-      const months = [], counts = [cs.length];
-      months.push(cs[0].month);
+      const months = [cs[0].month], counts = [cs.length];
+      const paintTrend = (donePct) => {
+        const t = $('trend');
+        if (t) t.textContent = `fetching the last six months… ${donePct}`;
+      };
       for (let i = 1; i < 6; i++) {
         const d = new Date(y0, m0 - 1 - i, 1);
         const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        paintTrend(`${i}/5`);
         await new Promise((res) => setTimeout(res, 1100));
         if (selected !== p) return; // the user moved on
         try {
@@ -434,7 +438,7 @@ const QUESTIONS = [
     ["What's happening around each place?", 'CrimeAroundMyPlaces'],
     ['Which streets see the most incidents?', 'TopCrimeStreets'],
     ['Where are violence and robbery worst?', 'ViolenceAndRobbery'],
-    ['Is crime rising or falling at my places?', 'CrimeTrend'],
+    ['Is crime rising or falling at my places?', 'CrimeTrend', null, 'first run walks up to 12 months per place — minutes when cold, instant afterwards'],
   ]],
   ['Money', [
     ['What have homes actually sold for?', 'WhatHomesActuallySold'],
@@ -452,6 +456,8 @@ const QUESTIONS = [
   ['Civic', [
     ['What is Britain signing petitions about?', 'WhatBritainSigns'],
     ['What do my seats care about?', 'WhatMySeatsCareAbout'],
+    ['Which constituencies care most about…', 'WhoCaresAbout', [{ name: 'topic', label: 'topic', value: 'animals' }]],
+    ['Where is a petition hottest?', 'WherePetitionIsHot', [{ name: 'petition', label: 'petition mentions', value: 'water' }]],
     ['Where has public money landed near my places?', 'AwardsNearMyPlaces'],
     ["The month's biggest contract awards?", 'BiggestAwardsThisMonth'],
   ]],
@@ -467,44 +473,101 @@ function fmtCell(v) {
   return String(v);
 }
 function askHome() {
-  $('ask').innerHTML = QUESTIONS.map(([group, qs]) =>
+  const freeAsk = `<div class="qgroup"><h4>Ask anything</h4>
+    <div class="searchrow"><input id="freeq" placeholder="in your own words — a query is generated and shown" autocomplete="off">
+    <button class="del" id="freego">Ask</button></div></div>`;
+  $('ask').innerHTML = freeAsk + QUESTIONS.map(([group, qs], gi) =>
     `<div class="qgroup"><h4>${group}</h4>` +
-    qs.map(([q, view]) => `<button class="qbtn" data-view="${view}">${q}</button>`).join('') + '</div>').join('');
-  $('ask').querySelectorAll('.qbtn').forEach((btn) => btn.addEventListener('click', () => askRun(btn.dataset.view, btn.textContent)));
+    qs.map(([q, view, params], qi) => {
+      const inputs = (params || []).map((p) =>
+        `<input class="qparam" data-name="${p.name}" value="${p.value}" title="${p.label}"
+           style="width:110px;background:#0a0b0e;border:1px solid var(--sl-line);border-radius:5px;color:var(--sl-ink);padding:4px 8px;font:inherit;font-size:12.5px;margin-left:8px">`).join('');
+      return `<div class="qbtn" data-g="${gi}" data-q="${qi}" role="button" style="display:flex;align-items:center;justify-content:space-between"><span>${q}</span><span>${inputs}</span></div>`;
+    }).join('') + '</div>').join('');
+  $('ask').querySelectorAll('.qbtn').forEach((btn) => btn.addEventListener('click', (e) => {
+    if (e.target.classList.contains('qparam')) return; // typing, not asking
+    const [q, view, params, note] = QUESTIONS[+btn.dataset.g][1][+btn.dataset.q];
+    const args = {};
+    btn.querySelectorAll('.qparam').forEach((inp) => { args[inp.dataset.name] = inp.value; });
+    askRun(view, q + (Object.keys(args).length ? ' ' + Object.values(args).join(', ') : ''), args, note);
+  }));
+  const go = () => { const q = $('freeq').value.trim(); if (q) askFree(q); };
+  $('freego').addEventListener('click', go);
+  $('freeq').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
 }
-async function askRun(view, question) {
-  $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet" id="askwait">asking the sources…</p><div id="askprog" class="qmeta" style="margin-top:6px"></div>`;
-  // THE STANDARD PROGRESS FEED: the appliance streams one event per producer
-  // fetch at /api/v1/virtual-cypher/events (same-origin, cookie-authed) — so a
-  // 20-second fan-out narrates itself instead of freezing on "asking…".
+
+/* NATURAL LANGUAGE: the appliance generates a per-user-scoped query from plain
+ * English (gateway.kg.ask) — and with explain on, shows its working. */
+async function askFree(question) {
+  renderPending(question, 'generating a query, then asking the sources…');
+  const es = progressFeed();
+  try {
+    const res = await gateway.kg.ask({ question, explain: true });
+    es.close();
+    renderAnswer(question, res);
+  } catch (e) { es.close(); renderFailure(question, e); }
+}
+function renderPending(question, waitText, note) {
+  $('ask').innerHTML = `<p class="qmeta">${question}</p>
+    <p class="quiet" id="askwait">${waitText}</p>
+    ${note ? `<p class="quiet" style="opacity:0.7">${note}</p>` : ''}
+    <div id="askprog" class="qmeta" style="margin-top:6px"></div>`;
+}
+/* THE STANDARD PROGRESS FEED: one event per producer fetch, plus an elapsed
+ * ticker so even a paced deep fetch visibly moves. */
+function progressFeed() {
   let fetches = 0;
+  const started = Date.now();
   const es = new EventSource('/api/v1/virtual-cypher/events');
+  const paint = () => {
+    const el = $('askprog');
+    if (el) el.textContent = `${Math.round((Date.now() - started) / 1000)}s · ${fetches} source call${fetches === 1 ? '' : 's'}${paint.last ? ' · latest: ' + paint.last : ''}`;
+  };
   es.addEventListener('producer.fetch', (e) => {
     fetches++;
-    let line = '';
-    try { const d = JSON.parse(e.data); line = d.producer || d.name || ''; } catch (err) { /* count still moves */ }
-    const el = $('askprog');
-    if (el) el.textContent = `${fetches} source call${fetches === 1 ? '' : 's'}${line ? ' · latest: ' + line : ''}`;
+    try { const d = JSON.parse(e.data); paint.last = d.producer || d.name || ''; } catch (err) { /* count still moves */ }
+    paint();
   });
+  const tick = setInterval(paint, 1000);
+  const close = es.close.bind(es);
+  es.close = () => { clearInterval(tick); close(); };
+  return es;
+}
+function renderFailure(question, e) {
+  $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet">${String(e).slice(0, 160)}</p>`;
+  setTimeout(askHome, 4000);
+}
+/* The answer plus its working: rows as a table, and an expandable "how this
+ * was answered" carrying the ACTUAL virtual cypher, the live source calls and
+ * the freshness block — the realm's machinery, visible on request. */
+function renderAnswer(question, res) {
+  const rows = res.rows || [];
+  const cost = res.cost || {};
+  const back = '<button class="qbtn" id="askback" style="width:auto;margin-top:12px">← other questions</button>';
+  const how = res.cypher ? `<details style="margin-top:12px"><summary class="qmeta" style="cursor:pointer">how this was answered</summary>
+      <pre style="background:#0e1013;border:1px solid var(--sl-line);border-radius:8px;padding:10px 12px;font-size:11.5px;line-height:1.5;overflow-x:auto;color:var(--sl-dim)">${String(res.cypher).replace(/</g,'&lt;')}</pre>
+      <p class="qmeta" style="margin:6px 0 0">${cost.apiCalls || 0} live source call${(cost.apiCalls || 0) === 1 ? '' : 's'} · ${cost.ms || '?'} ms${(res.warnings || []).length ? ' · ' + res.warnings[0].slice(0, 90) : ''}</p></details>` : '';
+  if (!rows.length) {
+    $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet">nothing — which for floods and bad kitchens is the answer you want</p>${how}${back}`;
+  } else {
+    const cols = Object.keys(rows[0]);
+    $('ask').innerHTML = `<p class="qmeta">${question} · ${rows.length} row${rows.length === 1 ? '' : 's'}` +
+      ((cost.apiCalls || 0) ? ` · ${cost.apiCalls} live fetch${cost.apiCalls === 1 ? '' : 'es'}` : ' · answered from the warm graph') + `</p>
+      <div style="overflow-x:auto"><table><tr>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>` +
+      rows.map((r) => `<tr>${cols.map((c) => `<td>${fmtCell(r[c])}</td>`).join('')}</tr>`).join('') + '</table></div>' + how + back;
+  }
+  $('askback').onclick = askHome;
+}
+async function askRun(view, question, args, note) {
+  renderPending(question, 'asking the sources…', note);
+  const es = progressFeed();
   try {
-    const res = await gateway.view.run({ name: view });
+    const res = await gateway.view.run({ name: view, params: args && Object.keys(args).length ? args : undefined, explain: true });
     es.close();
-    const rows = res.rows || [];
-    const back = '<button class="qbtn" id="askback" style="width:auto;margin-top:12px">← other questions</button>';
-    if (!rows.length) {
-      $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet">nothing — which for floods and bad kitchens is the answer you want</p>${back}`;
-    } else {
-      const cols = Object.keys(rows[0]);
-      $('ask').innerHTML = `<p class="qmeta">${question} · ${rows.length} row${rows.length === 1 ? '' : 's'}` +
-        (res.apiCalls ? ` · ${res.apiCalls} live fetch${res.apiCalls === 1 ? '' : 'es'}` : ' · answered from the warm graph') + `</p>
-        <div style="overflow-x:auto"><table><tr>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>` +
-        rows.map((r) => `<tr>${cols.map((c) => `<td>${fmtCell(r[c])}</td>`).join('')}</tr>`).join('') + '</table></div>' + back;
-    }
-    $('askback').onclick = askHome;
+    renderAnswer(question, res);
   } catch (e) {
     es.close();
-    $('ask').innerHTML = `<p class="qmeta">${question}</p><p class="quiet">${String(e).slice(0, 160)}</p>`;
-    setTimeout(askHome, 4000);
+    renderFailure(question, e);
   }
 }
 function showPane(which) {
