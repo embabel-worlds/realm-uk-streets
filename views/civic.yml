@@ -37,10 +37,10 @@
   description: Contract awards from the last 28 days whose winning supplier is REGISTERED in one of your places' outward postcode areas — where public money lands on your streets. Registered address, not delivery location; the window is fetched completely, day by day.
   cypher: |
     MATCH (p:UkPlace) WHERE p.outcode IS NOT NULL
-    WITH collect(DISTINCT p.outcode) AS codes
-    MATCH (w:AwardWindow)-[:PUBLISHED]->(c:ContractAward)
-    WHERE w.window = toString(datetime.truncate('day', datetime()) - duration('P28D')) + '/' + toString(datetime.truncate('day', datetime()))
-      AND any(oc IN codes WHERE c.supplierAddress CONTAINS (oc + ' '))
+    WITH collect(DISTINCT p.outcode) AS codes,
+         toString(datetime.truncate('day', datetime()) - duration('P28D')) + '/' + toString(datetime.truncate('day', datetime())) AS win
+    MATCH (w:AwardWindow {window: win})-[:PUBLISHED]->(c:ContractAward)
+    WHERE any(oc IN codes WHERE c.supplierAddress CONTAINS (oc + ' '))
     RETURN c.supplier AS supplier, c.title AS contract, c.buyer AS buyer,
            toFloat(c.amount) AS amount, c.awardDate AS awarded, c.supplierAddress AS registeredAt
     ORDER BY amount DESC
@@ -53,8 +53,8 @@
       default: 15
       description: "How many awards, largest first."
   cypher: |
-    MATCH (w:AwardWindow)-[:PUBLISHED]->(c:ContractAward)
-    WHERE w.window = toString(datetime.truncate('day', datetime()) - duration('P28D')) + '/' + toString(datetime.truncate('day', datetime()))
+    WITH toString(datetime.truncate('day', datetime()) - duration('P28D')) + '/' + toString(datetime.truncate('day', datetime())) AS win
+    MATCH (w:AwardWindow {window: win})-[:PUBLISHED]->(c:ContractAward)
     RETURN c.title AS contract, c.buyer AS buyer, c.supplier AS supplier,
            toFloat(c.amount) AS amount, c.awardDate AS awarded
     ORDER BY amount DESC LIMIT $limit
