@@ -209,3 +209,16 @@
     WITH s.party AS party, p.name AS place, count(c) AS crimes
     RETURN party, place, crimes
     ORDER BY party, crimes ASC
+
+- name: CrimeTrend
+  description: Each watched place's monthly crime counts over the last year, with the percent change from the first to the latest month — rising first. The first run per place is twelve paced source calls; after that the past is cached and only the newest month refreshes.
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_CRIME_HISTORY]->(c:CrimeMonthIncident)
+    WITH p, c.month AS month, count(*) AS incidents
+    ORDER BY month
+    WITH p, collect(incidents) AS series, collect(month) AS months
+    WHERE size(series) >= 2
+    RETURN p.name AS place, months[0] AS from, months[-1] AS to,
+           series[0] AS firstMonth, series[-1] AS latestMonth,
+           round(100.0 * (series[-1] - series[0]) / series[0], 1) AS changePct
+    ORDER BY changePct DESC

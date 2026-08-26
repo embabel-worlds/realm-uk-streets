@@ -290,3 +290,27 @@
     name: "The school's English label on Wikidata."
     schoolLat: "The school's latitude."
     schoolLon: "The school's longitude."
+
+# A month of crime near a watched place — the TREND axis. Twelve months deep,
+# raw incidents stamped with their month; the views aggregate. The first read
+# of a place's history costs twelve paced calls; every read after that costs
+# only the newest month (closed months never re-fetch).
+- name: CrimeMonthIncident
+  description: "A police-recorded incident near a watched place within one of the last 12 published months, month-stamped — the raw material of crime trends. Reached via HAS_CRIME_HISTORY; aggregate by month, never enumerate. Coverage as CrimeIncident: no Scotland, no Greater Manchester."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_CRIME_HISTORY
+      producerKeyFields: [latitude, longitude]
+      recordKeyField: key
+      producer: crimeMonths
+      maxAnchors: 15
+      description: "Twelve months of incidents within a mile — for 'is crime rising here', count per month and compare ends. COLD COST is places x 12 calls; prefer the fill driver for the first read."
+  properties:
+    id:
+      description: "police.uk incident id. Identity."
+      metadata:
+        identity: "true"
+    key: "The coordinate pair whose radius found it — the join link."
+    month: "The month the incident belongs to, YYYY-MM — the period stamp."
+    category: "Crime category slug."
+    street: "Anonymised street-level locality."
