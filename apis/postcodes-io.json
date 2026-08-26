@@ -199,6 +199,15 @@
               "type": "string"
             },
             "description": "Maximum results, default 10."
+          },
+          {
+            "name": "radius",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search radius in metres, default 5000, max 25000 \u2014 use the maximum for map-click resolution in the uplands."
           }
         ],
         "responses": {

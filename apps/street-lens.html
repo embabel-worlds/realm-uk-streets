@@ -355,7 +355,7 @@ $('map').addEventListener('click', async (e) => {
     if (near && near[0]) {
       r = (await gateway.postcodesIo.lookupPostcode({ postcode: near[0].postcode })).result;
     } else {
-      const oc = (await gateway.postcodesIo.reverseOutcode({ lat: lat.toFixed(5), lon: lon.toFixed(5), limit: '1' })).result;
+      const oc = (await gateway.postcodesIo.reverseOutcode({ lat: lat.toFixed(5), lon: lon.toFixed(5), limit: '1', radius: '25000' })).result;
       if (!oc || !oc[0]) return status('nothing near that point — that really is the sea', true);
       const near2 = (await gateway.postcodesIo.reverseGeocode({ lat: String(oc[0].latitude), lon: String(oc[0].longitude), radius: '2000', limit: '1' })).result;
       if (!near2 || !near2[0]) return status('nearest area is ' + oc[0].outcode + ' but no postcode resolved — try the search box', true);
