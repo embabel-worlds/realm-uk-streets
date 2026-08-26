@@ -218,7 +218,7 @@
   # a 429, is the difference between five places and two.
   cost: { rate: "1/second" }
   args:
-    data: "[out:json];(node(around:1600,{keys})[amenity=school];way(around:1600,{keys})[amenity=school];);out center 40;"
+    data: "[out:json];(node(around:1550,{keys})[amenity=school];way(around:1550,{keys})[amenity=school];);out center 40;"
   project:
     id: id
     name: tags.name
