@@ -63,6 +63,12 @@ wrong place.
 
 ## Rules that keep answers honest
 
+- **Every saved view MUST be tested with its DEFAULT parameters** against a
+  world with a realistic number of watched places before it ships or changes —
+  defaults are what the ask layer and the app actually run. A view that only
+  works with hand-picked parameters is broken. (`scripts/test-nl.py` covers
+  the ask layer; run each view via `gateway.view.run({ name })` for the rest.)
+
 - **Aggregate, don't enumerate.** A city-centre place is thousands of crime
   rows a month. Count by category or street; never paste incident lists.
 - **A zero is not always safety.** Scotland is absent from police.uk; a

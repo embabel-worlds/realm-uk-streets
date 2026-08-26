@@ -11,6 +11,9 @@
 - name: streetCrimes
   kind: remote
   operation: streetCrimes
+  # data.police.uk 429s bursts — one call a second (the backend retries a 429
+  # after the pacer interval). Seven watched places = seven calls per cold view.
+  cost: { rate: "1/second" }
   records: "$[*]"
   keyArgs: [lat, lng]
   echoKeyAs: key
