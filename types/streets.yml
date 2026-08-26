@@ -252,7 +252,10 @@
       maxAnchors: 10
       description: "Majority and turnout for the seat — the margin half of 'which of my places is in a marginal'."
   properties:
-    key: "The seat id — the join link."
+    key:
+      description: "The seat id — the join link, and the identity: one latest result per seat."
+      metadata:
+        identity: "true"
     result: "'Lab Hold', 'Con Gain'…"
     majority: "Votes between first and second place."
     electorate: "Registered electors."
