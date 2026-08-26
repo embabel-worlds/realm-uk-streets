@@ -18,7 +18,9 @@
         identity: "true"
     feedState: "The feed state that listed it — the join link."
     action: "The petition's demand, verbatim."
-    signatures: "Nationwide signature count."
+    signatures:
+      type: number
+      description: "Nationwide signature count."
     petitionState: "open | closed | rejected."
 
 # A petition's per-seat signature counts — 650 rows per petition, so ALWAYS
@@ -42,7 +44,9 @@
     onsCode: "ONS constituency code (E14…) — equals UkPlace.constituencyCode."
     constituency: "The seat's name."
     mp: "The sitting MP as the petition site styles them."
-    signatures: "Signatures from this seat."
+    signatures:
+      type: number
+      description: "Signatures from this seat."
 
 # ── Contract awards: where public money lands ────────────────────────────────
 - name: ContractAward
@@ -65,7 +69,9 @@
     buyer: "The public body awarding."
     supplier: "The winning supplier's name (first supplier of the first award)."
     supplierAddress: "The supplier's registered address, free text ending in a postcode."
-    amount: "Award value."
+    amount:
+      type: number
+      description: "Award value."
     currency: "Its currency."
     awardDate: "The award's date."
 

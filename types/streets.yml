@@ -111,7 +111,9 @@
       metadata:
         identity: "true"
     key: "The postcode the sale was found at — the join link."
-    price: "Price paid, GBP — the real figure from the register, not an estimate."
+    price:
+      type: number
+      description: "Price paid, GBP — the real figure from the register, not an estimate."
     date: "Transaction date, display string, already newest-first from the source."
     paon: "Primary addressable object — usually the house number."
     street: "Street name, uppercase as registered."
@@ -138,11 +140,21 @@
         identity: "true"
     key: "The district slug the series belongs to — the join link."
     month: "The index month."
-    averagePrice: "Average price across all property types, GBP."
-    detached: "Average detached price, GBP."
-    terraced: "Average terraced price, GBP."
-    flat: "Average flat/maisonette price, GBP."
-    index: "The index value (Jan 2015 = 100)."
+    averagePrice:
+      type: number
+      description: "Average price across all property types, GBP."
+    detached:
+      type: number
+      description: "Average detached price, GBP."
+    terraced:
+      type: number
+      description: "Average terraced price, GBP."
+    flat:
+      type: number
+      description: "Average flat/maisonette price, GBP."
+    index:
+      type: number
+      description: "The index value (Jan 2015 = 100)."
 
 # ── The district axis ────────────────────────────────────────────────────────
 - name: AreaIncome
@@ -161,7 +173,9 @@
       metadata:
         identity: "true"
     key: "The district GSS code — the join link."
-    annualPay: "Median gross annual pay, GBP, full-time workers."
+    annualPay:
+      type: number
+      description: "Median gross annual pay, GBP, full-time workers."
     area: "The district's name as ONS states it."
     year: "The ASHE reference year."
 
@@ -183,7 +197,9 @@
         identity: "true"
     key: "The LSOA GSS code — the join link."
     group: "The census group, e.g. 'Asian, Asian British or Asian Welsh'."
-    percent: "Percent of the neighbourhood's residents, Census 2021."
+    percent:
+      type: number
+      description: "Percent of the neighbourhood's residents, Census 2021."
     area: "The LSOA name."
 
 # ── The coordinate axis ──────────────────────────────────────────────────────
@@ -207,7 +223,9 @@
     businessType: "Restaurant/Cafe/Canteen, Takeaway, School, Pub…"
     rating: "The official rating: '5' (best) to '0', or 'AwaitingInspection'/'Exempt'."
     ratedOn: "When it was last inspected."
-    distanceMiles: "Distance from the place, miles."
+    distanceMiles:
+      type: number
+      description: "Distance from the place, miles."
 
 - name: FloodAlert
   description: "A LIVE Environment Agency flood alert within 15 km of a watched place (England only). Reached via HAS_FLOOD_ALERT; empty is the normal, good answer. severityLevel: LOWER is WORSE (1 severe, 2 warning, 3 alert)."
@@ -266,9 +284,15 @@
       metadata:
         identity: "true"
     result: "'Lab Hold', 'Con Gain'…"
-    majority: "Votes between first and second place."
-    electorate: "Registered electors."
-    turnout: "Votes cast."
+    majority:
+      type: number
+      description: "Votes between first and second place."
+    electorate:
+      type: number
+      description: "Registered electors."
+    turnout:
+      type: number
+      description: "Votes cast."
     winningParty: "The winning party's name."
 
 # A school near a watched place, from OpenStreetMap — names and positions, not
@@ -339,5 +363,7 @@
       metadata:
         identity: "true"
     key: "The LSOA GSS code — the join link."
-    density: "Usual residents per square kilometre, Census 2021."
+    density:
+      type: number
+      description: "Usual residents per square kilometre, Census 2021."
     area: "The LSOA name."
