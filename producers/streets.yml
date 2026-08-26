@@ -135,7 +135,7 @@
   maxKeysPerCall: 1
   args:
     maxDistanceLimit: "1"
-    pageSize: "30"
+    pageSize: "35"
   project:
     fhrsId: FHRSID
     name: BusinessName
