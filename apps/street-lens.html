@@ -101,7 +101,7 @@ const X = (lon) => (Number(lon) + 11) * 26.38466;
 const Y = (lat) => (61.2 - Number(lat)) * 46;
 const ETH_COLOURS = { 'Asian': '#e0b64f', 'Black': '#7d9df0', 'Mixed': '#58c98a', 'White': '#b9beca', 'Other': '#e05c5c' };
 const money = (n) => n == null || isNaN(+n) ? '—' : '£' + Math.round(+n).toLocaleString('en-GB');
-let places = [], selected = null;
+let places = [], selected = null, ghost = null;
 
 function status(text, err) { const s = $('status'); s.textContent = text || ''; s.className = 'status' + (err ? ' err' : ''); }
 
@@ -112,9 +112,14 @@ function drawMap() {
        cx="${X(p.lon).toFixed(1)}" cy="${Y(p.lat).toFixed(1)}" data-i="${i}">
        <title>${p.name}</title></circle>` +
     (p === selected ? `<text class="dotlabel" x="${(X(p.lon) + 8).toFixed(1)}" y="${(Y(p.lat) + 3).toFixed(1)}">${p.name}</text>` : '')).join('');
+  const ghostMark = ghost
+    ? `<circle class="dot ghost" r="6" cx="${X(ghost.lon).toFixed(1)}" cy="${Y(ghost.lat).toFixed(1)}"
+         style="fill:none;stroke:var(--sl-accent);stroke-width:1.6;stroke-dasharray:3 2"></circle>
+       <text class="dotlabel" x="${(X(ghost.lon) + 9).toFixed(1)}" y="${(Y(ghost.lat) + 3).toFixed(1)}">${ghost.name}</text>`
+    : '';
   $('map').innerHTML =
     `<path class="land dim" d="${window.IRELAND_PATH || ''}"></path>` +
-    `<path class="land" d="${window.UK_PATH || ''}"></path>` + dots;
+    `<path class="land" d="${window.UK_PATH || ''}"></path>` + dots + ghostMark;
   $('map').querySelectorAll('.dot').forEach((d) =>
     d.addEventListener('click', () => select(places[+d.dataset.i])));
   $('chips').innerHTML = places.map((p, i) =>
@@ -197,10 +202,26 @@ async function select(p) {
   const d = $('dossier');
   d.innerHTML = `<div class="dhead"><h2>${p.name}</h2>
       <span class="dsub">${p.district || ''} · ${p.level || 'postcode'}${p.lsoaName ? ' · ' + p.lsoaName : ''}</span>
-      <button class="del" id="unwatch">Unwatch</button></div>
+      <button class="del" id="unwatch">${p.ephemeral ? 'Watch' : 'Unwatch'}</button></div>
     <div class="mp" id="mp">…</div><div class="cards" id="cards"></div>
     <div id="crime"></div><div id="eth"></div><div id="sales"></div><div id="schools"></div><div id="food"></div><div id="floods"></div>`;
   $('unwatch').onclick = async () => {
+    if (p.ephemeral) {
+      const r = p.full;
+      await gateway.repository.createEntry({ type: 'UkPlace', data: {
+        name: p.name, level: 'postcode', postcode: r.postcode.toUpperCase(),
+        latitude: r.latitude, longitude: r.longitude,
+        latlon: r.latitude + ',' + r.longitude, wkt: 'Point(' + r.longitude + ' ' + r.latitude + ')',
+        outcode: r.outcode, district: r.admin_district, districtCode: r.codes.admin_district,
+        districtSlug: slugify(r.admin_district), lsoa: r.codes.lsoa, lsoaName: r.lsoa,
+        ward: r.admin_ward, constituency: r.parliamentary_constituency, region: r.region || r.country,
+      }});
+      ghost = null; status('watching ' + p.name);
+      await loadPlaces();
+      const mine = places.find((x) => x.postcode === r.postcode.toUpperCase());
+      if (mine) select(mine);
+      return;
+    }
     await gateway.repository.deleteEntry({ type: 'UkPlace', id: p.id });
     selected = null; $('dossier').innerHTML = '<p class="quiet">Unwatched.</p>'; loadPlaces();
   };
@@ -285,6 +306,7 @@ async function select(p) {
   // Schools — read THROUGH THE GRAPH, so the virtual join does the work.
   (async () => {
     try {
+      if (p.ephemeral) { $('schools').innerHTML = section('schools', '<p class="quiet">watch this place to index its schools</p>'); return; }
       const r = await gateway.kg.query({ cypher:
         `MATCH (p:UkPlace {id:'${p.id}'})-[:HAS_SCHOOL]->(s:School) RETURN s.name AS name ORDER BY name` });
       const names = (r.rows || []).map((x) => x.name).filter(Boolean);
@@ -318,6 +340,26 @@ async function select(p) {
   })();
 }
 
+$('map').addEventListener('click', async (e) => {
+  if (e.target.closest('.dot')) return; // dots keep their own handler
+  const rect = $('map').getBoundingClientRect();
+  const lon = ((e.clientX - rect.left) / rect.width * 348) / 26.38466 - 11;
+  const lat = 61.2 - ((e.clientY - rect.top) / rect.height * 529) / 46;
+  status('resolving ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + '…');
+  try {
+    const near = (await gateway.postcodesIo.reverseGeocode({ lat: lat.toFixed(5), lon: lon.toFixed(5) })).result;
+    if (!near || !near[0]) return status('no postcode near that point — the sea, or very remote', true);
+    const r = (await gateway.postcodesIo.lookupPostcode({ postcode: near[0].postcode })).result;
+    const ep = { name: r.admin_ward || r.admin_district, ephemeral: true, full: r,
+      postcode: r.postcode, level: 'postcode', lat: r.latitude, lon: r.longitude,
+      district: r.admin_district, districtCode: r.codes.admin_district,
+      districtSlug: slugify(r.admin_district), lsoa: r.codes.lsoa, lsoaName: r.lsoa,
+      constituency: r.parliamentary_constituency };
+    ghost = ep;
+    status('resolved ' + r.postcode + ' · ' + (r.admin_ward || r.admin_district));
+    select(ep);
+  } catch (err) { status(String(err).slice(0, 120), true); }
+});
 $('add').addEventListener('click', watch);
 $('q').addEventListener('keydown', (e) => { if (e.key === 'Enter') watch(); });
 loadPlaces().then(() => { if (places.length) select(places[0]); })
