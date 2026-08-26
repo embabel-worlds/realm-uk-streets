@@ -123,7 +123,11 @@
       maxAnchors: 8
       description: "The district's monthly price index — for 'what's the average price around X and which way is it moving'."
   properties:
+    id:
+      description: "Source URI of the month's index row. Identity."
     key: "The district slug the series belongs to — the join link."
+      metadata:
+        identity: "true"
     month: "The index month."
     averagePrice: "Average price across all property types, GBP."
     detached: "Average detached price, GBP."
@@ -143,7 +147,11 @@
       maxAnchors: 10
       description: "The district's median full-time annual pay — the income half of 'crime level vs income around my places'."
   properties:
+    id:
+      description: "NOMIS observation URN. Identity."
     key: "The district GSS code — the join link."
+      metadata:
+        identity: "true"
     annualPay: "Median gross annual pay, GBP, full-time workers."
     area: "The district's name as ONS states it."
     year: "The ASHE reference year."
@@ -160,7 +168,11 @@
       maxAnchors: 10
       description: "The neighbourhood's census composition — five rows per place, one per group."
   properties:
+    id:
+      description: "NOMIS observation URN — unique per area and group. Identity."
     key: "The LSOA GSS code — the join link."
+      metadata:
+        identity: "true"
     group: "The census group, e.g. 'Asian, Asian British or Asian Welsh'."
     percent: "Percent of the neighbourhood's residents, Census 2021."
     area: "The LSOA name."

@@ -71,6 +71,7 @@
     _sort: "-refMonth"
     _view: all
   project:
+    id: _about
     month: refMonth
     averagePrice: averagePrice
     detached: averagePriceDetached
@@ -95,6 +96,7 @@
     measures: "20100"
     time: latest
   project:
+    id: urn
     annualPay: obs_value.value
     area: geography.description
     year: time.description
@@ -115,6 +117,7 @@
     c2021_eth_20: "1001,1002,1003,1004,1005"
     measures: "20301"
   project:
+    id: urn
     group: c2021_eth_20.description
     percent: obs_value.value
     area: geography.description
@@ -186,7 +189,9 @@
   kind: remote
   operation: electionResult
   records: "$.value"
-  keyArg: id
+  # keyArgs (path-param mode), NOT keyArg: list mode wraps the key in a JSON
+  # list, which lands "[4072]" in the path and the source 400s.
+  keyArgs: [id]
   echoKeyAs: key
   maxKeysPerCall: 1
   project:
