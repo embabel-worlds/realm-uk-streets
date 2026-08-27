@@ -129,6 +129,6 @@
          ranked[i].action + CASE WHEN i = 0 AND dominant THEN ', which ' + phrase ELSE '' END AS item
     ORDER BY seat, i
     RETURN seat,
-           render(item, 'One sentence, 28 words or fewer if the items allow, plain voice, never the word because. The items are the causes local people sign petitions for, strongest first.', {ai: {hint: 'Never write a semicolon anywhere - use a comma or start a new short sentence instead.'}}) AS brief,
+           render(item, 'One sentence, 28 words or fewer if the items allow, plain voice, never the word because. The items are the causes local people sign petitions for, strongest first.', {ai: {punctuation: 'plain', hint: 'Never write a semicolon anywhere - use a comma or start a new short sentence instead.'}}) AS brief,
            localSignatures
     ORDER BY seat
