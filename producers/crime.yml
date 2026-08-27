@@ -1,0 +1,124 @@
+# ── Official recorded-crime rates by district (ONS/Home Office) ──────────────
+# The ONS "Recorded crime data by Community Safety Partnership area" workbook,
+# Table C5: crime RATE per 1,000 population for headline offence groups, by
+# local authority, year ending March 2024 — the latest published edition (the
+# dataset is a twice-yearly xlsx, not an API, which is exactly what a tabular
+# producer is for). One file serves the whole country; the engine's file cache
+# downloads it once per deployment and both producers below read the same copy.
+#
+# Data honesty, learned from the file itself:
+# - Rates are per 1,000 RESIDENTS at source — the population correction is the
+#   publisher's, so these rank directly (unlike raw street-crime counts).
+# - Suppressed cells arrive as shorthand ('[u1]' — City of London is one), which
+#   toFloat() reads as null: an honest gap, never a zero.
+# - Some CSPs publish only COMBINED districts (Devon, Kent, Worcestershire…);
+#   the combined rows carry no LA code, so those member districts have no
+#   individual row and a place there gets nothing from the keyed join.
+# - Legacy CSP rows map onto merged LAs (Buckinghamshire appears as its four
+#   old CSPs, East Suffolk as two), so a district code can carry MORE than one
+#   row — each a real sub-area with its own real rate. Views label by name.
+# - England and Wales only, like police.uk.
+
+# Keyed by LA code, for the per-place join (UkPlace.districtCode).
+- name: districtCrimeRates
+  kind: tabular
+  url: "https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/crimeandjustice/datasets/recordedcrimedatabycommunitysafetypartnershiparea/yearendingmarch2024/csptablesyemar24correction.xlsx"
+  format: xlsx
+  sheet: "Table C5"
+  # Content-anchored header: the sheet carries a 7-row provenance banner, and
+  # banners grow — a positional pin is wrong the day ONS adds a note.
+  headerContains: "Local Authority code"
+  keyColumn: "Local Authority code"
+  keyMatch: ci
+  rowIdAs: id
+  userAgent: browser
+  project:
+    districtCode: "Local Authority code"
+    district: "Local Authority name"
+    csp: "Community Safety Partnership name"
+    force: "Police Force Area name"
+    population: "Population figures (mid-2022) - rounded to 100"
+    households: "Household figures (mid-2021) - rounded to 100"
+    totalRate: "Total recorded crime\n (excluding fraud)"
+    violenceRate: "Violence against the person"
+    violenceInjuryRate: "Violence with injury"
+    stalkingRate: "Stalking and harassment"
+    sexualRate: "Sexual offences"
+    robberyRate: "Robbery"
+    theftRate: "Theft offences"
+    burglaryRate: "Burglary"
+    vehicleRate: "Vehicle offences"
+    theftFromPersonRate: "Theft from the person"
+    bikeTheftRate: "Bicycle theft"
+    shopliftingRate: "Shoplifting"
+    criminalDamageRate: "Criminal damage and arson"
+    drugRate: "Drug offences"
+    weaponsRate: "Possession of weapons offences"
+    publicOrderRate: "Public order offences"
+  # A national statistical release: new twice a year. A week of politeness.
+  fileCacheSeconds: 604800
+  cache: { kind: ttl, seconds: 604800 }
+
+# The WHOLE table under one literal-seeded anchor, for cross-district analysis
+# (league tables, crime-vs-income, regression). Rows without a real LA code —
+# force-area subtotals and "Combined Local Authorities" — come along too;
+# every view over this join filters districtCode =~ '^[EW]0.*'.
+- name: districtCrimeTable
+  kind: tabular
+  url: "https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/crimeandjustice/datasets/recordedcrimedatabycommunitysafetypartnershiparea/yearendingmarch2024/csptablesyemar24correction.xlsx"
+  format: xlsx
+  sheet: "Table C5"
+  headerContains: "Local Authority code"
+  rowIdAs: id
+  userAgent: browser
+  project:
+    districtCode: "Local Authority code"
+    district: "Local Authority name"
+    csp: "Community Safety Partnership name"
+    force: "Police Force Area name"
+    population: "Population figures (mid-2022) - rounded to 100"
+    households: "Household figures (mid-2021) - rounded to 100"
+    totalRate: "Total recorded crime\n (excluding fraud)"
+    violenceRate: "Violence against the person"
+    violenceInjuryRate: "Violence with injury"
+    stalkingRate: "Stalking and harassment"
+    sexualRate: "Sexual offences"
+    robberyRate: "Robbery"
+    theftRate: "Theft offences"
+    burglaryRate: "Burglary"
+    vehicleRate: "Vehicle offences"
+    theftFromPersonRate: "Theft from the person"
+    bikeTheftRate: "Bicycle theft"
+    shopliftingRate: "Shoplifting"
+    criminalDamageRate: "Criminal damage and arson"
+    drugRate: "Drug offences"
+    weaponsRate: "Possession of weapons offences"
+    publicOrderRate: "Public order offences"
+  fileCacheSeconds: 604800
+  cache: { kind: ttl, seconds: 604800 }
+
+# Median pay for EVERY district in ONE NOMIS call (geography=TYPE434, the NOMIS
+# set code for all local authorities — 371 obs), so crime-vs-income never fans
+# out 300 keyed calls. The key itself is not sent: the geography is a fixed arg
+# and the anchor literal just names the batch.
+- name: medianPayAllDistricts
+  kind: remote
+  operation: medianPay
+  records: "$.obs[*]"
+  keyTemplate: "{key}"
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    geography: "TYPE434"
+    sex: "8"
+    item: "2"
+    pay: "7"
+    measures: "20100"
+    time: latest
+  project:
+    id: urn
+    districtCode: geography.geogcode
+    area: geography.description
+    annualPay: obs_value.value
+    year: time.description
+  cache: { kind: ttl, seconds: 604800 }

@@ -3,10 +3,13 @@ description: |
   Street-level Britain, joined at a place: police-recorded crime, every
   registered property sale since 1995, the House Price Index, ONS median pay,
   Census 2021 ethnicity, schools, food-hygiene ratings, live flood alerts,
-  and each place's MP with the seat's latest margin — ten keyless official
+  and each place's MP with the seat's latest margin — eleven keyless official
   sources queryable as one graph, anchored on `UkPlace`s you watch at two
   zoom levels (a full postcode for street level, an outcode for the district).
-  Cross-source views answer what no single register can: CrimeVsIncome,
+  The official ONS district crime table adds a NATIONAL cross-section: every
+  local authority's recorded-crime rate per 1,000 residents, rankable and
+  joinable to pay. Cross-source views answer what no single register can:
+  CrimeVsIncome, CrimeVsIncomeAcrossDistricts, DistrictCrimeLeague,
   IncomeByParty, SeatsAndMargins, PriceTrendAtMyPlaces, WhereNotToEat,
   PlaceDossier. The Street Lens app (`apps/street-lens.html`) puts it all on
   a map of Britain — a dossier per dot.
@@ -47,3 +50,5 @@ exports:
   - ConstituencySignal
   - ContractAward
   - CareLocation
+  - DistrictCrime
+  - DistrictIncome

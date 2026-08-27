@@ -5,7 +5,7 @@ description: Street-level Britain — crime, property sales and prices, income, 
 
 # UK Streets
 
-Ten keyless official sources joined at the places the user watches. All calls go
+Eleven keyless official sources joined at the places the user watches. All calls go
 through `gateway.<ns>.<method>(args)` from inside `code_mode` — never as
 top-level tools.
 
@@ -21,6 +21,7 @@ dataset:
 | `postcode` (full, UPPERCASE) | Land Registry Price Paid sales | `HAS_SALE` |
 | `lsoa` (E01… GSS code) | Census 2021 ethnicity | `HAS_ETHNICITY` |
 | `districtCode` (E09…/E06…) | ONS ASHE median pay | `HAS_INCOME` |
+| `districtCode` (E09…/E06…) | ONS official crime rates per 1,000 (Table C5) | `HAS_DISTRICT_CRIME` |
 | `districtSlug` (`tower-hamlets`) | UK House Price Index | `HAS_HOUSE_PRICES` |
 | `constituency` | Parliament: MP + party → `(:Seat)-[:HAS_RESULT]->(:SeatResult)` with majority and turnout | `HAS_SEAT` |
 | `wkt` (`Point(lon lat)`) | Wikidata schools | `HAS_SCHOOL` |
@@ -37,6 +38,17 @@ street-level facts and stay empty there, which is correct, not missing.
 `WhatHomesActuallySold` · `PriceTrendAtMyPlaces` · `WhereNotToEat` ·
 `SchoolsNearMyPlaces` · `FloodWatch`. Run via
 `gateway.view.run({ name, params })`.
+
+NATIONAL cross-section (the official ONS district crime table — no places
+needed): `DistrictCrimeLeague` (ranked rates per 1,000, worst first) ·
+`DistrictCrimeAtMyPlaces` (each place's district row) ·
+`CrimeVsIncomeAcrossDistricts` (~290 districts, crime beside median pay) ·
+`WhatTracksDistrictCrime` (correlation + least-squares fit with named
+outliers; needs an engine with correlate/regress). The national anchor is
+literal-seeded: `MATCH (u:UkDistricts {set:'england-and-wales'})`. Westminster
+tops raw league tables partly by daytime population — say so; City of London
+is null (supplier data unavailable); rates are the PUBLISHER'S per-1,000
+figures, so they rank directly.
 
 ## Watching a place
 

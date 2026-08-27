@@ -1,0 +1,71 @@
+# Views over the official district crime table (DistrictCrime) and the
+# all-districts pay batch (DistrictIncome). Rates here are the PUBLISHER'S
+# per-1,000-population figures, so they rank directly — no density arithmetic.
+# Every national view filters districtCode =~ '^[EW]0.*': the table also
+# carries force-area subtotals and "Combined Local Authorities" rows.
+
+- name: DistrictCrimeLeague
+  description: "England & Wales districts ranked by official recorded crime per 1,000 residents (year ending March 2024), worst first — headline rate with violence, theft and shoplifting beside it. Westminster tops any such list partly because crimes are counted where they happen and residents where they live; say so when presenting. City of London is null (supplier data unavailable). For safest-first, order ascending on the raw type."
+  params:
+    limit:
+      type: int
+      default: 15
+      description: "How many districts, worst first."
+  cypher: |
+    MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
+    WHERE c.districtCode =~ '^[EW]0.*' AND toFloat(c.totalRate) IS NOT NULL
+    RETURN c.district AS district, c.force AS force,
+           round(toFloat(c.totalRate), 1) AS totalPer1000,
+           round(toFloat(c.violenceRate), 1) AS violencePer1000,
+           round(toFloat(c.theftRate), 1) AS theftPer1000,
+           round(toFloat(c.shopliftingRate), 1) AS shopliftingPer1000
+    ORDER BY totalPer1000 DESC LIMIT $limit
+
+- name: DistrictCrimeAtMyPlaces
+  description: "The official recorded-crime rates for each watched place's local authority (per 1,000 residents, year ending March 2024) — the district-wide complement to the 1-mile street view. A place in a merged authority (Buckinghamshire, East Suffolk) shows one row per legacy sub-area; a place whose district publishes only combined figures (parts of Devon, Kent, Worcestershire) shows none."
+  params:
+    limit:
+      type: int
+      default: 30
+      description: "Maximum place rows."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_DISTRICT_CRIME]->(c:DistrictCrime)
+    RETURN p.name AS place, c.district AS district, c.csp AS area,
+           round(toFloat(c.totalRate), 1) AS totalPer1000,
+           round(toFloat(c.violenceRate), 1) AS violencePer1000,
+           round(toFloat(c.burglaryRate), 1) AS burglaryPer1000,
+           round(toFloat(c.vehicleRate), 1) AS vehiclePer1000,
+           round(toFloat(c.shopliftingRate), 1) AS shopliftingPer1000
+    ORDER BY totalPer1000 DESC LIMIT $limit
+
+- name: CrimeVsIncomeAcrossDistricts
+  description: "Every district's official crime rate beside its median full-time pay — the national cross-section (roughly 290 districts), poorest first, so the association is visible as you read down. Crime is per 1,000 residents (year ending March 2024); pay is ASHE median gross annual pay. Association across areas, not causation, and not a claim about anyone."
+  params:
+    limit:
+      type: int
+      default: 300
+      description: "Maximum district rows (the whole cross-section by default)."
+  cypher: |
+    MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
+    WHERE c.districtCode =~ '^[EW]0.*'
+    MATCH (u)-[:HAS_PAY]->(i:DistrictIncome)
+    WHERE i.districtCode = c.districtCode
+    WITH c, toFloat(i.annualPay) AS pay
+    WHERE pay IS NOT NULL AND toFloat(c.totalRate) IS NOT NULL
+    RETURN c.district AS district, pay AS medianAnnualPay,
+           round(toFloat(c.totalRate), 1) AS totalPer1000,
+           round(toFloat(c.violenceRate), 1) AS violencePer1000
+    ORDER BY pay ASC LIMIT $limit
+
+# Requires an engine with the deterministic numeric aggregations (correlate /
+# regress). On an older engine this view errors with an unknown function —
+# the row views above carry the same data either way.
+- name: WhatTracksDistrictCrime
+  description: "Does money track crime across England & Wales? One statistical answer over the whole district cross-section: the pay–crime correlation, and a least-squares fit of the crime rate on median pay and population with the districts most above and below their prediction, by name. Deterministic arithmetic over official figures — association across areas, never causation, and Westminster's daytime-population inflation applies."
+  cypher: |
+    MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
+    WHERE c.districtCode =~ '^[EW]0.*'
+    MATCH (u)-[:HAS_PAY]->(i:DistrictIncome)
+    WHERE i.districtCode = c.districtCode
+    RETURN correlate(toFloat(i.annualPay), toFloat(c.totalRate)) AS payVsCrime,
+           regress([toFloat(i.annualPay), toFloat(c.population)], toFloat(c.totalRate), c.district) AS model

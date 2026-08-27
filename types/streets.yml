@@ -367,3 +367,116 @@
       type: number
       description: "Usual residents per square kilometre, Census 2021."
     area: "The LSOA name."
+
+
+# ── The official district crime table (ONS/Home Office, Table C5) ────────────
+# UkDistricts is a LITERAL-SEEDED anchor — MATCH (u:UkDistricts
+# {set:'england-and-wales'}) mints it per query; nothing is stored. It exists
+# so the WHOLE country's crime table (and every district's median pay) hangs
+# off one anchor for cross-district analysis.
+- name: DistrictCrime
+  description: "One area's official police-recorded crime RATES per 1,000 population for headline offence groups, year ending March 2024 (ONS Community Safety Partnership tables). Reached two ways: (p:UkPlace)-[:HAS_DISTRICT_CRIME]->(c) for a watched place's district, or nationally via MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c) for all ~300 districts at once. National rows include force-area subtotals and combined-CSP rows with no real code — filter districtCode =~ '^[EW]0.*' before ranking. Rates are the publisher's own population correction, so they rank directly; a suppressed cell ('[u1]', e.g. City of London) reads as null through toFloat(). Westminster's rate is inflated by its daytime population — crimes are counted where they happen, residents where they live."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_DISTRICT_CRIME
+      keyField: districtCode
+      recordKeyField: key
+      producer: districtCrimeRates
+      maxAnchors: 12
+      description: "The watched place's district in the official table — usually one row; a merged authority (Buckinghamshire, East Suffolk) carries one row per legacy CSP sub-area. A district folded into a combined CSP (parts of Devon, Kent, Worcestershire) has no individual row."
+    - anchorLabel: UkDistricts
+      relationship: LISTS_CRIME
+      keyField: set
+      recordKeyField: key
+      producer: districtCrimeTable
+      maxAnchors: 1
+      description: "Every row of the national table under one literal-seeded anchor — one cached file read, ~400 transient rows."
+  properties:
+    id:
+      description: "Synthesized per-row id (key:ordinal), deterministic per file edition. Identity."
+      metadata:
+        identity: "true"
+    key: "The join key that produced the row — the district code (from a place) or the anchor set literal (from the national table)."
+    districtCode: "Local authority GSS code (E06/E07/E08/E09/W06) — equals UkPlace.districtCode. Force subtotals and combined-CSP rows carry text here instead; filter =~ '^[EW]0.*' for real districts."
+    district: "Local authority name."
+    csp: "Community Safety Partnership name — the police-side area; distinct from the LA name where authorities merged."
+    force: "Police force area name."
+    population:
+      type: number
+      description: "Mid-2022 population, rounded to 100 — the denominator behind the rates."
+    households:
+      type: number
+      description: "Mid-2021 households, rounded to 100."
+    totalRate:
+      type: number
+      description: "Total recorded crime (excluding fraud) per 1,000 population — the headline rate."
+    violenceRate:
+      type: number
+      description: "Violence against the person, per 1,000 population."
+    violenceInjuryRate:
+      type: number
+      description: "Violence with injury, per 1,000 population."
+    stalkingRate:
+      type: number
+      description: "Stalking and harassment, per 1,000 population."
+    sexualRate:
+      type: number
+      description: "Sexual offences, per 1,000 population."
+    robberyRate:
+      type: number
+      description: "Robbery, per 1,000 population."
+    theftRate:
+      type: number
+      description: "All theft offences, per 1,000 population."
+    burglaryRate:
+      type: number
+      description: "Burglary, per 1,000 population."
+    vehicleRate:
+      type: number
+      description: "Vehicle offences, per 1,000 population."
+    theftFromPersonRate:
+      type: number
+      description: "Theft from the person, per 1,000 population."
+    bikeTheftRate:
+      type: number
+      description: "Bicycle theft, per 1,000 population."
+    shopliftingRate:
+      type: number
+      description: "Shoplifting, per 1,000 population."
+    criminalDamageRate:
+      type: number
+      description: "Criminal damage and arson, per 1,000 population."
+    drugRate:
+      type: number
+      description: "Drug offences, per 1,000 population."
+    weaponsRate:
+      type: number
+      description: "Possession of weapons offences, per 1,000 population."
+    publicOrderRate:
+      type: number
+      description: "Public order offences, per 1,000 population."
+
+# Every district's median pay in one NOMIS call — the income axis of the
+# cross-district views, so crime-vs-income never costs 300 keyed calls.
+- name: DistrictIncome
+  description: "Median gross annual pay (ASHE, full-time) for one local authority, from the all-districts NOMIS batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_PAY]->(i) — one call returns every district; join to DistrictCrime rows on matching districtCode. The NOMIS geography set is a 2021 vintage: post-2023 unitaries (Buckinghamshire, North Yorkshire, Somerset) are absent, and their crime rows simply find no pay row."
+  virtualJoins:
+    - anchorLabel: UkDistricts
+      relationship: HAS_PAY
+      keyField: set
+      recordKeyField: key
+      producer: medianPayAllDistricts
+      maxAnchors: 1
+      description: "All ~370 district pay medians in one NOMIS call, a week of cache."
+  properties:
+    id:
+      description: "NOMIS observation URN. Identity."
+      metadata:
+        identity: "true"
+    key: "The anchor set literal — the join link."
+    districtCode: "Local authority GSS code — equals DistrictCrime.districtCode and UkPlace.districtCode."
+    area: "The district's name as NOMIS styles it."
+    annualPay:
+      type: number
+      description: "Median gross ANNUAL pay in GBP, full-time jobs held in the district."
+    year: "The ASHE year the figure belongs to."
