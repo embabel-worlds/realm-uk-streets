@@ -107,7 +107,7 @@
     ORDER BY signatures DESC LIMIT $limit
 
 - name: WhatMyPlacesCareAboutInBrief
-  description: One row PER SEAT — each constituency's top petitions reduced to three topics and a plain-voice brief under 30 words, ordered by the seat's DISTINCTIVE intensity (per-10,000 share). When one cause clearly outstrips the rest (1.5x the runner-up, computed in Cypher, not judged by the model) the brief opens "Above all". About two model calls per seat.
+  description: One row per seat — the three petitions with the strongest local backing (per-10,000 share of each petition's national signatures), rendered as a single plain sentence. When one cause clearly outstrips the runner-up (1.5x, computed in Cypher, never judged by the model) the sentence says so, in wording that varies by seat. One model call per seat.
   cypher: |
     MATCH (p:UkPlace) WHERE p.constituencyCode IS NOT NULL
     WITH collect(DISTINCT p.constituencyCode) AS mine
@@ -121,15 +121,14 @@
     ORDER BY seat, intensity DESC
     WITH seat, collect({action: action, intensity: intensity}) AS ranked, sum(sigs) AS localSignatures
     WITH seat, ranked, localSignatures,
-         CASE WHEN size(ranked) > 1 AND ranked[0].intensity >= 1.5 * ranked[1].intensity
-              THEN 'DOMINANT' ELSE 'SPREAD' END AS shape
-    UNWIND range(0, size(ranked) - 1) AS i
-    WITH seat, localSignatures, shape,
-         shape + ' | ' + ranked[i].action + ' [' + toString(round(ranked[i].intensity, 1)) + '/10k]' AS item,
-         ranked[i].intensity AS intensity
-    ORDER BY seat, intensity DESC
+         size(ranked) > 1 AND ranked[0].intensity >= 1.5 * ranked[1].intensity AS dominant,
+         ['towers over everything else here', 'draws far more local signatures than any other cause',
+          'leaves every other cause well behind', 'stands well clear of the rest'][size(seat) % 4] AS phrase
+    UNWIND range(0, CASE WHEN size(ranked) < 3 THEN size(ranked) - 1 ELSE 2 END) AS i
+    WITH seat, localSignatures, i,
+         ranked[i].action + CASE WHEN i = 0 AND dominant THEN ', which ' + phrase ELSE '' END AS item
+    ORDER BY seat, i
     RETURN seat,
-           themes(item, 'the civic topics, in the given order', 3) AS topics,
-           summarize(item, 'Under 30 words. Plain words, short clauses, never a semicolon. Keep each demand exactly as asked - never flip its direction (a call to RAISE a standard must not become cutting it). Items are highest local intensity first. Every item is tagged DOMINANT or SPREAD: if DOMINANT, open with: Above all, <the first cause> - then at most two more. If SPREAD, no preamble, just the top three causes.') AS brief,
+           render(item, 'One sentence, 28 words or fewer if the items allow, plain voice, never a semicolon, never the word because. The items are the causes local people sign petitions for, strongest first.') AS brief,
            localSignatures
     ORDER BY seat
