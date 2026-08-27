@@ -105,3 +105,18 @@
     RETURN pt.action AS petition, cs.constituency AS seat, cs.mp AS mp,
            toInteger(cs.signatures) AS signatures
     ORDER BY signatures DESC LIMIT $limit
+
+- name: WhatMyPlacesCareAboutInBrief
+  description: The LLM-reduced answer to "what do my places care about" — the top open petitions weighted by YOUR seats' signatures, reduced to a handful of civic themes and a two-sentence brief. Two model calls; the themes are held to what the petition demands literally say.
+  cypher: |
+    MATCH (p:UkPlace) WHERE p.constituencyCode IS NOT NULL
+    WITH collect(DISTINCT p.constituencyCode) AS mine
+    MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)
+    WITH mine, pt ORDER BY toInteger(pt.signatures) DESC LIMIT 12
+    MATCH (pt)-[:HAS_SIGNATURES]->(cs:ConstituencySignal)
+    WHERE cs.onsCode IN mine
+    WITH pt.action AS action, sum(toInteger(cs.signatures)) AS localSignatures
+    ORDER BY localSignatures DESC
+    RETURN themes(action, 'the broad civic topics these petition demands are about', 4) AS topics,
+           summarize(action, 'in AT MOST two sentences: what are these places asking Parliament for, leading with the most-signed') AS brief,
+           sum(localSignatures) AS signaturesAcrossMySeats

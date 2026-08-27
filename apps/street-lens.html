@@ -456,6 +456,7 @@ const QUESTIONS = [
   ['Civic', [
     ['What is Britain signing petitions about?', 'WhatBritainSigns'],
     ['What do my seats care about?', 'WhatMySeatsCareAbout'],
+    ['…and in a sentence?', 'WhatMyPlacesCareAboutInBrief', null, 'two model calls reduce the top petitions to themes'],
     ['Which constituencies care most about…', 'WhoCaresAbout', [{ name: 'topic', label: 'topic', value: 'animals' }]],
     ['Where is a petition hottest?', 'WherePetitionIsHot', [{ name: 'petition', label: 'petition mentions', value: 'water' }]],
     ['Where has public money landed near my places?', 'AwardsNearMyPlaces'],
