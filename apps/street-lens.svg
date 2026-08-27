@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Street Lens">
+  <title>Street Lens</title>
+  <!-- A lens over a street junction, in the app's own gold (#e0b64f) and with no background
+       fill, so it reads on the console's dark chrome and on a light theme alike. Drawn for
+       16px, where detail turns to mud: one dominant ring, a high street with one turning off
+       it, and a dot on the corner the dossier is about. -->
+  <defs>
+    <clipPath id="sl-lens"><circle cx="12.8" cy="12.8" r="7.4"/></clipPath>
+  </defs>
+  <g clip-path="url(#sl-lens)" stroke="#8d93a1" stroke-linecap="round" fill="none">
+    <path d="M3 17.8 L22.5 9.4" stroke-width="2.4"/>
+    <path d="M11.5 21.5 L14.6 8.5" stroke-width="1.7"/>
+  </g>
+  <circle cx="13.6" cy="13.5" r="1.8" fill="#e0b64f"/>
+  <circle cx="12.8" cy="12.8" r="8.5" fill="none" stroke="#e0b64f" stroke-width="2.6"/>
+  <path d="M19.2 19.2 L27.5 27.5" stroke="#e0b64f" stroke-width="3.4" stroke-linecap="round"/>
+</svg>
