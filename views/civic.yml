@@ -107,16 +107,21 @@
     ORDER BY signatures DESC LIMIT $limit
 
 - name: WhatMyPlacesCareAboutInBrief
-  description: The LLM-reduced answer to "what do my places care about" — the top open petitions weighted by YOUR seats' signatures, reduced to a handful of civic themes and a two-sentence brief. Two model calls; the themes are held to what the petition demands literally say.
+  description: One row PER SEAT — each of your places' constituencies reduced to its civic themes and a one-sentence brief, ordered by the seat's DISTINCTIVE intensity (its per-10,000 share of each petition, not raw counts) so the differences between your places are the point. About two model calls per seat; themes are held to what the petition demands literally say.
   cypher: |
     MATCH (p:UkPlace) WHERE p.constituencyCode IS NOT NULL
     WITH collect(DISTINCT p.constituencyCode) AS mine
     MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)
-    WITH mine, pt ORDER BY toInteger(pt.signatures) DESC LIMIT 12
+    WITH mine, pt ORDER BY toInteger(pt.signatures) DESC LIMIT 15
     MATCH (pt)-[:HAS_SIGNATURES]->(cs:ConstituencySignal)
     WHERE cs.onsCode IN mine
-    WITH pt.action AS action, sum(toInteger(cs.signatures)) AS localSignatures
-    ORDER BY localSignatures DESC
-    RETURN themes(action, 'the broad civic topics these petition demands are about', 4) AS topics,
-           summarize(action, 'in AT MOST two sentences: what are these places asking Parliament for, leading with the most-signed') AS brief,
-           sum(localSignatures) AS signaturesAcrossMySeats
+    WITH cs.constituency AS seat, pt.action AS action,
+         toInteger(cs.signatures) AS sigs,
+         10000.0 * toInteger(cs.signatures) / toInteger(pt.signatures) AS intensity
+    ORDER BY seat, intensity DESC
+    WITH seat, action, sigs, intensity
+    RETURN seat,
+           themes(action, 'the civic topics this constituency signs most intensely, in its order', 3) AS topics,
+           summarize(action, 'ONE sentence: what this constituency is asking Parliament for, led by its most distinctive causes (the items are ordered by local intensity)') AS brief,
+           sum(sigs) AS localSignatures
+    ORDER BY seat
