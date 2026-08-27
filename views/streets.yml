@@ -92,7 +92,7 @@
               ELSE round(1000.0 * crimes / (density * 8.14), 2) END AS crimeRatePerThousand
     OPTIONAL MATCH (p)-[:HAS_INCOME]->(i:AreaIncome)
     WITH p, crimes, crimeRatePerThousand, max(toFloat(i.annualPay)) AS medianPay
-    OPTIONAL MATCH (p)-[:HAS_HOUSE_PRICES]->(h:AreaHousePrice)
+    OPTIONAL MATCH (p)-[:HAS_HOUSE_PRICES]->(h:HousePriceMonth)
     WITH p, crimes, crimeRatePerThousand, medianPay, max(toFloat(h.averagePrice)) AS peakAvgPrice
     OPTIONAL MATCH (p)-[:HAS_ETHNICITY]->(e:EthnicGroupShare)
     WITH p, crimes, crimeRatePerThousand, medianPay, peakAvgPrice, e ORDER BY toFloat(e.percent) DESC
@@ -184,7 +184,7 @@
 - name: PriceTrendAtMyPlaces
   description: The official average house price in each watched place's district, this month against a year ago, with the annual change computed — the estate agent's chart, from the actual index.
   cypher: |
-    MATCH (p:UkPlace)-[:HAS_HOUSE_PRICES]->(h:AreaHousePrice)
+    MATCH (p:UkPlace)-[:HAS_HOUSE_PRICES]->(h:HousePriceMonth)
     WITH p, h ORDER BY h.month DESC
     WITH p, collect(h) AS months
     WITH p, months[0] AS now, months[-1] AS yearAgo

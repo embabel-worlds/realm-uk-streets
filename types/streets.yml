@@ -123,8 +123,8 @@
     newBuild: "true when the sale was a new build."
 
 # The district's official House Price Index — a monthly average-price series.
-- name: AreaHousePrice
-  description: "One month of the UK House Price Index for a watched place's local authority — official average prices by property type. Reached via HAS_HOUSE_PRICES; 13 months per place, newest first, so month-on-year change is computable in Cypher."
+- name: HousePriceMonth
+  description: "ONE MONTH of the UK House Price Index for a watched place's local authority — official average prices by property type, 13 monthly nodes per place via HAS_HOUSE_PRICES. When comparing areas, pin or aggregate the month (max(), or sort by month and take the head) — otherwise every month of an expensive district out-sorts every other area."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_HOUSE_PRICES
