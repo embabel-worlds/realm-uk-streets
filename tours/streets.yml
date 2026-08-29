@@ -1,107 +1,76 @@
 # The walk through what this realm added — shipped WITH the realm, so it arrives when the realm is
 # installed and leaves when it is removed.
 #
-# TWO HALVES ON PURPOSE, because this realm has two and a first-time user meets the wrong one first.
-# Everything national (the district crime league, the petitions) answers on a world with nothing
-# watched; everything street-level answers nothing at all until a UkPlace exists. A tour that opened
-# with `PlaceDossier` would show an empty table and teach a new user that the realm is broken. So it
-# opens on what already works, and only then asks for a place — with `doneWhen` so anybody who
-# already watches one is walked straight past the asking.
+# IT DRIVES THE CONSOLE; IT DOES NOT DESCRIBE IT. Every `run:` navigates to Views, picks the view
+# and runs it in the panel where somebody would look for it tomorrow, so the user watches the app
+# work rather than reading about it. The captions are short by design: they are subtitles over
+# something moving, and a paragraph makes the reader stop watching. The first draft of this file
+# was nine steps of prose with tables beside it, which is a document, and a document is what the
+# `how-it-works` page is for.
 #
-# NO PANEL IS NAMED EXCEPT `apps`, which both surfaces publish. `run:` resolves against the WORLD
-# rather than the layout, so a tour built on views runs in the Me app and the Worlds console alike;
-# the moment it reached for a field or a button it would have to pick one and say `surface:`.
+# TWO HALVES, because this realm has two and a newcomer meets the wrong one first: everything
+# national answers on a world with nothing watched, and nothing street-level answers at all until a
+# UkPlace exists. Opening on PlaceDossier would show an empty table and teach a new user that the
+# realm is broken.
+#
+# It names no panel except `apps`, which both surfaces publish, and `run:` resolves against the
+# world rather than the layout — so this runs in the Me app and the Worlds console alike.
 
 - id: StreetLensFirstLook
   name: Street Lens, first look
   description: >-
-    Eleven official UK sources joined at a place, from the national picture down to your own
-    street. Opens with what answers before you have watched anything, then asks for one place
-    and shows what that unlocks.
+    Eleven official UK sources joined at a place. Watch the console pull the national picture,
+    then your own street.
 
   steps:
     - say: |
-        This realm joins **eleven keyless official sources** — police-recorded crime, every
-        registered property sale since 1995, ONS pay, Census 2021, schools, food hygiene, live
-        flood alerts, and each place's MP with the seat's margin.
-
-        The idea is that **the geography is the join**. Nothing is copied into a database: a place
-        resolves its coordinates, postcode, district and constituency once, and each of those keys
-        a different national dataset live, at that source's own cadence.
-
-        Start with the half that needs nothing from you.
+        Eleven official sources — crime, property sales, pay, census, schools, floods, your MP.
+        **The geography is the join.** Watch.
 
     - run: view.DistrictCrimeLeague
       say: |
-        Every district in England & Wales, ranked by official recorded crime per 1,000 residents.
+        Every district in England & Wales, ranked by recorded crime per 1,000 residents. **Live,
+        from the ONS table.**
 
-        Read the top of that list carefully. **Westminster leads it partly by construction** —
-        crimes are counted where they happen and residents where they live, so anywhere with a
-        large daytime population looks worse than it lives. That caveat belongs beside the number
-        every time it is shown, which is why the view's own description carries it.
+    - say: |
+        Westminster leads it partly *by construction* — crime is counted where it happens, residents
+        where they live. Anywhere with a big daytime population looks worse than it lives.
 
     - run: view.CrimeVsIncomeAcrossDistricts
       say: |
-        The same crime figures beside each district's median full-time pay — roughly 290 districts,
-        poorest first, so the association reads down the page.
-
-        **Association across areas, not causation**, and not a claim about anybody who lives in one.
-        No single public register serves this join; both halves are public and they never meet
-        anywhere else.
+        The same crime figures, now beside each district's median pay. ~290 districts, poorest
+        first. **No single register serves this join.**
 
     - say: |
-        That is the national view. The realm's real subject is smaller: places **you** watch.
+        Association across areas — never causation, and never a claim about anyone who lives there.
 
-        A watched place is one postcode — `SE10 9JY` for street level, or `SE10` for the district
-        around it. Everything below hangs off it.
+    - say: |
+        That is the national half. The realm's real subject is one postcode: **yours.**
 
     - open: panel.apps
       by: user
       hint: >-
-        Open Apps and start Street Lens, then search a postcode and add it — the search box takes
-        a postcode, an outcode or a place name. Come back here when you have one.
-      # A row means a place already exists, so anybody who has used this realm before is walked
-      # straight past the asking rather than told to do something they did years ago.
+        Open Street Lens and add a postcode — then press Done. (Already watching places? Press Skip.)
+      # A row means places already exist, so a returning user is walked straight past the asking.
       doneWhen: |
         MATCH (p:UkPlace) RETURN p LIMIT 1
-      say: |
-        The map is Britain drawn from a vendored outline — no tiles, no third-party fetch. Each dot
-        is a place you watch, and clicking one builds its dossier live.
 
     - run: view.PlaceDossier
       say: |
-        Every watched place in one row: crime level, median income, average house price, top ethnic
-        group, MP, party and majority.
-
-        **This is the slow one, and only the first time.** It fires every producer in the realm —
-        ten or so API calls per place — and each result is then cached at its source's real cadence:
-        crime for six hours, prices for a day, census for a week, floods for ten minutes.
+        Every place you watch, in one row: crime, income, house price, ethnicity, MP, majority.
+        **Ten APIs behind this, cached at each source's own cadence.**
 
     - run: view.SafestPlace
       say: |
-        Your places ranked safest first — and note it ranks by **rate**, not count.
-
-        A raw count rewards emptiness: a field has no crime because it has no people. So the ranking
-        is incidents per 1,000 estimated residents within the mile, with the raw count beside it.
-        Where a place is an outcode rather than a full postcode there is no neighbourhood density,
-        so it has no rate and sorts last.
+        Ranked by **rate**, not count — a field has no crime because it has no people.
 
     - run: view.CrimeVsIncome
       say: |
-        Your own places on the affluence-and-safety scatter — the national cross-section you saw
-        earlier, now at the scale you actually live at.
+        Your streets on the affluence-and-safety scatter. The national picture, at the scale you
+        live at.
 
     - say: |
-        Two things to carry away, because they change how every number above should be read.
+        A zero can be coverage, not calm: no Scotland, no Greater Manchester in street crime.
 
-        **A zero can be a coverage fact rather than calm.** Street-level crime covers England, Wales
-        and Northern Ireland — but not Scotland, and not Greater Manchester, where the force stopped
-        publishing in 2019. A quiet-looking place in either is quiet in the data, not on the ground.
-
-        **Rates compare places; counts compare streets.** There is no population for an anonymised
-        street locality, so `TopCrimeStreets` is raw counts by necessity — compare streets within one
-        place, never places against each other.
-
-        From here: `SeatsAndMargins`, `IncomeByParty`, `PriceTrendAtMyPlaces`, `WhereNotToEat` and
-        `WhatMySeatsCareAbout` are all one question each, and the Street Lens app puts the whole
-        dossier on the map.
+        Everything you just watched is a saved view — **Views**, any time. `SeatsAndMargins`,
+        `IncomeByParty`, `PriceTrendAtMyPlaces`, `WhereNotToEat` are next.
