@@ -1,26 +1,22 @@
 # The walk through what this realm added — shipped WITH the realm, so it arrives when the realm is
 # installed and leaves when it is removed.
 #
-# IT DRIVES THE CONSOLE; IT DOES NOT DESCRIBE IT. Every `run:` navigates to Views, picks the view
-# and runs it in the panel where somebody would look for it tomorrow, so the user watches the app
-# work rather than reading about it. The captions are short by design: they are subtitles over
-# something moving, and a paragraph makes the reader stop watching. The first draft of this file
-# was nine steps of prose with tables beside it, which is a document, and a document is what the
-# `how-it-works` page is for.
+# IT SHOWS THE APP, NOT JUST THE QUERIES. An earlier draft was five view runs in a row: every step
+# landed on the Views tab, so a tour of a realm whose centrepiece is a MAP never showed the map.
+# That is the realm's product; the views are how you interrogate it afterwards. So the map comes
+# first, the user clicks a dot themselves, and only then does the same dossier appear as a table —
+# which is the point worth making, that the app and the query are the same data seen twice.
 #
 # TWO HALVES, because this realm has two and a newcomer meets the wrong one first: everything
 # national answers on a world with nothing watched, and nothing street-level answers at all until a
 # UkPlace exists. Opening on PlaceDossier would show an empty table and teach a new user that the
 # realm is broken.
-#
-# It names no panel except `apps`, which both surfaces publish, and `run:` resolves against the
-# world rather than the layout — so this runs in the Me app and the Worlds console alike.
 
 - id: StreetLensFirstLook
   name: Street Lens, first look
   description: >-
-    Eleven official UK sources joined at a place. Watch the console pull the national picture,
-    then your own street.
+    Eleven official UK sources joined at a place. The national picture, then the map, then your
+    own street as data you can query.
 
   steps:
     - say: |
@@ -36,41 +32,38 @@
         Westminster leads it partly *by construction* — crime is counted where it happens, residents
         where they live. Anywhere with a big daytime population looks worse than it lives.
 
-    - run: view.CrimeVsIncomeAcrossDistricts
+    - say: |
+        That is the national half, and it is a table. The realm's real subject is a **place** — so
+        here is what that looks like.
+
+    # THE MAP. Everything above this is the setup for it.
+    - open: app.street-lens
       say: |
-        The same crime figures, now beside each district's median pay. ~290 districts, poorest
-        first. **No single register serves this join.**
+        **Street Lens.** Britain drawn from a vendored outline — no tiles, nothing fetched from
+        anybody else. Each dot is a place you watch.
 
-    - say: |
-        Association across areas — never causation, and never a claim about anyone who lives there.
-
-    - say: |
-        That is the national half. The realm's real subject is one postcode: **yours.**
-
-    - open: panel.apps
+    - open: app.street-lens
       by: user
       hint: >-
-        Open Street Lens and add a postcode — then press Done. (Already watching places? Press Skip.)
-      # A row means places already exist, so a returning user is walked straight past the asking.
-      doneWhen: |
-        MATCH (p:UkPlace) RETURN p LIMIT 1
+        Click a dot — or search a postcode to add one. The dossier is built live, from ten APIs,
+        the moment you click. Press Done when you have looked.
+
+    - say: |
+        Everything in that dossier is a **live join**: the MP from Parliament's own record, the pay
+        from ONS, the sales from the Land Registry, the crime from the police. Nothing was copied
+        into a database and nothing is stale.
 
     - run: view.PlaceDossier
       say: |
-        Every place you watch, in one row: crime, income, house price, ethnicity, MP, majority.
-        **Ten APIs behind this, cached at each source's own cadence.**
+        And here is the same dossier as **data you can query** — one row per place. The app and the
+        view are the same join, seen twice: one to look at, one to ask questions of.
 
     - run: view.SafestPlace
       say: |
         Ranked by **rate**, not count — a field has no crime because it has no people.
 
-    - run: view.CrimeVsIncome
-      say: |
-        Your streets on the affluence-and-safety scatter. The national picture, at the scale you
-        live at.
-
     - say: |
         A zero can be coverage, not calm: no Scotland, no Greater Manchester in street crime.
 
-        Everything you just watched is a saved view — **Views**, any time. `SeatsAndMargins`,
-        `IncomeByParty`, `PriceTrendAtMyPlaces`, `WhereNotToEat` are next.
+        From here, **Views** has the rest — `CrimeVsIncome`, `SeatsAndMargins`, `IncomeByParty`,
+        `PriceTrendAtMyPlaces`, `WhereNotToEat`. Each one is a question no single register answers.
