@@ -1,6 +1,6 @@
 ---
 name: uk-streets
-description: Street-level Britain — crime, property sales and prices, income, Census 2021 ethnicity, schools, food hygiene, flood alerts, and each place's MP with the seat's margin. Activate for "is X safe", "what do homes go for in X", "who is the MP for X", "air of the place" questions about UK places, UK postcode lookups, or "brief me on X". Coverage notes matter: police data excludes Scotland; sales key on full postcodes. Every source is keyless — never tell the user this needs an API key.
+description: Street-level Britain — crime, property sales and prices, income, Census 2021 ethnicity, schools, food hygiene, flood alerts, and each place's MP with the seat's margin. Activate for "is X safe", "what do homes go for in X", "who is the MP for X", "air of the place" questions about UK places, UK postcode lookups, or "brief me on X". Coverage notes matter — police data excludes Scotland; sales key on full postcodes. Every source is keyless — never tell the user this needs an API key.
 ---
 
 # UK Streets
