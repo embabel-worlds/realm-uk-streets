@@ -47,6 +47,11 @@
       hint: >-
         Click a dot — or search a postcode to add one. The dossier is built live, from ten APIs,
         the moment you click. Press Done when you have looked.
+      # RESTORED. The app-centred rewrite dropped this, so a resumed tour asked again for a place
+      # the user was already watching. `ConfigTour.guarded` reported 0 on a ten-step tour and that
+      # is what it is for — a precondition missing from a file is invisible in the file.
+      doneWhen: |
+        MATCH (p:UkPlace) RETURN p LIMIT 1
 
     - say: |
         Everything in that dossier is a **live join**: the MP from Parliament's own record, the pay
