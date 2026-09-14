@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Predicts Crime</title>
+<link rel="icon" type="image/svg+xml" href="crime-predictors.svg">
+<link rel="stylesheet" href="/api/v1/apps-runtime/v1/theme.css">
+<script src="/api/v1/apps-runtime/v1/embabel.js"></script>
+<script src="/api/v1/apps-runtime/gateway.js"></script>
+<script type="application/embabel-app+json">
+{
+  "v": 1,
+  "name": "crime-predictors",
+  "title": "What Predicts Crime",
+  "realms": ["realm-uk-streets"],
+  "views": ["CrimeModelWithPredictors", "CrimePredictorsOneByOne"],
+  "gateway": ["view"]
+}
+</script>
+<style>
+  :root {
+    --cp-bg: #0c0d10; --cp-panel: #131519; --cp-line: #26292f; --cp-ink: #eceae4;
+    --cp-dim: #8d93a1; --cp-accent: #e0b64f; --cp-warm: #e0704f; --cp-cool: #5b9bd5;
+    --cp-ghost: #3a3f48;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--cp-bg); color: var(--cp-ink);
+    font-family: Georgia, 'Times New Roman', serif; line-height: 1.55;
+    padding: 0 0 80px;
+  }
+  header { padding: 30px 26px 20px; border-bottom: 1px solid var(--cp-line); }
+  h1 { font-size: 1.85rem; font-weight: normal; letter-spacing: .3px; }
+  .thesis { color: var(--cp-dim); max-width: 62ch; margin-top: 8px; font-size: .97rem; }
+  main { padding: 22px 26px; max-width: 1080px; }
+  .panel {
+    background: var(--cp-panel); border: 1px solid var(--cp-line);
+    border-radius: 7px; padding: 18px 20px; margin-bottom: 20px;
+  }
+  h2 { font-size: 1.05rem; font-weight: normal; color: var(--cp-accent);
+       margin-bottom: 4px; letter-spacing: .4px; }
+  .lede { color: var(--cp-dim); font-size: .9rem; margin-bottom: 14px; max-width: 70ch; }
+
+  /* ── the instrument ───────────────────────────────────────────────── */
+  table.preds { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  table.preds th {
+    text-align: left; font-weight: normal; color: var(--cp-dim);
+    font-size: .78rem; text-transform: uppercase; letter-spacing: .7px;
+    padding: 0 10px 8px 0; border-bottom: 1px solid var(--cp-line);
+  }
+  table.preds td { padding: 11px 10px 11px 0; border-bottom: 1px solid var(--cp-line); vertical-align: middle; }
+  table.preds tr.off td { opacity: .42; }
+  .toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+  .box {
+    width: 15px; height: 15px; border: 1px solid var(--cp-dim); border-radius: 3px;
+    flex: 0 0 auto; position: relative;
+  }
+  tr.on .box { background: var(--cp-accent); border-color: var(--cp-accent); }
+  tr.on .box::after {
+    content: '✓'; position: absolute; inset: -2px 0 0 2px;
+    color: #14161a; font-size: .8rem; font-weight: bold;
+  }
+  .pname { font-size: .95rem; }
+  .psub { color: var(--cp-dim); font-size: .78rem; }
+
+  /* Both bars are always drawn together: the ALONE figure never appears without the
+     in-model figure beside it, because the gap between them IS the finding. */
+  .bars { min-width: 210px; }
+  .barrow { display: flex; align-items: center; gap: 7px; height: 15px; margin: 2px 0; }
+  .barlbl { color: var(--cp-dim); font-size: .68rem; width: 42px; text-align: right; flex: 0 0 auto; }
+  .bartrack { flex: 1; height: 9px; background: #1a1d22; border-radius: 2px; position: relative; }
+  .barfill { position: absolute; top: 0; height: 9px; border-radius: 2px; transition: all .28s ease; }
+  .barfill.alone { background: var(--cp-ghost); }
+  .barfill.model { background: var(--cp-accent); }
+  .barfill.neg { background: var(--cp-cool); }
+  .barzero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: #3a3f48; }
+  .num { font-variant-numeric: tabular-nums; font-size: .86rem; width: 52px;
+         text-align: right; flex: 0 0 auto; }
+  .num.faded { color: var(--cp-dim); }
+  .verdict { font-size: .78rem; color: var(--cp-dim); max-width: 26ch; }
+  .verdict.kill { color: var(--cp-warm); }
+
+  /* ── story steps ──────────────────────────────────────────────────── */
+  .steps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  button.step {
+    background: #1a1d22; color: var(--cp-ink); border: 1px solid var(--cp-line);
+    border-radius: 5px; padding: 7px 13px; cursor: pointer;
+    font-family: inherit; font-size: .85rem;
+  }
+  button.step:hover { border-color: var(--cp-accent); }
+  button.step.active { border-color: var(--cp-accent); color: var(--cp-accent); }
+
+  .fit { display: flex; gap: 26px; flex-wrap: wrap; align-items: baseline; margin-top: 4px; }
+  .fit b { font-size: 1.5rem; font-weight: normal; color: var(--cp-ink); font-variant-numeric: tabular-nums; }
+  .fit span { color: var(--cp-dim); font-size: .82rem; }
+
+  .note {
+    border-left: 2px solid var(--cp-accent); padding: 9px 0 9px 13px;
+    color: var(--cp-dim); font-size: .88rem; margin-top: 14px; max-width: 74ch;
+  }
+  .note.alert { border-left-color: var(--cp-warm); }
+  .note b { color: var(--cp-ink); font-weight: normal; }
+
+  table.res { width: 100%; border-collapse: collapse; font-size: .9rem; margin-top: 6px; }
+  table.res th { text-align: left; font-weight: normal; color: var(--cp-dim);
+                 font-size: .76rem; text-transform: uppercase; letter-spacing: .6px;
+                 padding: 0 10px 7px 0; }
+  table.res td { padding: 6px 10px 6px 0; border-top: 1px solid var(--cp-line);
+                 font-variant-numeric: tabular-nums; }
+  table.res td.place { font-variant-numeric: normal; }
+  .over { color: var(--cp-warm); } .under { color: var(--cp-cool); }
+
+  .state { color: var(--cp-dim); font-size: .9rem; padding: 10px 0; }
+  .state.err { color: var(--cp-warm); }
+  footer { padding: 18px 26px; color: var(--cp-dim); font-size: .82rem;
+           border-top: 1px solid var(--cp-line); }
+  footer a { color: var(--cp-dim); text-decoration: underline dotted; cursor: pointer; }
+  #how { display: none; padding: 4px 26px 30px; max-width: 900px; }
+  #how h3 { font-size: .95rem; font-weight: normal; color: var(--cp-accent);
+            margin: 20px 0 6px; letter-spacing: .3px; }
+  #how p, #how li { color: var(--cp-dim); font-size: .88rem; max-width: 76ch; }
+  #how ul { margin: 6px 0 0 18px; }
+  #how pre { background: #0f1114; border: 1px solid var(--cp-line); border-radius: 5px;
+             padding: 12px 14px; overflow-x: auto; font-size: .78rem; color: #b9bdc6;
+             font-family: ui-monospace, SFMono-Regular, Menlo, monospace; line-height: 1.45; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>What predicts crime?</h1>
+  <p class="thesis">
+    Six official registers, joined on the district code, over the same 263 English districts.
+    Add a predictor and watch what it does to the others — because a variable's apparent
+    strength usually belongs to the variables it travels with, and no single model can show you that.
+  </p>
+</header>
+
+<main>
+  <div class="panel">
+    <h2>Walk the finding</h2>
+    <p class="lede">Three clicks. Watch the ethnic-diversity row as you go.</p>
+    <div class="steps" id="steps"></div>
+  </div>
+
+  <div class="panel">
+    <h2>The model</h2>
+    <p class="lede">
+      Tick a predictor to put it in the fit. <b>Alone</b> is what that variable claims on its own;
+      <b>in model</b> is what survives beside the others you have enabled. Both are standardized,
+      so they are directly comparable — and they are always shown together.
+    </p>
+    <div id="state" class="state">loading the model…</div>
+    <table class="preds" id="preds" hidden>
+      <thead>
+        <tr>
+          <th style="width:26%">Predictor</th>
+          <th style="width:34%">Alone vs in model</th>
+          <th style="width:9%">Alone</th>
+          <th style="width:9%">In model</th>
+          <th>What that means</th>
+        </tr>
+      </thead>
+      <tbody id="predbody"></tbody>
+    </table>
+    <div class="fit" id="fit"></div>
+    <div id="commentary"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Where the model misses</h2>
+    <p class="lede">
+      The districts furthest from their prediction. The residuals are the interesting half:
+      a place far above is telling you something these six variables do not capture.
+    </p>
+    <div id="residuals" class="state">—</div>
+  </div>
+</main>
+
+<footer>
+  Association across areas, never causation — and never a statement about any person.
+  <a id="howlink">How this works</a>
+</footer>
+
+<section id="how">
+  <h3>The data, and where each number comes from</h3>
+  <p>
+    Six registers that do not know each other exist, joined on one shared key — the ONS local
+    authority district code. Nothing here is stored: every figure is fetched from its source
+    when you open the page, and the joins are made at query time.
+  </p>
+  <ul>
+    <li><b>Crime</b> — ONS recorded crime by Community Safety Partnership area, year ending March 2024.
+      The outcome is <code>totalRate</code>, the publisher's own offences per 1,000 <em>residents</em>,
+      so nothing here is a population-size artefact.</li>
+    <li><b>Deprivation</b> — MHCLG Indices of Deprivation 2019, average score. Higher = more deprived.</li>
+    <li><b>Density</b> — Census 2021 usual residents per square kilometre.</li>
+    <li><b>Age</b> — Census 2021, the share of residents aged 20–24.</li>
+    <li><b>Pay</b> — NOMIS ASHE median gross annual pay, measured where the job is.</li>
+    <li><b>Ethnic diversity</b> — Census 2021, computed as <code>1 − Σ(share²)</code> over all five
+      top-level groups: the chance two residents drawn at random belong to different groups.
+      It is a property of the whole composition and is never any single group's share.</li>
+  </ul>
+
+  <h3>The view that runs</h3>
+  <p>One saved view does the work, and the engine computes every coefficient — the page does no arithmetic:</p>
+  <pre id="viewcypher">CrimeModelWithPredictors(deprivation, density, youngAdults, pay, diversity, population)
+
+MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]-&gt;(c:DistrictCrime)
+WHERE c.districtCode =~ '^[EW]0.*'
+MATCH (u)-[:HAS_PAY]-&gt;(i:DistrictIncome)            WHERE i.districtCode = c.districtCode
+MATCH (u)-[:HAS_DENSITY_STAT]-&gt;(d:DistrictDensity)  WHERE d.districtCode = c.districtCode
+MATCH (u)-[:HAS_AGE_STRUCTURE]-&gt;(y:DistrictYoungAdults) WHERE y.districtCode = c.districtCode
+MATCH (u)-[:HAS_DEPRIVATION]-&gt;(dep:DistrictDeprivation) WHERE dep.districtCode = c.districtCode
+MATCH (u)-[:HAS_ETHNIC_GROUP]-&gt;(g:DistrictEthnicGroup)  WHERE g.districtCode = c.districtCode
+WITH c, i, d, y, dep,
+     1.0 - sum((toFloat(g.percent)/100.0) * (toFloat(g.percent)/100.0)) AS diversity
+WHERE /* every predictor non-null, enabled or not — see below */
+WITH c, [x IN [
+       CASE WHEN $deprivation THEN toFloat(dep.imdAverageScore) END,
+       CASE WHEN $density     THEN toFloat(d.density) END,
+       CASE WHEN $youngAdults THEN toFloat(y.youngAdultPct) END,
+       CASE WHEN $pay         THEN toFloat(i.annualPay) END,
+       CASE WHEN $diversity   THEN diversity END,
+       CASE WHEN $population  THEN toFloat(c.population) END
+     ] WHERE x IS NOT NULL] AS predictors
+RETURN regress(predictors, toFloat(c.totalRate), c.district) AS model</pre>
+
+  <h3>Why the sample never changes</h3>
+  <p>
+    Every predictor is required non-null <em>whether or not you have enabled it</em>, so all 263
+    districts are in every fit. Without that the sample would move as you toggle — turning pay off
+    would readmit the districts pay is missing for — and a coefficient that changed would leave you
+    unable to tell whether the model changed or the data did. That is the exact confusion this page
+    exists to remove, so it would be a poor thing to build into the instrument.
+  </p>
+
+  <h3>What "alone" means</h3>
+  <p>
+    The alone figure is the same view with exactly one predictor enabled. A standardized beta from
+    a single-predictor fit <em>is</em> that variable's correlation with the outcome, so both columns
+    come from one view and one method — no second measure, nothing to drift.
+  </p>
+
+  <h3>What an empty panel means</h3>
+  <p>
+    If the model panel is empty, the fit could not be computed — most likely a source did not
+    answer, in which case the page says so rather than showing you a zero. A blank residual list
+    with a live model means the fit had no districts far enough from prediction to name, which is
+    not a failure. Zero predictors enabled is refused by the page, because a model with nothing
+    in it is not a model.
+  </p>
+
+  <h3>What the appliance did here that a conventional stack could not</h3>
+  <p>
+    Six publishers, six formats, one join key, no ETL and no warehouse. Nothing was copied,
+    scheduled or kept in sync: the page asks a question and the appliance fetches from each
+    source, joins them in the query, runs a least-squares fit inside the query, and returns
+    coefficients. Re-enabling a predictor re-fits over live data in about a second. The
+    conventional path to this page is a pipeline per source, a schema to hold them, a job to
+    refresh them, and a notebook to model them — and the answer would be as old as the last run.
+  </p>
+
+  <h3>Reading it honestly</h3>
+  <ul>
+    <li>Association <em>across areas</em>, never causation, and never a claim about any person.</li>
+    <li>Recorded crime counts offences where they <em>happen</em> and residents where they
+      <em>live</em>, which inflates city-centre, retail and airport districts — Westminster above all.</li>
+    <li>England only: adding deprivation restricts the fit to England, because Wales measures
+      deprivation on a separate, non-comparable index.</li>
+    <li>R² is modest by design. The joinable open data holds economic and structural variables,
+      not the policing, reporting and opportunity factors that drive much of the remainder.</li>
+  </ul>
+</section>
+
+<div id="embabel-banner"></div>
+
+<script>
+/* ── the six predictors, in the exact order the view builds its list ──────────
+ * regress names them positionally (x1..xn) over a computed list, so the mapping
+ * back to a name is this order filtered by which flags are on. */
+const PREDICTORS = [
+  { key: 'deprivation', name: 'Deprivation',     sub: 'IoD2019 average score',        aloneKey: 'deprivationVsCrime' },
+  { key: 'density',     name: 'Population density', sub: 'residents per km², 2021',   aloneKey: 'densityVsCrime' },
+  { key: 'youngAdults', name: 'Young adults',    sub: 'share aged 20–24',             aloneKey: 'youngAdultsVsCrime' },
+  { key: 'pay',         name: 'Median pay',      sub: 'ASHE, where the job is',       aloneKey: 'payVsCrime' },
+  { key: 'diversity',   name: 'Ethnic diversity', sub: 'index over all groups',       aloneKey: 'diversityVsCrime' },
+  { key: 'population',  name: 'Population',      sub: 'resident count',               aloneKey: 'populationVsCrime' },
+];
+
+const STEPS = [
+  { label: '1 · Diversity alone', on: ['diversity'] },
+  { label: '2 · Add density',     on: ['diversity', 'density'] },
+  { label: '3 · Add deprivation', on: ['diversity', 'density', 'deprivation'] },
+  { label: 'All six',             on: PREDICTORS.map((p) => p.key) },
+];
+
+const state = { on: new Set(PREDICTORS.map((p) => p.key)), alone: {}, model: null, busy: false };
+const $ = (id) => document.getElementById(id);
+
+/* Alone figures come from ONE call: a solo standardized beta is the correlation, so the
+ * six-correlation view gives every "alone" number without six model fits. */
+async function loadAlone() {
+  const res = await gateway.view.run({ name: 'CrimePredictorsOneByOne' });
+  const row = (res.rows || [])[0] || {};
+  for (const p of PREDICTORS) {
+    const cell = row[p.aloneKey];
+    if (cell && typeof cell === 'object') state.alone[p.key] = { r: cell.r, detectable: cell.detectable, ci: cell.ci };
+  }
+}
+
+async function loadModel() {
+  const params = {};
+  for (const p of PREDICTORS) params[p.key] = state.on.has(p.key);
+  const res = await gateway.view.run({ name: 'CrimeModelWithPredictors', params });
+  const row = (res.rows || [])[0] || {};
+  return row.model || null;
+}
+
+/* x1..xn back to predictor keys: the view's fixed order, filtered by what is enabled. */
+function betaByKey(model) {
+  const enabled = PREDICTORS.filter((p) => state.on.has(p.key)).map((p) => p.key);
+  const out = {};
+  for (const c of (model && model.coefficients) || []) {
+    const idx = parseInt(String(c.predictor).replace(/^x/, ''), 10) - 1;
+    if (enabled[idx] !== undefined) out[enabled[idx]] = c.beta;
+  }
+  return out;
+}
+
+const fmt = (v) => (v === undefined || v === null) ? '—' : (v >= 0 ? '' : '−') + Math.abs(v).toFixed(3);
+
+/* A signed bar around a centre line: magnitude is |value| against the largest magnitude on
+ * screen, so alone and in-model are drawn to the SAME scale and the collapse is visible. */
+function bar(value, cls, scale) {
+  const t = document.createElement('div');
+  t.className = 'bartrack';
+  const z = document.createElement('div');
+  z.className = 'barzero'; z.style.left = '50%'; t.appendChild(z);
+  if (value !== undefined && value !== null) {
+    const f = document.createElement('div');
+    const w = Math.min(Math.abs(value) / scale, 1) * 50;
+    f.className = 'barfill ' + cls + (value < 0 ? ' neg' : '');
+    f.style.width = w + '%';
+    if (value >= 0) f.style.left = '50%'; else f.style.right = '50%';
+    t.appendChild(f);
+  }
+  return t;
+}
+
+function verdictFor(p, aloneR, modelBeta) {
+  const a = state.alone[p.key];
+  if (!state.on.has(p.key)) return { text: 'not in the model', cls: '' };
+  if (aloneR === undefined || modelBeta === undefined) return { text: '', cls: '' };
+  if (a && a.detectable === false) {
+    return { text: 'alone, not statistically detectable — its effect only appears once the others are held', cls: '' };
+  }
+  const shrink = Math.abs(aloneR) > 0.001 ? 1 - Math.abs(modelBeta) / Math.abs(aloneR) : 0;
+  if (shrink > 0.8) return { text: 'its apparent effect belonged to the others — essentially nothing survives', cls: 'kill' };
+  if (shrink > 0.4) return { text: 'much of what it claimed alone belonged to the others', cls: '' };
+  if (Math.sign(aloneR) !== Math.sign(modelBeta)) return { text: 'the sign flips once the others are held', cls: 'kill' };
+  return { text: 'holds up beside the others', cls: '' };
+}
+
+function render() {
+  const model = state.model;
+  const betas = betaByKey(model);
+  const magnitudes = [];
+  for (const p of PREDICTORS) {
+    const a = state.alone[p.key]; if (a && typeof a.r === 'number') magnitudes.push(Math.abs(a.r));
+    if (typeof betas[p.key] === 'number') magnitudes.push(Math.abs(betas[p.key]));
+  }
+  const scale = Math.max(0.1, ...magnitudes);
+
+  const body = $('predbody');
+  body.textContent = '';
+  for (const p of PREDICTORS) {
+    const on = state.on.has(p.key);
+    const aloneR = state.alone[p.key] ? state.alone[p.key].r : undefined;
+    const beta = betas[p.key];
+    const tr = document.createElement('tr');
+    tr.className = on ? 'on' : 'off';
+
+    const tdName = document.createElement('td');
+    const lab = document.createElement('label');
+    lab.className = 'toggle';
+    const box = document.createElement('span'); box.className = 'box';
+    const txt = document.createElement('span');
+    const n1 = document.createElement('div'); n1.className = 'pname'; n1.textContent = p.name;
+    const n2 = document.createElement('div'); n2.className = 'psub'; n2.textContent = p.sub;
+    txt.appendChild(n1); txt.appendChild(n2);
+    lab.appendChild(box); lab.appendChild(txt);
+    lab.addEventListener('click', () => toggle(p.key));
+    tdName.appendChild(lab); tr.appendChild(tdName);
+
+    const tdBars = document.createElement('td');
+    const wrap = document.createElement('div'); wrap.className = 'bars';
+    for (const [lbl, val, cls] of [['alone', aloneR, 'alone'], ['in model', on ? beta : undefined, 'model']]) {
+      const row = document.createElement('div'); row.className = 'barrow';
+      const l = document.createElement('span'); l.className = 'barlbl'; l.textContent = lbl;
+      row.appendChild(l); row.appendChild(bar(val, cls, scale));
+      wrap.appendChild(row);
+    }
+    tdBars.appendChild(wrap); tr.appendChild(tdBars);
+
+    const tdA = document.createElement('td'); tdA.className = 'num faded'; tdA.textContent = fmt(aloneR);
+    const tdM = document.createElement('td'); tdM.className = 'num'; tdM.textContent = on ? fmt(beta) : '—';
+    tr.appendChild(tdA); tr.appendChild(tdM);
+
+    const v = verdictFor(p, aloneR, beta);
+    const tdV = document.createElement('td');
+    tdV.className = 'verdict ' + v.cls; tdV.textContent = v.text;
+    tr.appendChild(tdV);
+    body.appendChild(tr);
+  }
+  $('preds').hidden = false;
+
+  const fit = $('fit');
+  fit.textContent = '';
+  if (model) {
+    for (const [val, lbl] of [
+      [model.r2 === undefined ? '—' : model.r2.toFixed(3), 'R² — share of the variation explained'],
+      [model.n === undefined ? '—' : model.n, 'districts in the fit'],
+      [state.on.size, 'predictors enabled'],
+    ]) {
+      const b = document.createElement('b'); b.textContent = val;
+      const s = document.createElement('span'); s.textContent = lbl;
+      const d = document.createElement('div'); d.appendChild(b);
+      d.appendChild(document.createTextNode(' ')); d.appendChild(s);
+      fit.appendChild(d);
+    }
+  }
+  renderCommentary(betas);
+  renderResiduals(model);
+}
+
+function renderCommentary(betas) {
+  const c = $('commentary');
+  c.textContent = '';
+  const div = document.createElement('div');
+  const dOn = state.on.has('diversity'), depOn = state.on.has('deprivation');
+  const dBeta = betas.diversity, dAlone = state.alone.diversity ? state.alone.diversity.r : undefined;
+
+  if (dOn && typeof dBeta === 'number' && typeof dAlone === 'number' && state.on.size === 1) {
+    div.className = 'note alert';
+    div.innerHTML = '<b>Ethnic diversity correlates with recorded crime at ' + fmt(dAlone) +
+      ', and that is statistically detectable.</b> Taken alone it looks like a finding. It is not — ' +
+      'now add density, and then deprivation, and watch this number.';
+  } else if (dOn && depOn && typeof dBeta === 'number' && Math.abs(dBeta) < 0.06) {
+    div.className = 'note alert';
+    div.innerHTML = '<b>Diversity has fallen to ' + fmt(dBeta) + ' — indistinguishable from nothing.</b> ' +
+      'Its apparent association belonged entirely to the variables it travels with: deprived, dense, ' +
+      'younger places are also more diverse places. The single-variable reading was confidently, ' +
+      'detectably wrong, and only holding the others constant shows it.';
+  } else if (state.on.size === 0) {
+    div.className = 'note alert';
+    div.textContent = 'No predictors enabled — a model with nothing in it is not a model. Tick one.';
+  } else if (typeof betas.pay === 'number' && state.alone.pay &&
+             Math.sign(betas.pay) !== Math.sign(state.alone.pay.r)) {
+    div.className = 'note';
+    div.innerHTML = '<b>Pay has flipped sign.</b> Alone it is not even detectable; held against ' +
+      'deprivation and density it turns positive — higher-paid districts record somewhat more crime ' +
+      'once you compare like with like, which is the "more to steal" effect the residuals below support.';
+  } else {
+    div.className = 'note';
+    div.textContent = 'Standardized betas, so the bars are directly comparable. Compare each row’s ' +
+      'two bars: the gap between what a variable claims alone and what it keeps in company is the ' +
+      'whole point of fitting them together.';
+  }
+  c.appendChild(div);
+}
+
+function renderResiduals(model) {
+  const el = $('residuals');
+  el.textContent = '';
+  const above = (model && model.abovePrediction) || [];
+  const below = (model && model.belowPrediction) || [];
+  if (!above.length && !below.length) {
+    el.className = 'state';
+    el.textContent = model ? 'No district sits far enough from its prediction to name.'
+                           : 'No model — nothing to compare against.';
+    return;
+  }
+  el.className = '';
+  const t = document.createElement('table'); t.className = 'res';
+  const head = document.createElement('tr');
+  for (const h of ['District', 'Actual', 'Predicted', 'Difference']) {
+    const th = document.createElement('th'); th.textContent = h; head.appendChild(th);
+  }
+  t.appendChild(head);
+  const add = (rows, cls) => {
+    for (const r of rows) {
+      const tr = document.createElement('tr');
+      for (const [v, k] of [[r.label, 'place'], [r.actual, ''], [r.predicted, ''], [r.residual, cls]]) {
+        const td = document.createElement('td');
+        td.className = k;
+        td.textContent = typeof v === 'number' ? (k === cls && v > 0 ? '+' : '') + v.toFixed(1) : String(v);
+        tr.appendChild(td);
+      }
+      t.appendChild(tr);
+    }
+  };
+  add(above, 'over'); add(below, 'under');
+  el.appendChild(t);
+  const n = document.createElement('div');
+  n.className = 'note';
+  n.innerHTML = 'Above prediction in <span class="over">warm</span>, below in <span class="under">cool</span>. ' +
+    'Westminster is the standing example of why: recorded crime counts offences where they happen and ' +
+    'residents where they live, so a district with a daytime population many times its resident one ' +
+    'reads high however well the model is specified.';
+  el.appendChild(n);
+}
+
+async function refit() {
+  if (state.busy) return;
+  if (state.on.size === 0) { state.model = null; render(); return; }
+  state.busy = true;
+  $('state').className = 'state';
+  $('state').textContent = 'fitting…';
+  $('state').hidden = false;
+  try {
+    state.model = await loadModel();
+    $('state').hidden = true;
+  } catch (e) {
+    /* Stop on error — never retry in a loop. */
+    state.model = null;
+    $('state').className = 'state err';
+    $('state').textContent = 'The fit could not be computed: ' + String(e).slice(0, 160) +
+      ' — this is a source or engine failure, not a result. Nothing below should be read as a zero.';
+    $('state').hidden = false;
+  } finally {
+    state.busy = false;
+    render();
+    markSteps();
+  }
+}
+
+function toggle(key) {
+  if (state.on.has(key)) state.on.delete(key); else state.on.add(key);
+  refit();
+}
+
+function markSteps() {
+  const cur = [...state.on].sort().join(',');
+  for (const b of document.querySelectorAll('button.step')) {
+    b.classList.toggle('active', b.dataset.set === cur);
+  }
+}
+
+function buildSteps() {
+  const box = $('steps');
+  for (const s of STEPS) {
+    const b = document.createElement('button');
+    b.className = 'step'; b.textContent = s.label;
+    b.dataset.set = [...s.on].sort().join(',');
+    b.addEventListener('click', () => { state.on = new Set(s.on); refit(); });
+    box.appendChild(b);
+  }
+}
+
+$('howlink').addEventListener('click', () => {
+  const h = $('how');
+  h.style.display = h.style.display === 'block' ? 'none' : 'block';
+  if (h.style.display === 'block') h.scrollIntoView({ behavior: 'smooth' });
+});
+
+(async function start() {
+  buildSteps();
+  try {
+    await loadAlone();
+  } catch (e) {
+    $('state').className = 'state err';
+    $('state').textContent = 'Could not load the single-variable figures: ' + String(e).slice(0, 140);
+  }
+  await refit();
+})();
+</script>
+</body>
+</html>
