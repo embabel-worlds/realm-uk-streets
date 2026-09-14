@@ -271,3 +271,29 @@ test('the ranked district list renders every district and re-sorts on a column c
     assert.deepEqual(errors, [], 'no console errors');
   } finally { await browser.close(); }
 });
+
+test('the Embabel badge is present, visible and links out', async () => {
+  // Nothing injects this. The server-side rule (HtmlEmbabelBannerRule) runs only on GENERATED
+  // apps; an app shipped in a realm's apps/ directory is served from disk and never passes
+  // through it. So the realm's own harness is the enforcement, and it asserts VISIBLE rather
+  // than merely present — an empty div satisfies a grep and shows the user nothing, which is
+  // exactly how this shipped the first time.
+  const browser = await chromium.launch();
+  try {
+    const { page } = await open(browser);
+    const badge = page.locator('#embabel-badge');
+    assert.equal(await badge.count(), 1, 'the badge marker is the well-known #embabel-badge id');
+    assert.ok(await badge.isVisible(), 'the badge is visible, not an empty or hidden div');
+    const text = (await badge.textContent()).trim();
+    assert.ok(text.length > 0, `the badge carries attribution text, got "${text}"`);
+    assert.match(text, /Embabel/i);
+    const href = await badge.locator('a').getAttribute('href');
+    assert.match(href || '', /embabel\.com/, 'the badge links to embabel.com');
+
+    // It must not be covered by the page: a fixed bar the layout paints over is not shown.
+    const box = await badge.boundingBox();
+    const vh = page.viewportSize().height;
+    assert.ok(box && box.height > 0, 'the badge occupies real space');
+    assert.ok(box.y + box.height <= vh + 1, 'the badge sits within the viewport');
+  } finally { await browser.close(); }
+});

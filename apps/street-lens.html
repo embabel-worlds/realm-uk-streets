@@ -588,5 +588,8 @@ $('q').addEventListener('keydown', (e) => { if (e.key === 'Enter') watch(); });
 loadPlaces().then(() => { if (places.length) select(places[0]); })
   .catch((e) => status(String(e).slice(0, 120), true));
 </script>
+<div id="embabel-badge" style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px 0;background:rgba(10,10,15,0.9);border-top:1px solid rgba(99,192,245,0.2);font-size:0.75rem;color:#6b7280;z-index:9999;pointer-events:none;">
+  Created with <a href="https://embabel.com" target="_blank" rel="noopener noreferrer" style="color:#63c0f5;text-decoration:none;pointer-events:auto;">Embabel Me</a>
+</div>
 </body>
 </html>
