@@ -14,7 +14,7 @@
   "name": "crime-predictors",
   "title": "What Predicts Crime",
   "realms": ["realm-uk-streets"],
-  "views": ["CrimeModelWithPredictors", "CrimePredictorsOneByOne"],
+  "views": ["CrimeModelWithPredictors", "CrimePredictorsOneByOne", "DistrictsRanked"],
   "gateway": ["view"]
 }
 </script>
@@ -41,6 +41,8 @@
   h2 { font-size: 1.05rem; font-weight: normal; color: var(--cp-accent);
        margin-bottom: 4px; letter-spacing: .4px; }
   .lede { color: var(--cp-dim); font-size: .9rem; margin-bottom: 14px; max-width: 70ch; }
+  .lede.scale { border-left: 2px solid var(--cp-line); padding-left: 13px; max-width: 78ch; }
+  .lede b { color: var(--cp-ink); font-weight: normal; }
 
   /* ── the instrument ───────────────────────────────────────────────── */
   table.preds { width: 100%; border-collapse: collapse; font-size: .92rem; }
@@ -81,16 +83,6 @@
   .verdict { font-size: .78rem; color: var(--cp-dim); max-width: 26ch; }
   .verdict.kill { color: var(--cp-warm); }
 
-  /* ── story steps ──────────────────────────────────────────────────── */
-  .steps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
-  button.step {
-    background: #1a1d22; color: var(--cp-ink); border: 1px solid var(--cp-line);
-    border-radius: 5px; padding: 7px 13px; cursor: pointer;
-    font-family: inherit; font-size: .85rem;
-  }
-  button.step:hover { border-color: var(--cp-accent); }
-  button.step.active { border-color: var(--cp-accent); color: var(--cp-accent); }
-
   .fit { display: flex; gap: 26px; flex-wrap: wrap; align-items: baseline; margin-top: 4px; }
   .fit b { font-size: 1.5rem; font-weight: normal; color: var(--cp-ink); font-variant-numeric: tabular-nums; }
   .fit span { color: var(--cp-dim); font-size: .82rem; }
@@ -109,6 +101,22 @@
   table.res td { padding: 6px 10px 6px 0; border-top: 1px solid var(--cp-line);
                  font-variant-numeric: tabular-nums; }
   table.res td.place { font-variant-numeric: normal; }
+  .scroller { max-height: 430px; overflow-y: auto; border: 1px solid var(--cp-line); border-radius: 5px; }
+  table.rank { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  table.rank th {
+    position: sticky; top: 0; background: var(--cp-panel); text-align: right;
+    font-weight: normal; color: var(--cp-dim); font-size: .74rem; text-transform: uppercase;
+    letter-spacing: .6px; padding: 9px 12px 8px; border-bottom: 1px solid var(--cp-line);
+    cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  table.rank th:first-child { text-align: left; }
+  table.rank th:hover { color: var(--cp-accent); }
+  table.rank th.sorted { color: var(--cp-accent); }
+  table.rank td { padding: 6px 12px; border-bottom: 1px solid #1c1f24;
+                  text-align: right; font-variant-numeric: tabular-nums; }
+  table.rank td:first-child { text-align: left; font-variant-numeric: normal; }
+  table.rank tr:hover td { background: #171a1f; }
+  .rankno { color: var(--cp-dim); font-size: .78rem; }
   .over { color: var(--cp-warm); } .under { color: var(--cp-cool); }
 
   .state { color: var(--cp-dim); font-size: .9rem; padding: 10px 0; }
@@ -132,24 +140,28 @@
   <h1>What predicts crime?</h1>
   <p class="thesis">
     Six official registers, joined on the district code, over the same 263 English districts.
-    Add a predictor and watch what it does to the others — because a variable's apparent
-    strength usually belongs to the variables it travels with, and no single model can show you that.
+    Tick and untick predictors below and watch what each one does to the others — a variable's
+    apparent strength usually belongs to the variables it travels with, and no single model can
+    show you that. Leaving ethnic diversity on its own, then adding density and deprivation back,
+    is the shortest route to the point.
   </p>
 </header>
 
 <main>
   <div class="panel">
-    <h2>Walk the finding</h2>
-    <p class="lede">Three clicks. Watch the ethnic-diversity row as you go.</p>
-    <div class="steps" id="steps"></div>
-  </div>
-
-  <div class="panel">
     <h2>The model</h2>
     <p class="lede">
       Tick a predictor to put it in the fit. <b>Alone</b> is what that variable claims on its own;
-      <b>in model</b> is what survives beside the others you have enabled. Both are standardized,
-      so they are directly comparable — and they are always shown together.
+      <b>in model</b> is what survives beside the others you have enabled. They are always shown
+      together, because the gap between them is the whole point.
+    </p>
+    <p class="lede scale">
+      <b>Reading the numbers.</b> Each runs from −1 to +1 and says how strongly a district's crime
+      rate moves with that variable, in like-for-like units, so the six are directly comparable.
+      <b>0</b> is no association at all; <b>+</b> means more of it goes with more crime, <b>−</b>
+      means more of it goes with less. Roughly: under 0.15 is very weak, 0.3 moderate, above 0.5
+      strong. Concretely, <b>0.566</b> says a district one standard deviation more deprived than
+      average sits about 0.57 standard deviations higher on crime — with everything else held still.
     </p>
     <div id="state" class="state">loading the model…</div>
     <table class="preds" id="preds" hidden>
@@ -175,6 +187,16 @@
       a place far above is telling you something these six variables do not capture.
     </p>
     <div id="residuals" class="state">—</div>
+  </div>
+  <div class="panel">
+    <h2>Every district, worst crime first</h2>
+    <p class="lede">
+      The places behind the coefficients — the same 263 districts the model is fitted on, with the
+      value of each predictor beside them. Click a column to sort by it. Crime is offences per
+      1,000 residents; Westminster's is inflated by its daytime population, which is why it leads
+      a list its deprivation score alone would not put it near the top of.
+    </p>
+    <div id="ranked" class="state">loading districts…</div>
   </div>
 </main>
 
@@ -236,6 +258,23 @@ RETURN regress(predictors, toFloat(c.totalRate), c.district) AS model</pre>
     exists to remove, so it would be a poor thing to build into the instrument.
   </p>
 
+  <h3>What the numbers are</h3>
+  <p>
+    Every figure on the page is a <em>standardized</em> coefficient. Each predictor is expressed in
+    standard deviations rather than its own units — pounds, people per km², percentage points — so
+    that pay and density and an index can be compared on one scale without one of them looking
+    larger merely for being measured in bigger numbers. A coefficient of 0.566 means: a district one
+    standard deviation above average on that predictor sits about 0.57 standard deviations above
+    average on the crime rate, holding every other enabled predictor still. Zero means no
+    association; the sign is the direction. They cannot exceed ±1 in a single-predictor fit, and in
+    a multi-predictor one they are bounded in practice rather than by arithmetic.
+  </p>
+  <p>
+    R² is the share of the variation <em>between districts</em> that the enabled predictors account
+    for together. 0.529 means about half of why districts differ is captured here, and about half is
+    not — which is the honest state of any model built from open structural data.
+  </p>
+
   <h3>What "alone" means</h3>
   <p>
     The alone figure is the same view with exactly one predictor enabled. A standardized beta from
@@ -289,14 +328,8 @@ const PREDICTORS = [
   { key: 'population',  name: 'Population',      sub: 'resident count',               aloneKey: 'populationVsCrime' },
 ];
 
-const STEPS = [
-  { label: '1 · Diversity alone', on: ['diversity'] },
-  { label: '2 · Add density',     on: ['diversity', 'density'] },
-  { label: '3 · Add deprivation', on: ['diversity', 'density', 'deprivation'] },
-  { label: 'All six',             on: PREDICTORS.map((p) => p.key) },
-];
-
-const state = { on: new Set(PREDICTORS.map((p) => p.key)), alone: {}, model: null, busy: false };
+const state = { on: new Set(PREDICTORS.map((p) => p.key)), alone: {}, model: null,
+                busy: false, pending: false };
 const $ = (id) => document.getElementById(id);
 
 /* Alone figures come from ONE call: a solo standardized beta is the correlation, so the
@@ -353,19 +386,96 @@ function verdictFor(p, aloneR, modelBeta) {
   const a = state.alone[p.key];
   if (!state.on.has(p.key)) return { text: 'not in the model', cls: '' };
   if (aloneR === undefined || modelBeta === undefined) return { text: '', cls: '' };
+  const word = strengthWord(modelBeta) + (modelBeta < 0 && Math.abs(modelBeta) >= 0.05 ? ', downward' : '');
   if (a && a.detectable === false) {
-    return { text: 'alone, not statistically detectable — its effect only appears once the others are held', cls: '' };
+    return { text: word + ' — alone it was not even detectable; the effect appears only once the others are held', cls: '' };
   }
   const shrink = Math.abs(aloneR) > 0.001 ? 1 - Math.abs(modelBeta) / Math.abs(aloneR) : 0;
-  if (shrink > 0.8) return { text: 'its apparent effect belonged to the others — essentially nothing survives', cls: 'kill' };
-  if (shrink > 0.4) return { text: 'much of what it claimed alone belonged to the others', cls: '' };
-  if (Math.sign(aloneR) !== Math.sign(modelBeta)) return { text: 'the sign flips once the others are held', cls: 'kill' };
-  return { text: 'holds up beside the others', cls: '' };
+  if (shrink > 0.8) return { text: word + ' — its apparent effect belonged to the others; essentially nothing survives', cls: 'kill' };
+  if (shrink > 0.4) return { text: word + ' — much of what it claimed alone belonged to the others', cls: '' };
+  if (Math.sign(aloneR) !== Math.sign(modelBeta)) return { text: word + ' — and the sign flips once the others are held', cls: 'kill' };
+  return { text: word + ' — holds up beside the others', cls: '' };
+}
+
+/* Rows are built ONCE and updated in place. Rebuilding the tbody on every click destroyed and
+ * recreated every node under the pointer, which loses scroll anchoring and jumps the page —
+ * and a control that moves the page out from under you while you are clicking it is broken
+ * however correct its numbers are. */
+const rowEls = new Map();
+
+function buildRows() {
+  const body = $('predbody');
+  body.textContent = '';
+  rowEls.clear();
+  for (const p of PREDICTORS) {
+    const tr = document.createElement('tr');
+    tr.dataset.key = p.key;   // a stable handle: "Population" is a substring of "Population density"
+
+    const tdName = document.createElement('td');
+    const lab = document.createElement('span');
+    lab.className = 'toggle';
+    lab.setAttribute('role', 'checkbox');
+    lab.tabIndex = 0;
+    const box = document.createElement('span'); box.className = 'box';
+    const txt = document.createElement('span');
+    const n1 = document.createElement('span'); n1.className = 'pname'; n1.textContent = p.name;
+    const n2 = document.createElement('span'); n2.className = 'psub'; n2.textContent = p.sub;
+    txt.appendChild(n1); txt.appendChild(n2);
+    lab.appendChild(box); lab.appendChild(txt);
+    const hit = (e) => { e.preventDefault(); toggle(p.key); };
+    lab.addEventListener('click', hit);
+    lab.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') hit(e); });
+    tdName.appendChild(lab); tr.appendChild(tdName);
+
+    const tdBars = document.createElement('td');
+    const wrap = document.createElement('div'); wrap.className = 'bars';
+    const fills = {};
+    for (const [lbl, cls] of [['alone', 'alone'], ['in model', 'model']]) {
+      const row = document.createElement('div'); row.className = 'barrow';
+      const l = document.createElement('span'); l.className = 'barlbl'; l.textContent = lbl;
+      const track = document.createElement('div'); track.className = 'bartrack';
+      const z = document.createElement('div'); z.className = 'barzero'; z.style.left = '50%';
+      const f = document.createElement('div'); f.className = 'barfill ' + cls;
+      track.appendChild(z); track.appendChild(f);
+      row.appendChild(l); row.appendChild(track);
+      wrap.appendChild(row);
+      fills[cls] = f;
+    }
+    tdBars.appendChild(wrap); tr.appendChild(tdBars);
+
+    const tdA = document.createElement('td'); tdA.className = 'num faded';
+    const tdM = document.createElement('td'); tdM.className = 'num';
+    const tdV = document.createElement('td'); tdV.className = 'verdict';
+    tr.appendChild(tdA); tr.appendChild(tdM); tr.appendChild(tdV);
+
+    body.appendChild(tr);
+    rowEls.set(p.key, { tr, box, fills, tdA, tdM, tdV });
+  }
+  $('preds').hidden = false;
+}
+
+/** Plain English for a standardized coefficient, so the reader is not left with a bare decimal. */
+function strengthWord(v) {
+  const a = Math.abs(v);
+  if (a < 0.05) return 'no association';
+  if (a < 0.15) return 'very weak';
+  if (a < 0.3) return 'weak';
+  if (a < 0.5) return 'moderate';
+  return 'strong';
+}
+
+function setBar(fill, value, scale) {
+  if (value === undefined || value === null) { fill.style.width = '0%'; return; }
+  const w = Math.min(Math.abs(value) / scale, 1) * 50;
+  fill.style.width = w + '%';
+  fill.classList.toggle('neg', value < 0);
+  if (value >= 0) { fill.style.left = '50%'; fill.style.right = 'auto'; }
+  else { fill.style.right = '50%'; fill.style.left = 'auto'; }
 }
 
 function render() {
-  const model = state.model;
-  const betas = betaByKey(model);
+  if (!rowEls.size) buildRows();
+  const betas = betaByKey(state.model);
   const magnitudes = [];
   for (const p of PREDICTORS) {
     const a = state.alone[p.key]; if (a && typeof a.r === 'number') magnitudes.push(Math.abs(a.r));
@@ -373,66 +483,41 @@ function render() {
   }
   const scale = Math.max(0.1, ...magnitudes);
 
-  const body = $('predbody');
-  body.textContent = '';
   for (const p of PREDICTORS) {
+    const el = rowEls.get(p.key);
     const on = state.on.has(p.key);
     const aloneR = state.alone[p.key] ? state.alone[p.key].r : undefined;
     const beta = betas[p.key];
-    const tr = document.createElement('tr');
-    tr.className = on ? 'on' : 'off';
 
-    const tdName = document.createElement('td');
-    const lab = document.createElement('label');
-    lab.className = 'toggle';
-    const box = document.createElement('span'); box.className = 'box';
-    const txt = document.createElement('span');
-    const n1 = document.createElement('div'); n1.className = 'pname'; n1.textContent = p.name;
-    const n2 = document.createElement('div'); n2.className = 'psub'; n2.textContent = p.sub;
-    txt.appendChild(n1); txt.appendChild(n2);
-    lab.appendChild(box); lab.appendChild(txt);
-    lab.addEventListener('click', () => toggle(p.key));
-    tdName.appendChild(lab); tr.appendChild(tdName);
-
-    const tdBars = document.createElement('td');
-    const wrap = document.createElement('div'); wrap.className = 'bars';
-    for (const [lbl, val, cls] of [['alone', aloneR, 'alone'], ['in model', on ? beta : undefined, 'model']]) {
-      const row = document.createElement('div'); row.className = 'barrow';
-      const l = document.createElement('span'); l.className = 'barlbl'; l.textContent = lbl;
-      row.appendChild(l); row.appendChild(bar(val, cls, scale));
-      wrap.appendChild(row);
-    }
-    tdBars.appendChild(wrap); tr.appendChild(tdBars);
-
-    const tdA = document.createElement('td'); tdA.className = 'num faded'; tdA.textContent = fmt(aloneR);
-    const tdM = document.createElement('td'); tdM.className = 'num'; tdM.textContent = on ? fmt(beta) : '—';
-    tr.appendChild(tdA); tr.appendChild(tdM);
-
+    el.tr.className = on ? 'on' : 'off';
+    el.tr.querySelector('.toggle').setAttribute('aria-checked', String(on));
+    setBar(el.fills.alone, aloneR, scale);
+    setBar(el.fills.model, on ? beta : undefined, scale);
+    el.tdA.textContent = fmt(aloneR);
+    el.tdM.textContent = on ? fmt(beta) : '—';
     const v = verdictFor(p, aloneR, beta);
-    const tdV = document.createElement('td');
-    tdV.className = 'verdict ' + v.cls; tdV.textContent = v.text;
-    tr.appendChild(tdV);
-    body.appendChild(tr);
+    el.tdV.className = 'verdict ' + v.cls;
+    el.tdV.textContent = v.text;
   }
-  $('preds').hidden = false;
 
   const fit = $('fit');
   fit.textContent = '';
-  if (model) {
+  if (state.model) {
     for (const [val, lbl] of [
-      [model.r2 === undefined ? '—' : model.r2.toFixed(3), 'R² — share of the variation explained'],
-      [model.n === undefined ? '—' : model.n, 'districts in the fit'],
+      [state.model.r2 === undefined ? '—' : state.model.r2.toFixed(3),
+       'R² — the share of the differences between districts these predictors account for'],
+      [state.model.n === undefined ? '—' : state.model.n, 'districts in the fit'],
       [state.on.size, 'predictors enabled'],
     ]) {
       const b = document.createElement('b'); b.textContent = val;
-      const s = document.createElement('span'); s.textContent = lbl;
+      const sp = document.createElement('span'); sp.textContent = lbl;
       const d = document.createElement('div'); d.appendChild(b);
-      d.appendChild(document.createTextNode(' ')); d.appendChild(s);
+      d.appendChild(document.createTextNode(' ')); d.appendChild(sp);
       fit.appendChild(d);
     }
   }
   renderCommentary(betas);
-  renderResiduals(model);
+  renderResiduals(state.model);
 }
 
 function renderCommentary(betas) {
@@ -517,8 +602,85 @@ function renderResiduals(model) {
   el.appendChild(n);
 }
 
+/* A click must MOVE THE TICK immediately, whatever the network is doing. The first version
+ * returned early while a fit was in flight, so a click during the ~1s live fetch changed the
+ * state and re-rendered nothing: the box did not move and the click looked dead. It never
+ * showed up in the harness because a stub resolves instantly and the busy window does not
+ * exist there. Now the tick is rendered at once and a fit arriving mid-flight is queued. */
+const RANK_COLS = [
+  { key: 'district',      label: 'District',    fmt: (v) => v },
+  { key: 'crimePer1000',  label: 'Crime /1,000', fmt: (v) => v.toFixed(1) },
+  { key: 'deprivation',   label: 'Deprivation',  fmt: (v) => v.toFixed(1) },
+  { key: 'density',       label: 'Density',      fmt: (v) => v.toLocaleString() },
+  { key: 'youngAdultPct', label: '20–24 %',      fmt: (v) => v.toFixed(1) },
+  { key: 'annualPay',     label: 'Median pay',   fmt: (v) => '£' + v.toLocaleString() },
+  { key: 'diversity',     label: 'Diversity',    fmt: (v) => v.toFixed(3) },
+];
+const rank = { rows: [], sort: 'crimePer1000', desc: true };
+
+async function loadRanked() {
+  const res = await gateway.view.run({ name: 'DistrictsRanked' });
+  rank.rows = res.rows || [];
+}
+
+function renderRanked() {
+  const el = $('ranked');
+  el.textContent = '';
+  if (!rank.rows.length) {
+    el.className = 'state';
+    el.textContent = 'No districts returned — the cross-section could not be read, which is a ' +
+      'source failure rather than an empty country.';
+    return;
+  }
+  el.className = '';
+  const sorted = [...rank.rows].sort((a, b) => {
+    const x = a[rank.sort], y = b[rank.sort];
+    if (typeof x === 'string') return rank.desc ? y.localeCompare(x) : x.localeCompare(y);
+    return rank.desc ? y - x : x - y;
+  });
+
+  const scroller = document.createElement('div'); scroller.className = 'scroller';
+  const t = document.createElement('table'); t.className = 'rank';
+  const head = document.createElement('tr');
+  for (const col of RANK_COLS) {
+    const th = document.createElement('th');
+    th.textContent = col.label + (rank.sort === col.key ? (rank.desc ? ' ↓' : ' ↑') : '');
+    if (rank.sort === col.key) th.className = 'sorted';
+    th.addEventListener('click', () => {
+      if (rank.sort === col.key) rank.desc = !rank.desc;
+      else { rank.sort = col.key; rank.desc = col.key !== 'district'; }
+      renderRanked();
+    });
+    head.appendChild(th);
+  }
+  t.appendChild(head);
+  sorted.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    for (const col of RANK_COLS) {
+      const td = document.createElement('td');
+      const v = r[col.key];
+      if (col.key === 'district') {
+        const n = document.createElement('span'); n.className = 'rankno';
+        n.textContent = (i + 1) + '.  ';
+        td.appendChild(n);
+        td.appendChild(document.createTextNode(String(v)));
+      } else {
+        td.textContent = (v === null || v === undefined) ? '—' : col.fmt(v);
+      }
+      tr.appendChild(td);
+    }
+    t.appendChild(tr);
+  });
+  scroller.appendChild(t);
+  el.appendChild(scroller);
+  const n = document.createElement('div');
+  n.className = 'note';
+  n.textContent = sorted.length + ' districts — the same set every model on this page is fitted on.';
+  el.appendChild(n);
+}
+
 async function refit() {
-  if (state.busy) return;
+  if (state.busy) { state.pending = true; return; }
   if (state.on.size === 0) { state.model = null; render(); return; }
   state.busy = true;
   $('state').className = 'state';
@@ -537,31 +699,14 @@ async function refit() {
   } finally {
     state.busy = false;
     render();
-    markSteps();
+    if (state.pending) { state.pending = false; refit(); }
   }
 }
 
 function toggle(key) {
   if (state.on.has(key)) state.on.delete(key); else state.on.add(key);
+  render();          // the tick moves now; the numbers catch up when the fit returns
   refit();
-}
-
-function markSteps() {
-  const cur = [...state.on].sort().join(',');
-  for (const b of document.querySelectorAll('button.step')) {
-    b.classList.toggle('active', b.dataset.set === cur);
-  }
-}
-
-function buildSteps() {
-  const box = $('steps');
-  for (const s of STEPS) {
-    const b = document.createElement('button');
-    b.className = 'step'; b.textContent = s.label;
-    b.dataset.set = [...s.on].sort().join(',');
-    b.addEventListener('click', () => { state.on = new Set(s.on); refit(); });
-    box.appendChild(b);
-  }
 }
 
 $('howlink').addEventListener('click', () => {
@@ -571,7 +716,6 @@ $('howlink').addEventListener('click', () => {
 });
 
 (async function start() {
-  buildSteps();
   try {
     await loadAlone();
   } catch (e) {
@@ -579,6 +723,15 @@ $('howlink').addEventListener('click', () => {
     $('state').textContent = 'Could not load the single-variable figures: ' + String(e).slice(0, 140);
   }
   await refit();
+  /* Loaded after the model so the first paint is the thing the page is about; a failure
+   * here leaves the model standing rather than taking the page down with it. */
+  try {
+    await loadRanked();
+    renderRanked();
+  } catch (e) {
+    $('ranked').className = 'state err';
+    $('ranked').textContent = 'The district list could not be loaded: ' + String(e).slice(0, 140);
+  }
 })();
 </script>
 </body>

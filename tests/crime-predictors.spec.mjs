@@ -23,6 +23,7 @@ const appHtml = readFileSync(join(here, '..', 'apps', 'crime-predictors.html'), 
 const fx = (n) => JSON.parse(readFileSync(join(here, 'fixtures', n + '.json'), 'utf8'));
 
 const ALONE = fx('crimepredictorsonebyone');
+const RANKED = fx('districtsranked');
 const MODELS = {
   'density,deprivation,diversity,pay,population,youngAdults': fx('crimemodelwithpredictors-all'),
   'diversity': fx('crimemodelwithpredictors-diversity-alone'),
@@ -46,20 +47,33 @@ async function open(browser, { fail = false } = {}) {
     r.fulfill({ status: 200, contentType: 'application/javascript', body: '' }));
 
   // The browser shim, reduced to what the app uses, returning the unwrapped envelope.
-  await page.addInitScript(({ alone, models, fail }) => {
+  await page.addInitScript(({ alone, models, ranked, fail }) => {
     window.gateway = {
       view: {
         run: async ({ name, params }) => {
           if (name === 'CrimePredictorsOneByOne') return alone;
+          if (name === 'DistrictsRanked') return ranked;
           if (fail) throw new Error('source unavailable');
-          const on = Object.keys(params || {}).filter((k) => params[k]).sort().join(',');
-          const m = models[on];
-          if (!m) throw new Error('no fixture for predictor set: ' + on);
-          return m;
+          const enabled = Object.keys(params || {}).filter((k) => params[k]).sort();
+          const m = models[enabled.join(',')];
+          if (m) return m;
+          /* Walking the checkboxes passes through many intermediate combinations. Fixtures exist
+           * for the states whose NUMBERS are asserted; every other state is synthesized with the
+           * right SHAPE (n fixed, one coefficient per enabled predictor) so the walk exercises
+           * the app instead of failing on fixture bookkeeping. */
+          return {
+            rows: [{ model: {
+              n: 263, dropped: 0, r2: 0.3, adjustedR2: 0.29,
+              coefficients: enabled.map((_, i) => ({ predictor: 'x' + (i + 1), beta: 0.2 })),
+              abovePrediction: [{ label: 'Westminster', actual: 446.4, predicted: 131.6, residual: 314.8 }],
+              belowPrediction: [{ label: 'Tower Hamlets', actual: 99.6, predicted: 151.2, residual: -51.6 }],
+            } }],
+            warnings: [],
+          };
         },
       },
     };
-  }, { alone: ALONE, models: MODELS, fail });
+  }, { alone: ALONE, models: MODELS, ranked: RANKED, fail });
 
   await page.goto('http://app.invalid/app-under-test.html', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => !document.getElementById('preds').hidden, { timeout: 5000 })
@@ -67,8 +81,43 @@ async function open(browser, { fail = false } = {}) {
   return { page, errors };
 }
 
+/* Select on the row's data-key, never its label: "Population" is a substring of
+ * "Population density", so a text filter silently drove the wrong checkbox. */
+const KEY = {
+  'Deprivation': 'deprivation', 'Population density': 'density', 'Young adults': 'youngAdults',
+  'Median pay': 'pay', 'Ethnic diversity': 'diversity', 'Population': 'population',
+};
 const rowFor = (page, name) =>
-  page.locator('#predbody tr').filter({ hasText: name }).first();
+  page.locator(`#predbody tr[data-key="${KEY[name] || name}"]`);
+
+/** Click a predictor's checkbox and wait for the fit to settle. */
+const onCount = (page) => page.locator('#predbody tr.on').count();
+
+/** Click a predictor's checkbox and wait for the enabled count to land where it should. */
+async function tick(page, name) {
+  const before = await onCount(page);
+  const isOn = ((await rowFor(page, name).getAttribute('class')) || '') === 'on';
+  await rowFor(page, name).locator('.toggle').click();
+  const want = before + (isOn ? -1 : 1);
+  await page.waitForFunction(
+    (n) => document.querySelectorAll('#predbody tr.on').length === n, want, { timeout: 8000 });
+  await page.waitForFunction(() => {
+    const s = document.getElementById('state');
+    return !s || s.hidden || !/fitting/.test(s.textContent);
+  }, { timeout: 8000 });
+  await page.waitForTimeout(80);
+}
+
+/** Leave exactly one predictor ticked, and prove it. */
+async function only(page, name) {
+  for (const other of ['Deprivation', 'Population density', 'Young adults', 'Median pay',
+                       'Ethnic diversity', 'Population']) {
+    if (other === name) continue;
+    if (((await rowFor(page, other).getAttribute('class')) || '') === 'on') await tick(page, other);
+  }
+  if (((await rowFor(page, name).getAttribute('class')) || '') !== 'on') await tick(page, name);
+  assert.equal(await onCount(page), 1, `exactly ${name} is enabled`);
+}
 
 test('all six predictors render, with alone AND in-model always side by side', async () => {
   const browser = await chromium.launch();
@@ -97,17 +146,14 @@ test('the three-step walk collapses diversity from 0.420 to ~0.013', async () =>
     const readDiversity = async () =>
       (await rowFor(page, 'Ethnic diversity').locator('td.num').nth(1).textContent()).trim();
 
-    await page.getByRole('button', { name: /Diversity alone/ }).click();
-    await page.waitForFunction(() => document.querySelectorAll('#predbody tr.on').length === 1);
+    await only(page, 'Ethnic diversity');
     const solo = await readDiversity();
     assert.match(solo, /0\.4/, `diversity alone reads ~0.42, got ${solo}`);
 
-    await page.getByRole('button', { name: /Add density/ }).click();
-    await page.waitForFunction(() => document.querySelectorAll('#predbody tr.on').length === 2);
+    await tick(page, 'Population density');
     const withDensity = parseFloat((await readDiversity()).replace('−', '-'));
 
-    await page.getByRole('button', { name: /Add deprivation/ }).click();
-    await page.waitForFunction(() => document.querySelectorAll('#predbody tr.on').length === 3);
+    await tick(page, 'Deprivation');
     const withDeprivation = parseFloat((await readDiversity()).replace('−', '-'));
 
     // The CLAIM is the collapse, not a particular decimal — assert the ratio so a data
@@ -126,11 +172,11 @@ test('the sample is identical across every step — a beta moves because the mod
     const { page } = await open(browser);
     const nOf = async () => (await page.locator('#fit b').nth(1).textContent()).trim();
     const seen = new Set();
-    for (const step of [/Diversity alone/, /Add density/, /Add deprivation/, /All six/]) {
-      await page.getByRole('button', { name: step }).click();
-      await page.waitForTimeout(120);
-      seen.add(await nOf());
-    }
+    await only(page, 'Ethnic diversity'); seen.add(await nOf());
+    await tick(page, 'Population density'); seen.add(await nOf());
+    await tick(page, 'Deprivation'); seen.add(await nOf());
+    await tick(page, 'Young adults'); await tick(page, 'Median pay'); await tick(page, 'Population');
+    seen.add(await nOf());
     assert.equal(seen.size, 1, `n must not move with the toggles, saw ${[...seen].join(', ')}`);
     assert.equal([...seen][0], '263');
   } finally { await browser.close(); }
@@ -140,8 +186,7 @@ test('toggling a predictor off blanks its in-model figure but keeps its alone fi
   const browser = await chromium.launch();
   try {
     const { page } = await open(browser);
-    await page.getByRole('button', { name: /Diversity alone/ }).click();
-    await page.waitForFunction(() => document.querySelectorAll('#predbody tr.on').length === 1);
+    await only(page, 'Ethnic diversity');
     const dep = rowFor(page, 'Deprivation');
     assert.equal((await dep.locator('td.num').nth(1).textContent()).trim(), '—', 'off: no in-model figure');
     assert.notEqual((await dep.locator('td.num').nth(0).textContent()).trim(), '—',
@@ -153,9 +198,8 @@ test('zero predictors is refused rather than fitted', async () => {
   const browser = await chromium.launch();
   try {
     const { page } = await open(browser);
-    await page.getByRole('button', { name: /Diversity alone/ }).click();
-    await page.waitForFunction(() => document.querySelectorAll('#predbody tr.on').length === 1);
-    await rowFor(page, 'Ethnic diversity').locator('.toggle').click();
+    await only(page, 'Ethnic diversity');
+    await tick(page, 'Ethnic diversity');
     await page.waitForFunction(() => document.querySelectorAll('#predbody tr.on').length === 0);
     const note = await page.locator('#commentary').textContent();
     assert.match(note, /not a model/i, 'says why an empty model is refused');
@@ -202,5 +246,28 @@ test('how-it-works is reachable and carries the method and the caveats', async (
                         /regress\(/, /sample never changes/i]) {
       assert.match(how, must);
     }
+  } finally { await browser.close(); }
+});
+
+test('the ranked district list renders every district and re-sorts on a column click', async () => {
+  const browser = await chromium.launch();
+  try {
+    const { page, errors } = await open(browser);
+    const table = page.locator('#ranked table.rank');
+    await table.waitFor({ timeout: 8000 });
+    const rows = await table.locator('tr').count();
+    assert.ok(rows > 50, `the whole cross-section is listed, got ${rows - 1} districts`);
+
+    // Default order is worst crime first.
+    const first = await table.locator('tr').nth(1).locator('td').first().textContent();
+    assert.match(first, /Westminster/, 'worst crime rate leads by default');
+
+    // Sorting by a different column actually re-orders.
+    await table.locator('th', { hasText: 'Deprivation' }).click();
+    await page.waitForTimeout(120);
+    const afterSort = await table.locator('tr').nth(1).locator('td').first().textContent();
+    assert.ok(!/Westminster/.test(afterSort),
+      'sorting by deprivation moves Westminster off the top — its crime rank is an artefact');
+    assert.deepEqual(errors, [], 'no console errors');
   } finally { await browser.close(); }
 });

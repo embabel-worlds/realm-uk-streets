@@ -1,0 +1,2417 @@
+{
+ "rows": [
+  {
+   "district": "Westminster",
+   "crimePer1000": 446.4,
+   "deprivation": 20.3,
+   "density": 9514,
+   "youngAdultPct": 9.5,
+   "annualPay": 52610,
+   "diversity": 0.638
+  },
+  {
+   "district": "Camden",
+   "crimePer1000": 188.0,
+   "deprivation": 20.1,
+   "density": 9640,
+   "youngAdultPct": 9.6,
+   "annualPay": 53133,
+   "diversity": 0.596
+  },
+  {
+   "district": "Middlesbrough",
+   "crimePer1000": 167.6,
+   "deprivation": 40.5,
+   "density": 2671,
+   "youngAdultPct": 7.1,
+   "annualPay": 35177,
+   "diversity": 0.308
+  },
+  {
+   "district": "Manchester",
+   "crimePer1000": 165.9,
+   "deprivation": 40.0,
+   "density": 4772,
+   "youngAdultPct": 11.2,
+   "annualPay": 36278,
+   "diversity": 0.614
+  },
+  {
+   "district": "Kensington and Chelsea",
+   "crimePer1000": 164.5,
+   "deprivation": 21.5,
+   "density": 11816,
+   "youngAdultPct": 8.5,
+   "annualPay": 52576,
+   "diversity": 0.56
+  },
+  {
+   "district": "Blackpool",
+   "crimePer1000": 158.0,
+   "deprivation": 45.0,
+   "density": 4041,
+   "youngAdultPct": 5.3,
+   "annualPay": 31858,
+   "diversity": 0.102
+  },
+  {
+   "district": "Hartlepool",
+   "crimePer1000": 143.5,
+   "deprivation": 35.0,
+   "density": 985,
+   "youngAdultPct": 5.5,
+   "annualPay": 31871,
+   "diversity": 0.068
+  },
+  {
+   "district": "Liverpool",
+   "crimePer1000": 132.0,
+   "deprivation": 42.4,
+   "density": 4346,
+   "youngAdultPct": 10.1,
+   "annualPay": 37144,
+   "diversity": 0.288
+  },
+  {
+   "district": "Lincoln",
+   "crimePer1000": 131.9,
+   "deprivation": 26.9,
+   "density": 2908,
+   "youngAdultPct": 13.1,
+   "annualPay": 34301,
+   "diversity": 0.148
+  },
+  {
+   "district": "Doncaster",
+   "crimePer1000": 131.5,
+   "deprivation": 30.3,
+   "density": 542,
+   "youngAdultPct": 5.3,
+   "annualPay": 34967,
+   "diversity": 0.132
+  },
+  {
+   "district": "Kingston upon Hull, City of",
+   "crimePer1000": 131.3,
+   "deprivation": 40.6,
+   "density": 3730,
+   "youngAdultPct": 7.3,
+   "annualPay": 31419,
+   "diversity": 0.156
+  },
+  {
+   "district": "Islington",
+   "crimePer1000": 130.2,
+   "deprivation": 27.5,
+   "density": 14574,
+   "youngAdultPct": 8.5,
+   "annualPay": 50692,
+   "diversity": 0.575
+  },
+  {
+   "district": "Leeds",
+   "crimePer1000": 129.0,
+   "deprivation": 27.3,
+   "density": 1471,
+   "youngAdultPct": 8.7,
+   "annualPay": 36716,
+   "diversity": 0.362
+  },
+  {
+   "district": "Southampton",
+   "crimePer1000": 128.8,
+   "deprivation": 26.9,
+   "density": 4990,
+   "youngAdultPct": 10.5,
+   "annualPay": 37130,
+   "diversity": 0.335
+  },
+  {
+   "district": "Bradford",
+   "crimePer1000": 127.8,
+   "deprivation": 34.7,
+   "density": 1491,
+   "youngAdultPct": 6.1,
+   "annualPay": 33526,
+   "diversity": 0.522
+  },
+  {
+   "district": "Hammersmith and Fulham",
+   "crimePer1000": 125.3,
+   "deprivation": 22.3,
+   "density": 11161,
+   "youngAdultPct": 9.3,
+   "annualPay": 47192,
+   "diversity": 0.565
+  },
+  {
+   "district": "Hackney",
+   "crimePer1000": 125.1,
+   "deprivation": 32.5,
+   "density": 13593,
+   "youngAdultPct": 7.2,
+   "annualPay": 49482,
+   "diversity": 0.651
+  },
+  {
+   "district": "Southwark",
+   "crimePer1000": 123.9,
+   "deprivation": 25.8,
+   "density": 10659,
+   "youngAdultPct": 8.3,
+   "annualPay": 48681,
+   "diversity": 0.654
+  },
+  {
+   "district": "Wakefield",
+   "crimePer1000": 123.3,
+   "deprivation": 27.3,
+   "density": 1043,
+   "youngAdultPct": 5.1,
+   "annualPay": 34400,
+   "diversity": 0.133
+  },
+  {
+   "district": "Crawley",
+   "crimePer1000": 122.5,
+   "deprivation": 18.9,
+   "density": 2634,
+   "youngAdultPct": 5.5,
+   "annualPay": 39237,
+   "diversity": 0.433
+  },
+  {
+   "district": "Leicester",
+   "crimePer1000": 122.5,
+   "deprivation": 30.9,
+   "density": 5027,
+   "youngAdultPct": 9.8,
+   "annualPay": 32281,
+   "diversity": 0.635
+  },
+  {
+   "district": "Newcastle upon Tyne",
+   "crimePer1000": 122.1,
+   "deprivation": 29.8,
+   "density": 2646,
+   "youngAdultPct": 12.2,
+   "annualPay": 35446,
+   "diversity": 0.344
+  },
+  {
+   "district": "Nottingham",
+   "crimePer1000": 121.5,
+   "deprivation": 34.9,
+   "density": 4337,
+   "youngAdultPct": 13.5,
+   "annualPay": 30798,
+   "diversity": 0.529
+  },
+  {
+   "district": "Birmingham",
+   "crimePer1000": 121.2,
+   "deprivation": 38.1,
+   "density": 4275,
+   "youngAdultPct": 8.1,
+   "annualPay": 35989,
+   "diversity": 0.651
+  },
+  {
+   "district": "Gloucester",
+   "crimePer1000": 121.0,
+   "deprivation": 21.8,
+   "density": 3266,
+   "youngAdultPct": 6.4,
+   "annualPay": 34617,
+   "diversity": 0.272
+  },
+  {
+   "district": "Portsmouth",
+   "crimePer1000": 120.7,
+   "deprivation": 26.9,
+   "density": 5149,
+   "youngAdultPct": 9.6,
+   "annualPay": 36022,
+   "diversity": 0.267
+  },
+  {
+   "district": "Bristol, City of ",
+   "crimePer1000": 120.7,
+   "deprivation": 26.4,
+   "density": 4308,
+   "youngAdultPct": 10.1,
+   "annualPay": 39509,
+   "diversity": 0.332
+  },
+  {
+   "district": "North East Lincolnshire",
+   "crimePer1000": 120.5,
+   "deprivation": 31.3,
+   "density": 815,
+   "youngAdultPct": 5.1,
+   "annualPay": 35052,
+   "diversity": 0.074
+  },
+  {
+   "district": "Calderdale",
+   "crimePer1000": 118.4,
+   "deprivation": 26.4,
+   "density": 567,
+   "youngAdultPct": 4.9,
+   "annualPay": 35989,
+   "diversity": 0.247
+  },
+  {
+   "district": "Stoke-on-Trent",
+   "crimePer1000": 117.7,
+   "deprivation": 34.5,
+   "density": 2764,
+   "youngAdultPct": 6.6,
+   "annualPay": 32622,
+   "diversity": 0.291
+  },
+  {
+   "district": "Oldham",
+   "crimePer1000": 117.0,
+   "deprivation": 33.2,
+   "density": 1700,
+   "youngAdultPct": 5.8,
+   "annualPay": 34042,
+   "diversity": 0.474
+  },
+  {
+   "district": "Salford",
+   "crimePer1000": 116.7,
+   "deprivation": 34.2,
+   "density": 2777,
+   "youngAdultPct": 8.4,
+   "annualPay": 34958,
+   "diversity": 0.314
+  },
+  {
+   "district": "Lambeth",
+   "crimePer1000": 116.1,
+   "deprivation": 25.4,
+   "density": 11839,
+   "youngAdultPct": 8.4,
+   "annualPay": 49034,
+   "diversity": 0.625
+  },
+  {
+   "district": "Redcar and Cleveland",
+   "crimePer1000": 115.2,
+   "deprivation": 29.8,
+   "density": 557,
+   "youngAdultPct": 4.8,
+   "annualPay": 35111,
+   "diversity": 0.045
+  },
+  {
+   "district": "Norwich",
+   "crimePer1000": 114.8,
+   "deprivation": 27.6,
+   "density": 3688,
+   "youngAdultPct": 11.4,
+   "annualPay": 35263,
+   "diversity": 0.236
+  },
+  {
+   "district": "Tower Hamlets",
+   "crimePer1000": 114.2,
+   "deprivation": 27.9,
+   "density": 15702,
+   "youngAdultPct": 10.3,
+   "annualPay": 52000,
+   "diversity": 0.638
+  },
+  {
+   "district": "Rochdale",
+   "crimePer1000": 114.2,
+   "deprivation": 34.4,
+   "density": 1415,
+   "youngAdultPct": 5.5,
+   "annualPay": 34660,
+   "diversity": 0.416
+  },
+  {
+   "district": "Derby",
+   "crimePer1000": 113.5,
+   "deprivation": 26.3,
+   "density": 3349,
+   "youngAdultPct": 7.1,
+   "annualPay": 36428,
+   "diversity": 0.427
+  },
+  {
+   "district": "Haringey",
+   "crimePer1000": 113.2,
+   "deprivation": 28.0,
+   "density": 8930,
+   "youngAdultPct": 6.2,
+   "annualPay": 43995,
+   "diversity": 0.622
+  },
+  {
+   "district": "Wolverhampton",
+   "crimePer1000": 113.1,
+   "deprivation": 32.1,
+   "density": 3797,
+   "youngAdultPct": 6.0,
+   "annualPay": 35858,
+   "diversity": 0.575
+  },
+  {
+   "district": "Harlow",
+   "crimePer1000": 112.7,
+   "deprivation": 21.4,
+   "density": 3056,
+   "youngAdultPct": 5.2,
+   "annualPay": 38380,
+   "diversity": 0.307
+  },
+  {
+   "district": "Stockton-on-Tees",
+   "crimePer1000": 112.7,
+   "deprivation": 25.8,
+   "density": 959,
+   "youngAdultPct": 4.9,
+   "annualPay": 37558,
+   "diversity": 0.151
+  },
+  {
+   "district": "Bolton",
+   "crimePer1000": 110.8,
+   "deprivation": 30.7,
+   "density": 2117,
+   "youngAdultPct": 5.6,
+   "annualPay": 34186,
+   "diversity": 0.44
+  },
+  {
+   "district": "Newham",
+   "crimePer1000": 110.0,
+   "deprivation": 29.6,
+   "density": 9690,
+   "youngAdultPct": 8.1,
+   "annualPay": 42595,
+   "diversity": 0.692
+  },
+  {
+   "district": "Eastbourne",
+   "crimePer1000": 109.8,
+   "deprivation": 22.1,
+   "density": 2302,
+   "youngAdultPct": 5.1,
+   "annualPay": 37236,
+   "diversity": 0.173
+  },
+  {
+   "district": "Darlington",
+   "crimePer1000": 109.7,
+   "deprivation": 25.7,
+   "density": 545,
+   "youngAdultPct": 5.0,
+   "annualPay": 36166,
+   "diversity": 0.108
+  },
+  {
+   "district": "Thanet",
+   "crimePer1000": 108.2,
+   "deprivation": 31.3,
+   "density": 1356,
+   "youngAdultPct": 4.8,
+   "annualPay": 35775,
+   "diversity": 0.134
+  },
+  {
+   "district": "Mansfield",
+   "crimePer1000": 107.5,
+   "deprivation": 28.5,
+   "density": 1440,
+   "youngAdultPct": 5.0,
+   "annualPay": 32525,
+   "diversity": 0.101
+  },
+  {
+   "district": "Burnley",
+   "crimePer1000": 107.4,
+   "deprivation": 37.8,
+   "density": 855,
+   "youngAdultPct": 5.5,
+   "annualPay": 33208,
+   "diversity": 0.297
+  },
+  {
+   "district": "Sheffield",
+   "crimePer1000": 106.3,
+   "deprivation": 27.1,
+   "density": 1512,
+   "youngAdultPct": 9.1,
+   "annualPay": 37885,
+   "diversity": 0.361
+  },
+  {
+   "district": "Tameside",
+   "crimePer1000": 106.3,
+   "deprivation": 31.4,
+   "density": 2239,
+   "youngAdultPct": 5.2,
+   "annualPay": 33949,
+   "diversity": 0.259
+  },
+  {
+   "district": "South Tyneside",
+   "crimePer1000": 105.7,
+   "deprivation": 31.5,
+   "density": 2294,
+   "youngAdultPct": 4.9,
+   "annualPay": 33739,
+   "diversity": 0.108
+  },
+  {
+   "district": "Barnsley",
+   "crimePer1000": 105.7,
+   "deprivation": 29.9,
+   "density": 743,
+   "youngAdultPct": 5.1,
+   "annualPay": 36652,
+   "diversity": 0.061
+  },
+  {
+   "district": "Sunderland",
+   "crimePer1000": 105.6,
+   "deprivation": 30.6,
+   "density": 1994,
+   "youngAdultPct": 5.5,
+   "annualPay": 32744,
+   "diversity": 0.104
+  },
+  {
+   "district": "Hastings",
+   "crimePer1000": 105.5,
+   "deprivation": 34.3,
+   "density": 3053,
+   "youngAdultPct": 4.9,
+   "annualPay": 34714,
+   "diversity": 0.163
+  },
+  {
+   "district": "Sandwell",
+   "crimePer1000": 105.3,
+   "deprivation": 34.9,
+   "density": 3994,
+   "youngAdultPct": 6.0,
+   "annualPay": 33029,
+   "diversity": 0.595
+  },
+  {
+   "district": "Coventry",
+   "crimePer1000": 105.3,
+   "deprivation": 25.6,
+   "density": 3500,
+   "youngAdultPct": 9.1,
+   "annualPay": 37759,
+   "diversity": 0.526
+  },
+  {
+   "district": "Peterborough",
+   "crimePer1000": 105.2,
+   "deprivation": 27.8,
+   "density": 628,
+   "youngAdultPct": 5.4,
+   "annualPay": 35196,
+   "diversity": 0.407
+  },
+  {
+   "district": "Preston",
+   "crimePer1000": 105.0,
+   "deprivation": 29.5,
+   "density": 1039,
+   "youngAdultPct": 8.5,
+   "annualPay": 37214,
+   "diversity": 0.43
+  },
+  {
+   "district": "Wigan",
+   "crimePer1000": 104.5,
+   "deprivation": 25.7,
+   "density": 1750,
+   "youngAdultPct": 5.2,
+   "annualPay": 37377,
+   "diversity": 0.097
+  },
+  {
+   "district": "Brighton and Hove",
+   "crimePer1000": 104.3,
+   "deprivation": 20.8,
+   "density": 3345,
+   "youngAdultPct": 10.1,
+   "annualPay": 39347,
+   "diversity": 0.265
+  },
+  {
+   "district": "Chesterfield",
+   "crimePer1000": 104.0,
+   "deprivation": 24.9,
+   "density": 1568,
+   "youngAdultPct": 5.1,
+   "annualPay": 35920,
+   "diversity": 0.087
+  },
+  {
+   "district": "Bury",
+   "crimePer1000": 103.4,
+   "deprivation": 23.7,
+   "density": 1948,
+   "youngAdultPct": 4.9,
+   "annualPay": 35767,
+   "diversity": 0.3
+  },
+  {
+   "district": "Cambridge",
+   "crimePer1000": 103.2,
+   "deprivation": 14.9,
+   "density": 3579,
+   "youngAdultPct": 13.9,
+   "annualPay": 43741,
+   "diversity": 0.419
+  },
+  {
+   "district": "Reading",
+   "crimePer1000": 102.3,
+   "deprivation": 19.6,
+   "density": 4312,
+   "youngAdultPct": 8.4,
+   "annualPay": 40700,
+   "diversity": 0.51
+  },
+  {
+   "district": "Southend-on-Sea",
+   "crimePer1000": 102.0,
+   "deprivation": 22.4,
+   "density": 4335,
+   "youngAdultPct": 5.2,
+   "annualPay": 41554,
+   "diversity": 0.229
+  },
+  {
+   "district": "Walsall",
+   "crimePer1000": 100.7,
+   "deprivation": 31.6,
+   "density": 2733,
+   "youngAdultPct": 5.7,
+   "annualPay": 34036,
+   "diversity": 0.452
+  },
+  {
+   "district": "Kirklees",
+   "crimePer1000": 100.5,
+   "deprivation": 25.2,
+   "density": 1060,
+   "youngAdultPct": 6.0,
+   "annualPay": 35867,
+   "diversity": 0.419
+  },
+  {
+   "district": "Lewisham",
+   "crimePer1000": 100.3,
+   "deprivation": 26.7,
+   "density": 8551,
+   "youngAdultPct": 6.3,
+   "annualPay": 45702,
+   "diversity": 0.646
+  },
+  {
+   "district": "Medway",
+   "crimePer1000": 99.9,
+   "deprivation": 23.9,
+   "density": 1444,
+   "youngAdultPct": 5.7,
+   "annualPay": 39622,
+   "diversity": 0.282
+  },
+  {
+   "district": "Slough",
+   "crimePer1000": 99.9,
+   "deprivation": 23.0,
+   "density": 4871,
+   "youngAdultPct": 5.6,
+   "annualPay": 38483,
+   "diversity": 0.642
+  },
+  {
+   "district": "Greenwich",
+   "crimePer1000": 99.7,
+   "deprivation": 24.5,
+   "density": 6108,
+   "youngAdultPct": 6.4,
+   "annualPay": 45274,
+   "diversity": 0.623
+  },
+  {
+   "district": "Oxford",
+   "crimePer1000": 99.4,
+   "deprivation": 16.7,
+   "density": 3553,
+   "youngAdultPct": 13.6,
+   "annualPay": 43289,
+   "diversity": 0.47
+  },
+  {
+   "district": "Barking and Dagenham",
+   "crimePer1000": 99.3,
+   "deprivation": 32.8,
+   "density": 6065,
+   "youngAdultPct": 6.0,
+   "annualPay": 38467,
+   "diversity": 0.682
+  },
+  {
+   "district": "County Durham",
+   "crimePer1000": 98.4,
+   "deprivation": 26.8,
+   "density": 234,
+   "youngAdultPct": 6.3,
+   "annualPay": 33436,
+   "diversity": 0.063
+  },
+  {
+   "district": "Basildon",
+   "crimePer1000": 98.0,
+   "deprivation": 23.2,
+   "density": 1705,
+   "youngAdultPct": 5.1,
+   "annualPay": 39734,
+   "diversity": 0.229
+  },
+  {
+   "district": "St. Helens",
+   "crimePer1000": 97.9,
+   "deprivation": 31.5,
+   "density": 1343,
+   "youngAdultPct": 5.1,
+   "annualPay": 37306,
+   "diversity": 0.068
+  },
+  {
+   "district": "Hyndburn",
+   "crimePer1000": 97.6,
+   "deprivation": 34.3,
+   "density": 1126,
+   "youngAdultPct": 5.5,
+   "annualPay": 34987,
+   "diversity": 0.293
+  },
+  {
+   "district": "Cheltenham",
+   "crimePer1000": 97.4,
+   "deprivation": 14.3,
+   "density": 2549,
+   "youngAdultPct": 6.6,
+   "annualPay": 41399,
+   "diversity": 0.162
+  },
+  {
+   "district": "Hounslow",
+   "crimePer1000": 96.7,
+   "deprivation": 21.5,
+   "density": 5148,
+   "youngAdultPct": 5.8,
+   "annualPay": 40870,
+   "diversity": 0.658
+  },
+  {
+   "district": "Rotherham",
+   "crimePer1000": 96.4,
+   "deprivation": 29.6,
+   "density": 927,
+   "youngAdultPct": 5.3,
+   "annualPay": 34713,
+   "diversity": 0.169
+  },
+  {
+   "district": "Gateshead",
+   "crimePer1000": 96.4,
+   "deprivation": 28.2,
+   "density": 1378,
+   "youngAdultPct": 5.3,
+   "annualPay": 34199,
+   "diversity": 0.125
+  },
+  {
+   "district": "Halton",
+   "crimePer1000": 96.2,
+   "deprivation": 32.3,
+   "density": 1624,
+   "youngAdultPct": 5.2,
+   "annualPay": 35187,
+   "diversity": 0.068
+  },
+  {
+   "district": "Swale",
+   "crimePer1000": 95.2,
+   "deprivation": 27.1,
+   "density": 406,
+   "youngAdultPct": 5.2,
+   "annualPay": 38432,
+   "diversity": 0.119
+  },
+  {
+   "district": "Great Yarmouth",
+   "crimePer1000": 93.4,
+   "deprivation": 33.1,
+   "density": 572,
+   "youngAdultPct": 5.0,
+   "annualPay": 34794,
+   "diversity": 0.104
+  },
+  {
+   "district": "Brent",
+   "crimePer1000": 93.3,
+   "deprivation": 25.6,
+   "density": 7859,
+   "youngAdultPct": 7.2,
+   "annualPay": 39944,
+   "diversity": 0.729
+  },
+  {
+   "district": "Canterbury",
+   "crimePer1000": 93.0,
+   "deprivation": 16.8,
+   "density": 509,
+   "youngAdultPct": 10.0,
+   "annualPay": 37682,
+   "diversity": 0.201
+  },
+  {
+   "district": "Worthing",
+   "crimePer1000": 92.6,
+   "deprivation": 17.0,
+   "density": 3423,
+   "youngAdultPct": 4.7,
+   "annualPay": 36581,
+   "diversity": 0.162
+  },
+  {
+   "district": "Ipswich",
+   "crimePer1000": 92.5,
+   "deprivation": 25.9,
+   "density": 3534,
+   "youngAdultPct": 5.7,
+   "annualPay": 36660,
+   "diversity": 0.283
+  },
+  {
+   "district": "Knowsley",
+   "crimePer1000": 91.0,
+   "deprivation": 43.0,
+   "density": 1787,
+   "youngAdultPct": 5.6,
+   "annualPay": 37543,
+   "diversity": 0.091
+  },
+  {
+   "district": "Thurrock",
+   "crimePer1000": 90.6,
+   "deprivation": 20.9,
+   "density": 1074,
+   "youngAdultPct": 5.4,
+   "annualPay": 41997,
+   "diversity": 0.392
+  },
+  {
+   "district": "Milton Keynes",
+   "crimePer1000": 90.0,
+   "deprivation": 18.0,
+   "density": 930,
+   "youngAdultPct": 5.2,
+   "annualPay": 41389,
+   "diversity": 0.458
+  },
+  {
+   "district": "Croydon",
+   "crimePer1000": 89.7,
+   "deprivation": 22.5,
+   "density": 4516,
+   "youngAdultPct": 5.5,
+   "annualPay": 44326,
+   "diversity": 0.677
+  },
+  {
+   "district": "Enfield",
+   "crimePer1000": 89.6,
+   "deprivation": 25.8,
+   "density": 4082,
+   "youngAdultPct": 5.8,
+   "annualPay": 43888,
+   "diversity": 0.664
+  },
+  {
+   "district": "Blackburn with Darwen",
+   "crimePer1000": 89.0,
+   "deprivation": 36.0,
+   "density": 1129,
+   "youngAdultPct": 6.1,
+   "annualPay": 33076,
+   "diversity": 0.507
+  },
+  {
+   "district": "Ealing",
+   "crimePer1000": 88.6,
+   "deprivation": 22.7,
+   "density": 6611,
+   "youngAdultPct": 6.2,
+   "annualPay": 40889,
+   "diversity": 0.696
+  },
+  {
+   "district": "Dover",
+   "crimePer1000": 87.9,
+   "deprivation": 22.2,
+   "density": 369,
+   "youngAdultPct": 4.6,
+   "annualPay": 40142,
+   "diversity": 0.099
+  },
+  {
+   "district": "Plymouth",
+   "crimePer1000": 87.5,
+   "deprivation": 26.6,
+   "density": 3314,
+   "youngAdultPct": 8.0,
+   "annualPay": 35186,
+   "diversity": 0.115
+  },
+  {
+   "district": "Colchester",
+   "crimePer1000": 85.9,
+   "deprivation": 16.8,
+   "density": 587,
+   "youngAdultPct": 7.2,
+   "annualPay": 39353,
+   "diversity": 0.238
+  },
+  {
+   "district": "Stockport",
+   "crimePer1000": 85.8,
+   "deprivation": 20.8,
+   "density": 2338,
+   "youngAdultPct": 4.5,
+   "annualPay": 39318,
+   "diversity": 0.23
+  },
+  {
+   "district": "Chelmsford",
+   "crimePer1000": 85.5,
+   "deprivation": 12.2,
+   "density": 535,
+   "youngAdultPct": 5.0,
+   "annualPay": 46179,
+   "diversity": 0.213
+  },
+  {
+   "district": "Ashfield",
+   "crimePer1000": 85.5,
+   "deprivation": 26.3,
+   "density": 1152,
+   "youngAdultPct": 5.1,
+   "annualPay": 32577,
+   "diversity": 0.095
+  },
+  {
+   "district": "Waltham Forest",
+   "crimePer1000": 85.0,
+   "deprivation": 25.2,
+   "density": 7173,
+   "youngAdultPct": 5.6,
+   "annualPay": 45350,
+   "diversity": 0.652
+  },
+  {
+   "district": "Maidstone",
+   "crimePer1000": 84.5,
+   "deprivation": 16.5,
+   "density": 446,
+   "youngAdultPct": 5.0,
+   "annualPay": 38191,
+   "diversity": 0.19
+  },
+  {
+   "district": "North Tyneside",
+   "crimePer1000": 84.5,
+   "deprivation": 22.3,
+   "density": 2538,
+   "youngAdultPct": 4.6,
+   "annualPay": 37063,
+   "diversity": 0.098
+  },
+  {
+   "district": "North Lincolnshire",
+   "crimePer1000": 84.3,
+   "deprivation": 22.1,
+   "density": 200,
+   "youngAdultPct": 4.8,
+   "annualPay": 34738,
+   "diversity": 0.109
+  },
+  {
+   "district": "Torbay",
+   "crimePer1000": 84.2,
+   "deprivation": 28.1,
+   "density": 2215,
+   "youngAdultPct": 4.5,
+   "annualPay": 33493,
+   "diversity": 0.076
+  },
+  {
+   "district": "Erewash",
+   "crimePer1000": 84.1,
+   "deprivation": 18.8,
+   "density": 1029,
+   "youngAdultPct": 5.1,
+   "annualPay": 36290,
+   "diversity": 0.089
+  },
+  {
+   "district": "Luton",
+   "crimePer1000": 83.7,
+   "deprivation": 25.9,
+   "density": 5196,
+   "youngAdultPct": 6.9,
+   "annualPay": 34732,
+   "diversity": 0.646
+  },
+  {
+   "district": "Hillingdon",
+   "crimePer1000": 83.5,
+   "deprivation": 18.2,
+   "density": 2644,
+   "youngAdultPct": 6.5,
+   "annualPay": 42250,
+   "diversity": 0.645
+  },
+  {
+   "district": "Nuneaton and Bedworth",
+   "crimePer1000": 82.9,
+   "deprivation": 23.5,
+   "density": 1699,
+   "youngAdultPct": 5.3,
+   "annualPay": 35277,
+   "diversity": 0.234
+  },
+  {
+   "district": "Telford and Wrekin",
+   "crimePer1000": 82.8,
+   "deprivation": 25.0,
+   "density": 639,
+   "youngAdultPct": 5.9,
+   "annualPay": 36044,
+   "diversity": 0.218
+  },
+  {
+   "district": "Solihull",
+   "crimePer1000": 82.8,
+   "deprivation": 17.4,
+   "density": 1212,
+   "youngAdultPct": 5.0,
+   "annualPay": 46896,
+   "diversity": 0.31
+  },
+  {
+   "district": "Wandsworth",
+   "crimePer1000": 82.7,
+   "deprivation": 16.6,
+   "density": 9560,
+   "youngAdultPct": 7.3,
+   "annualPay": 54584,
+   "diversity": 0.511
+  },
+  {
+   "district": "Boston",
+   "crimePer1000": 82.6,
+   "deprivation": 23.0,
+   "density": 193,
+   "youngAdultPct": 5.1,
+   "annualPay": 29805,
+   "diversity": 0.102
+  },
+  {
+   "district": "Tendring",
+   "crimePer1000": 82.0,
+   "deprivation": 30.5,
+   "density": 440,
+   "youngAdultPct": 4.6,
+   "annualPay": 39799,
+   "diversity": 0.074
+  },
+  {
+   "district": "Spelthorne",
+   "crimePer1000": 81.9,
+   "deprivation": 14.9,
+   "density": 2293,
+   "youngAdultPct": 4.8,
+   "annualPay": 44265,
+   "diversity": 0.362
+  },
+  {
+   "district": "Gosport",
+   "crimePer1000": 81.5,
+   "deprivation": 20.5,
+   "density": 3229,
+   "youngAdultPct": 5.2,
+   "annualPay": 37060,
+   "diversity": 0.091
+  },
+  {
+   "district": "Exeter",
+   "crimePer1000": 81.4,
+   "deprivation": 16.2,
+   "density": 2780,
+   "youngAdultPct": 12.5,
+   "annualPay": 34514,
+   "diversity": 0.181
+  },
+  {
+   "district": "Dudley",
+   "crimePer1000": 81.2,
+   "deprivation": 24.1,
+   "density": 3302,
+   "youngAdultPct": 5.3,
+   "annualPay": 35486,
+   "diversity": 0.271
+  },
+  {
+   "district": "Sefton",
+   "crimePer1000": 80.8,
+   "deprivation": 27.0,
+   "density": 1783,
+   "youngAdultPct": 4.8,
+   "annualPay": 36937,
+   "diversity": 0.082
+  },
+  {
+   "district": "Bassetlaw",
+   "crimePer1000": 80.7,
+   "deprivation": 22.6,
+   "density": 184,
+   "youngAdultPct": 4.9,
+   "annualPay": 34744,
+   "diversity": 0.07
+  },
+  {
+   "district": "Havant",
+   "crimePer1000": 80.6,
+   "deprivation": 21.8,
+   "density": 2228,
+   "youngAdultPct": 4.8,
+   "annualPay": 37220,
+   "diversity": 0.08
+  },
+  {
+   "district": "Havering",
+   "crimePer1000": 80.4,
+   "deprivation": 16.8,
+   "density": 2332,
+   "youngAdultPct": 5.4,
+   "annualPay": 46045,
+   "diversity": 0.413
+  },
+  {
+   "district": "Watford",
+   "crimePer1000": 80.2,
+   "deprivation": 15.4,
+   "density": 4772,
+   "youngAdultPct": 5.2,
+   "annualPay": 43219,
+   "diversity": 0.562
+  },
+  {
+   "district": "Folkestone and Hythe",
+   "crimePer1000": 79.2,
+   "deprivation": 24.1,
+   "density": 307,
+   "youngAdultPct": 4.8,
+   "annualPay": 38864,
+   "diversity": 0.141
+  },
+  {
+   "district": "Ashford",
+   "crimePer1000": 79.1,
+   "deprivation": 18.5,
+   "density": 228,
+   "youngAdultPct": 4.9,
+   "annualPay": 37440,
+   "diversity": 0.219
+  },
+  {
+   "district": "Redbridge",
+   "crimePer1000": 78.8,
+   "deprivation": 17.2,
+   "density": 5501,
+   "youngAdultPct": 6.1,
+   "annualPay": 44851,
+   "diversity": 0.644
+  },
+  {
+   "district": "Trafford",
+   "crimePer1000": 78.0,
+   "deprivation": 16.1,
+   "density": 2216,
+   "youngAdultPct": 4.5,
+   "annualPay": 42973,
+   "diversity": 0.376
+  },
+  {
+   "district": "Isle of Wight",
+   "crimePer1000": 77.5,
+   "deprivation": 23.3,
+   "density": 370,
+   "youngAdultPct": 4.2,
+   "annualPay": 31184,
+   "diversity": 0.059
+  },
+  {
+   "district": "Northumberland",
+   "crimePer1000": 76.8,
+   "deprivation": 22.1,
+   "density": 63,
+   "youngAdultPct": 4.3,
+   "annualPay": 37721,
+   "diversity": 0.047
+  },
+  {
+   "district": "Stevenage",
+   "crimePer1000": 76.1,
+   "deprivation": 19.7,
+   "density": 3444,
+   "youngAdultPct": 5.4,
+   "annualPay": 42200,
+   "diversity": 0.305
+  },
+  {
+   "district": "Bolsover",
+   "crimePer1000": 76.0,
+   "deprivation": 25.0,
+   "density": 500,
+   "youngAdultPct": 5.2,
+   "annualPay": 32897,
+   "diversity": 0.051
+  },
+  {
+   "district": "Wirral",
+   "crimePer1000": 75.7,
+   "deprivation": 29.6,
+   "density": 1989,
+   "youngAdultPct": 4.7,
+   "annualPay": 38010,
+   "diversity": 0.093
+  },
+  {
+   "district": "Guildford",
+   "crimePer1000": 75.3,
+   "deprivation": 9.4,
+   "density": 530,
+   "youngAdultPct": 9.2,
+   "annualPay": 46801,
+   "diversity": 0.239
+  },
+  {
+   "district": "Fenland",
+   "crimePer1000": 75.0,
+   "deprivation": 25.4,
+   "density": 187,
+   "youngAdultPct": 5.0,
+   "annualPay": 34170,
+   "diversity": 0.08
+  },
+  {
+   "district": "Bedford",
+   "crimePer1000": 74.9,
+   "deprivation": 18.9,
+   "density": 388,
+   "youngAdultPct": 5.4,
+   "annualPay": 41214,
+   "diversity": 0.406
+  },
+  {
+   "district": "Adur",
+   "crimePer1000": 74.8,
+   "deprivation": 17.6,
+   "density": 1534,
+   "youngAdultPct": 4.1,
+   "annualPay": 39029,
+   "diversity": 0.126
+  },
+  {
+   "district": "Barnet",
+   "crimePer1000": 74.5,
+   "deprivation": 16.1,
+   "density": 4488,
+   "youngAdultPct": 5.8,
+   "annualPay": 47141,
+   "diversity": 0.611
+  },
+  {
+   "district": "Charnwood",
+   "crimePer1000": 74.5,
+   "deprivation": 13.2,
+   "density": 659,
+   "youngAdultPct": 8.7,
+   "annualPay": 38078,
+   "diversity": 0.306
+  },
+  {
+   "district": "Kingston upon Thames",
+   "crimePer1000": 74.4,
+   "deprivation": 11.4,
+   "density": 4512,
+   "youngAdultPct": 6.6,
+   "annualPay": 46871,
+   "diversity": 0.495
+  },
+  {
+   "district": "Lancaster",
+   "crimePer1000": 74.2,
+   "deprivation": 24.2,
+   "density": 252,
+   "youngAdultPct": 8.9,
+   "annualPay": 34890,
+   "diversity": 0.132
+  },
+  {
+   "district": "East Lindsey",
+   "crimePer1000": 74.1,
+   "deprivation": 29.9,
+   "density": 80,
+   "youngAdultPct": 4.2,
+   "annualPay": 31516,
+   "diversity": 0.043
+  },
+  {
+   "district": "North Somerset",
+   "crimePer1000": 73.7,
+   "deprivation": 15.8,
+   "density": 579,
+   "youngAdultPct": 4.5,
+   "annualPay": 39969,
+   "diversity": 0.084
+  },
+  {
+   "district": "North West Leicestershire",
+   "crimePer1000": 73.6,
+   "deprivation": 14.6,
+   "density": 374,
+   "youngAdultPct": 5.5,
+   "annualPay": 38795,
+   "diversity": 0.08
+  },
+  {
+   "district": "Waveney",
+   "crimePer1000": 73.6,
+   "deprivation": 19.6,
+   "density": 195,
+   "youngAdultPct": 4.4,
+   "annualPay": 36793,
+   "diversity": 0.074
+  },
+  {
+   "district": "Warrington",
+   "crimePer1000": 73.2,
+   "deprivation": 18.9,
+   "density": 1168,
+   "youngAdultPct": 5.0,
+   "annualPay": 40380,
+   "diversity": 0.124
+  },
+  {
+   "district": "Bromley",
+   "crimePer1000": 72.9,
+   "deprivation": 14.2,
+   "density": 2197,
+   "youngAdultPct": 4.4,
+   "annualPay": 51225,
+   "diversity": 0.399
+  },
+  {
+   "district": "Epping Forest",
+   "crimePer1000": 72.8,
+   "deprivation": 15.1,
+   "density": 398,
+   "youngAdultPct": 5.1,
+   "annualPay": 45618,
+   "diversity": 0.285
+  },
+  {
+   "district": "Tamworth",
+   "crimePer1000": 72.7,
+   "deprivation": 21.1,
+   "density": 2549,
+   "youngAdultPct": 5.3,
+   "annualPay": 38496,
+   "diversity": 0.082
+  },
+  {
+   "district": "Bournemouth, Christchurch and Poole",
+   "crimePer1000": 72.6,
+   "deprivation": 18.2,
+   "density": 2469,
+   "youngAdultPct": 6.7,
+   "annualPay": 37493,
+   "diversity": 0.164
+  },
+  {
+   "district": "Brentwood",
+   "crimePer1000": 72.3,
+   "deprivation": 10.0,
+   "density": 503,
+   "youngAdultPct": 4.7,
+   "annualPay": 47494,
+   "diversity": 0.213
+  },
+  {
+   "district": "York",
+   "crimePer1000": 72.2,
+   "deprivation": 11.7,
+   "density": 745,
+   "youngAdultPct": 10.0,
+   "annualPay": 40496,
+   "diversity": 0.137
+  },
+  {
+   "district": "Welwyn Hatfield",
+   "crimePer1000": 71.6,
+   "deprivation": 14.2,
+   "density": 925,
+   "youngAdultPct": 8.8,
+   "annualPay": 45145,
+   "diversity": 0.367
+  },
+  {
+   "district": "Swindon",
+   "crimePer1000": 70.1,
+   "deprivation": 18.6,
+   "density": 1014,
+   "youngAdultPct": 5.2,
+   "annualPay": 38900,
+   "diversity": 0.321
+  },
+  {
+   "district": "Amber Valley",
+   "crimePer1000": 70.1,
+   "deprivation": 18.0,
+   "density": 475,
+   "youngAdultPct": 4.8,
+   "annualPay": 37756,
+   "diversity": 0.053
+  },
+  {
+   "district": "Runnymede",
+   "crimePer1000": 70.0,
+   "deprivation": 12.0,
+   "density": 1128,
+   "youngAdultPct": 8.5,
+   "annualPay": 46777,
+   "diversity": 0.292
+  },
+  {
+   "district": "Hertsmere",
+   "crimePer1000": 69.9,
+   "deprivation": 13.9,
+   "density": 1065,
+   "youngAdultPct": 5.0,
+   "annualPay": 43813,
+   "diversity": 0.389
+  },
+  {
+   "district": "Bath and North East Somerset",
+   "crimePer1000": 69.8,
+   "deprivation": 11.7,
+   "density": 559,
+   "youngAdultPct": 9.6,
+   "annualPay": 40448,
+   "diversity": 0.148
+  },
+  {
+   "district": "Cherwell",
+   "crimePer1000": 69.7,
+   "deprivation": 14.4,
+   "density": 273,
+   "youngAdultPct": 4.9,
+   "annualPay": 42147,
+   "diversity": 0.219
+  },
+  {
+   "district": "East Staffordshire",
+   "crimePer1000": 69.7,
+   "deprivation": 19.0,
+   "density": 320,
+   "youngAdultPct": 5.2,
+   "annualPay": 36848,
+   "diversity": 0.246
+  },
+  {
+   "district": "Cheshire West and Chester",
+   "crimePer1000": 69.6,
+   "deprivation": 18.1,
+   "density": 388,
+   "youngAdultPct": 5.5,
+   "annualPay": 41486,
+   "diversity": 0.091
+  },
+  {
+   "district": "Arun",
+   "crimePer1000": 69.4,
+   "deprivation": 18.6,
+   "density": 746,
+   "youngAdultPct": 4.5,
+   "annualPay": 34546,
+   "diversity": 0.082
+  },
+  {
+   "district": "Newark and Sherwood",
+   "crimePer1000": 69.1,
+   "deprivation": 19.2,
+   "density": 188,
+   "youngAdultPct": 5.0,
+   "annualPay": 37118,
+   "diversity": 0.072
+  },
+  {
+   "district": "Cannock Chase",
+   "crimePer1000": 68.7,
+   "deprivation": 20.4,
+   "density": 1274,
+   "youngAdultPct": 5.2,
+   "annualPay": 36140,
+   "diversity": 0.066
+  },
+  {
+   "district": "Broxbourne",
+   "crimePer1000": 68.3,
+   "deprivation": 18.0,
+   "density": 1924,
+   "youngAdultPct": 5.2,
+   "annualPay": 46237,
+   "diversity": 0.333
+  },
+  {
+   "district": "Tunbridge Wells",
+   "crimePer1000": 68.0,
+   "deprivation": 11.3,
+   "density": 348,
+   "youngAdultPct": 4.2,
+   "annualPay": 47896,
+   "diversity": 0.16
+  },
+  {
+   "district": "Bexley",
+   "crimePer1000": 68.0,
+   "deprivation": 16.3,
+   "density": 4070,
+   "youngAdultPct": 5.5,
+   "annualPay": 43969,
+   "diversity": 0.457
+  },
+  {
+   "district": "West Lindsey",
+   "crimePer1000": 67.8,
+   "deprivation": 20.4,
+   "density": 82,
+   "youngAdultPct": 4.3,
+   "annualPay": 38377,
+   "diversity": 0.059
+  },
+  {
+   "district": "North Warwickshire",
+   "crimePer1000": 67.3,
+   "deprivation": 17.9,
+   "density": 228,
+   "youngAdultPct": 4.8,
+   "annualPay": 40095,
+   "diversity": 0.076
+  },
+  {
+   "district": "Pendle",
+   "crimePer1000": 67.1,
+   "deprivation": 30.7,
+   "density": 565,
+   "youngAdultPct": 5.5,
+   "annualPay": 30327,
+   "diversity": 0.43
+  },
+  {
+   "district": "Newcastle-under-Lyme",
+   "crimePer1000": 66.1,
+   "deprivation": 18.9,
+   "density": 584,
+   "youngAdultPct": 7.0,
+   "annualPay": 35723,
+   "diversity": 0.135
+  },
+  {
+   "district": "Oadby and Wigston",
+   "crimePer1000": 66.1,
+   "deprivation": 13.0,
+   "density": 2454,
+   "youngAdultPct": 5.1,
+   "annualPay": 40617,
+   "diversity": 0.518
+  },
+  {
+   "district": "Blaby",
+   "crimePer1000": 65.9,
+   "deprivation": 10.6,
+   "density": 788,
+   "youngAdultPct": 4.7,
+   "annualPay": 38279,
+   "diversity": 0.249
+  },
+  {
+   "district": "Tonbridge and Malling",
+   "crimePer1000": 65.6,
+   "deprivation": 13.3,
+   "density": 550,
+   "youngAdultPct": 4.4,
+   "annualPay": 42752,
+   "diversity": 0.128
+  },
+  {
+   "district": "Hinckley and Bosworth",
+   "crimePer1000": 65.3,
+   "deprivation": 13.5,
+   "density": 382,
+   "youngAdultPct": 4.4,
+   "annualPay": 35671,
+   "diversity": 0.11
+  },
+  {
+   "district": "Woking",
+   "crimePer1000": 65.2,
+   "deprivation": 10.8,
+   "density": 1634,
+   "youngAdultPct": 4.7,
+   "annualPay": 43719,
+   "diversity": 0.363
+  },
+  {
+   "district": "Merton",
+   "crimePer1000": 65.1,
+   "deprivation": 14.6,
+   "density": 5721,
+   "youngAdultPct": 5.2,
+   "annualPay": 50844,
+   "diversity": 0.586
+  },
+  {
+   "district": "Rossendale",
+   "crimePer1000": 65.1,
+   "deprivation": 24.1,
+   "density": 513,
+   "youngAdultPct": 4.6,
+   "annualPay": 35273,
+   "diversity": 0.143
+  },
+  {
+   "district": "Rother",
+   "crimePer1000": 64.6,
+   "deprivation": 19.8,
+   "density": 182,
+   "youngAdultPct": 4.0,
+   "annualPay": 36197,
+   "diversity": 0.085
+  },
+  {
+   "district": "Chichester",
+   "crimePer1000": 64.5,
+   "deprivation": 14.1,
+   "density": 157,
+   "youngAdultPct": 5.3,
+   "annualPay": 35264,
+   "diversity": 0.089
+  },
+  {
+   "district": "South Gloucestershire",
+   "crimePer1000": 64.5,
+   "deprivation": 11.7,
+   "density": 584,
+   "youngAdultPct": 6.2,
+   "annualPay": 40731,
+   "diversity": 0.166
+  },
+  {
+   "district": "Stafford",
+   "crimePer1000": 64.2,
+   "deprivation": 13.7,
+   "density": 228,
+   "youngAdultPct": 4.6,
+   "annualPay": 39726,
+   "diversity": 0.126
+  },
+  {
+   "district": "Braintree",
+   "crimePer1000": 64.0,
+   "deprivation": 14.7,
+   "density": 253,
+   "youngAdultPct": 4.9,
+   "annualPay": 39712,
+   "diversity": 0.102
+  },
+  {
+   "district": "High Peak",
+   "crimePer1000": 64.0,
+   "deprivation": 15.6,
+   "density": 168,
+   "youngAdultPct": 4.6,
+   "annualPay": 37184,
+   "diversity": 0.051
+  },
+  {
+   "district": "Epsom and Ewell",
+   "crimePer1000": 63.2,
+   "deprivation": 8.8,
+   "density": 2375,
+   "youngAdultPct": 4.9,
+   "annualPay": 50121,
+   "diversity": 0.352
+  },
+  {
+   "district": "Harrow",
+   "crimePer1000": 63.2,
+   "deprivation": 15.0,
+   "density": 5175,
+   "youngAdultPct": 5.8,
+   "annualPay": 45232,
+   "diversity": 0.651
+  },
+  {
+   "district": "Wyre",
+   "crimePer1000": 63.0,
+   "deprivation": 20.9,
+   "density": 396,
+   "youngAdultPct": 4.2,
+   "annualPay": 38048,
+   "diversity": 0.049
+  },
+  {
+   "district": "Melton",
+   "crimePer1000": 62.9,
+   "deprivation": 12.5,
+   "density": 107,
+   "youngAdultPct": 4.3,
+   "annualPay": 33900,
+   "diversity": 0.061
+  },
+  {
+   "district": "Sutton",
+   "crimePer1000": 62.7,
+   "deprivation": 14.0,
+   "density": 4781,
+   "youngAdultPct": 4.7,
+   "annualPay": 44393,
+   "diversity": 0.496
+  },
+  {
+   "district": "Dacorum",
+   "crimePer1000": 62.7,
+   "deprivation": 13.0,
+   "density": 729,
+   "youngAdultPct": 4.6,
+   "annualPay": 44485,
+   "diversity": 0.241
+  },
+  {
+   "district": "Cheshire East",
+   "crimePer1000": 62.5,
+   "deprivation": 14.5,
+   "density": 341,
+   "youngAdultPct": 4.4,
+   "annualPay": 40991,
+   "diversity": 0.108
+  },
+  {
+   "district": "Sevenoaks",
+   "crimePer1000": 62.3,
+   "deprivation": 12.4,
+   "density": 326,
+   "youngAdultPct": 4.1,
+   "annualPay": 44581,
+   "diversity": 0.15
+  },
+  {
+   "district": "Chorley",
+   "crimePer1000": 62.3,
+   "deprivation": 16.9,
+   "density": 580,
+   "youngAdultPct": 4.5,
+   "annualPay": 39350,
+   "diversity": 0.085
+  },
+  {
+   "district": "Bracknell Forest",
+   "crimePer1000": 61.8,
+   "deprivation": 10.2,
+   "density": 1139,
+   "youngAdultPct": 5.1,
+   "annualPay": 43206,
+   "diversity": 0.252
+  },
+  {
+   "district": "Windsor and Maidenhead",
+   "crimePer1000": 61.6,
+   "deprivation": 8.4,
+   "density": 781,
+   "youngAdultPct": 4.4,
+   "annualPay": 47387,
+   "diversity": 0.344
+  },
+  {
+   "district": "Reigate and Banstead",
+   "crimePer1000": 61.4,
+   "deprivation": 11.3,
+   "density": 1168,
+   "youngAdultPct": 4.3,
+   "annualPay": 43434,
+   "diversity": 0.28
+  },
+  {
+   "district": "Richmond upon Thames",
+   "crimePer1000": 61.1,
+   "deprivation": 9.4,
+   "density": 3401,
+   "youngAdultPct": 4.2,
+   "annualPay": 57233,
+   "diversity": 0.34
+  },
+  {
+   "district": "New Forest",
+   "crimePer1000": 60.8,
+   "deprivation": 13.0,
+   "density": 233,
+   "youngAdultPct": 4.0,
+   "annualPay": 38571,
+   "diversity": 0.063
+  },
+  {
+   "district": "Eastleigh",
+   "crimePer1000": 60.4,
+   "deprivation": 10.2,
+   "density": 1712,
+   "youngAdultPct": 4.7,
+   "annualPay": 42461,
+   "diversity": 0.144
+  },
+  {
+   "district": "King's Lynn and West Norfolk",
+   "crimePer1000": 60.2,
+   "deprivation": 23.7,
+   "density": 107,
+   "youngAdultPct": 4.7,
+   "annualPay": 36835,
+   "diversity": 0.085
+  },
+  {
+   "district": "South Ribble",
+   "crimePer1000": 60.2,
+   "deprivation": 15.3,
+   "density": 981,
+   "youngAdultPct": 4.7,
+   "annualPay": 37883,
+   "diversity": 0.089
+  },
+  {
+   "district": "Stroud",
+   "crimePer1000": 59.9,
+   "deprivation": 10.8,
+   "density": 263,
+   "youngAdultPct": 4.1,
+   "annualPay": 38608,
+   "diversity": 0.07
+  },
+  {
+   "district": "Forest of Dean",
+   "crimePer1000": 59.8,
+   "deprivation": 18.0,
+   "density": 165,
+   "youngAdultPct": 4.6,
+   "annualPay": 42326,
+   "diversity": 0.049
+  },
+  {
+   "district": "Castle Point",
+   "crimePer1000": 59.8,
+   "deprivation": 16.8,
+   "density": 2005,
+   "youngAdultPct": 5.1,
+   "annualPay": 41745,
+   "diversity": 0.099
+  },
+  {
+   "district": "Rugby",
+   "crimePer1000": 59.7,
+   "deprivation": 14.1,
+   "density": 325,
+   "youngAdultPct": 4.9,
+   "annualPay": 47191,
+   "diversity": 0.258
+  },
+  {
+   "district": "South Derbyshire",
+   "crimePer1000": 59.1,
+   "deprivation": 14.5,
+   "density": 317,
+   "youngAdultPct": 4.8,
+   "annualPay": 41520,
+   "diversity": 0.132
+  },
+  {
+   "district": "Test Valley",
+   "crimePer1000": 58.9,
+   "deprivation": 11.9,
+   "density": 207,
+   "youngAdultPct": 4.4,
+   "annualPay": 40576,
+   "diversity": 0.132
+  },
+  {
+   "district": "Uttlesford",
+   "crimePer1000": 58.1,
+   "deprivation": 9.3,
+   "density": 142,
+   "youngAdultPct": 4.3,
+   "annualPay": 50103,
+   "diversity": 0.106
+  },
+  {
+   "district": "Herefordshire, County of",
+   "crimePer1000": 57.9,
+   "deprivation": 18.9,
+   "density": 85,
+   "youngAdultPct": 4.4,
+   "annualPay": 34730,
+   "diversity": 0.061
+  },
+  {
+   "district": "Tewkesbury",
+   "crimePer1000": 57.5,
+   "deprivation": 12.1,
+   "density": 229,
+   "youngAdultPct": 4.3,
+   "annualPay": 39236,
+   "diversity": 0.095
+  },
+  {
+   "district": "Lewes",
+   "crimePer1000": 57.5,
+   "deprivation": 15.8,
+   "density": 342,
+   "youngAdultPct": 4.1,
+   "annualPay": 40807,
+   "diversity": 0.112
+  },
+  {
+   "district": "West Berkshire",
+   "crimePer1000": 57.3,
+   "deprivation": 10.0,
+   "density": 229,
+   "youngAdultPct": 4.6,
+   "annualPay": 44887,
+   "diversity": 0.153
+  },
+  {
+   "district": "Winchester",
+   "crimePer1000": 57.2,
+   "deprivation": 9.6,
+   "density": 192,
+   "youngAdultPct": 6.4,
+   "annualPay": 45766,
+   "diversity": 0.122
+  },
+  {
+   "district": "Mole Valley",
+   "crimePer1000": 57.1,
+   "deprivation": 9.5,
+   "density": 338,
+   "youngAdultPct": 4.2,
+   "annualPay": 42937,
+   "diversity": 0.139
+  },
+  {
+   "district": "Huntingdonshire",
+   "crimePer1000": 56.3,
+   "deprivation": 12.6,
+   "density": 199,
+   "youngAdultPct": 4.7,
+   "annualPay": 38019,
+   "diversity": 0.144
+  },
+  {
+   "district": "East Riding of Yorkshire",
+   "crimePer1000": 56.3,
+   "deprivation": 15.6,
+   "density": 142,
+   "youngAdultPct": 4.2,
+   "annualPay": 37595,
+   "diversity": 0.051
+  },
+  {
+   "district": "North East Derbyshire",
+   "crimePer1000": 55.7,
+   "deprivation": 17.4,
+   "density": 370,
+   "youngAdultPct": 4.5,
+   "annualPay": 36422,
+   "diversity": 0.051
+  },
+  {
+   "district": "South Kesteven",
+   "crimePer1000": 55.5,
+   "deprivation": 13.5,
+   "density": 152,
+   "youngAdultPct": 4.3,
+   "annualPay": 34922,
+   "diversity": 0.082
+  },
+  {
+   "district": "Shropshire",
+   "crimePer1000": 55.2,
+   "deprivation": 17.2,
+   "density": 101,
+   "youngAdultPct": 4.7,
+   "annualPay": 36991,
+   "diversity": 0.065
+  },
+  {
+   "district": "Elmbridge",
+   "crimePer1000": 55.1,
+   "deprivation": 7.9,
+   "density": 1459,
+   "youngAdultPct": 3.7,
+   "annualPay": 51924,
+   "diversity": 0.252
+  },
+  {
+   "district": "Surrey Heath",
+   "crimePer1000": 54.8,
+   "deprivation": 8.1,
+   "density": 951,
+   "youngAdultPct": 4.7,
+   "annualPay": 43633,
+   "diversity": 0.268
+  },
+  {
+   "district": "Cornwall",
+   "crimePer1000": 54.7,
+   "deprivation": 23.1,
+   "density": 160,
+   "youngAdultPct": 5.0,
+   "annualPay": 35002,
+   "diversity": 0.063
+  },
+  {
+   "district": "St Albans",
+   "crimePer1000": 54.7,
+   "deprivation": 8.3,
+   "density": 919,
+   "youngAdultPct": 4.0,
+   "annualPay": 57396,
+   "diversity": 0.292
+  },
+  {
+   "district": "Dorset",
+   "crimePer1000": 54.6,
+   "deprivation": 15.7,
+   "density": 152,
+   "youngAdultPct": 4.0,
+   "annualPay": 37462,
+   "diversity": 0.057
+  },
+  {
+   "district": "Fylde",
+   "crimePer1000": 54.6,
+   "deprivation": 15.9,
+   "density": 491,
+   "youngAdultPct": 4.0,
+   "annualPay": 44892,
+   "diversity": 0.072
+  },
+  {
+   "district": "South Holland",
+   "crimePer1000": 54.4,
+   "deprivation": 17.9,
+   "density": 126,
+   "youngAdultPct": 4.8,
+   "annualPay": 32336,
+   "diversity": 0.072
+  },
+  {
+   "district": "Breckland",
+   "crimePer1000": 54.2,
+   "deprivation": 19.6,
+   "density": 108,
+   "youngAdultPct": 4.8,
+   "annualPay": 34399,
+   "diversity": 0.068
+  },
+  {
+   "district": "Lichfield",
+   "crimePer1000": 54.0,
+   "deprivation": 12.6,
+   "density": 321,
+   "youngAdultPct": 4.7,
+   "annualPay": 41803,
+   "diversity": 0.1
+  },
+  {
+   "district": "Cotswold",
+   "crimePer1000": 53.5,
+   "deprivation": 11.1,
+   "density": 78,
+   "youngAdultPct": 4.4,
+   "annualPay": 41267,
+   "diversity": 0.072
+  },
+  {
+   "district": "Tandridge",
+   "crimePer1000": 53.2,
+   "deprivation": 11.9,
+   "density": 354,
+   "youngAdultPct": 4.5,
+   "annualPay": 39775,
+   "diversity": 0.197
+  },
+  {
+   "district": "Mid Sussex",
+   "crimePer1000": 52.6,
+   "deprivation": 7.7,
+   "density": 456,
+   "youngAdultPct": 4.2,
+   "annualPay": 44352,
+   "diversity": 0.148
+  },
+  {
+   "district": "Horsham",
+   "crimePer1000": 52.5,
+   "deprivation": 9.9,
+   "density": 276,
+   "youngAdultPct": 4.2,
+   "annualPay": 43487,
+   "diversity": 0.123
+  },
+  {
+   "district": "Central Bedfordshire",
+   "crimePer1000": 52.5,
+   "deprivation": 12.2,
+   "density": 411,
+   "youngAdultPct": 4.8,
+   "annualPay": 43645,
+   "diversity": 0.184
+  },
+  {
+   "district": "Staffordshire Moorlands",
+   "crimePer1000": 51.4,
+   "deprivation": 15.0,
+   "density": 166,
+   "youngAdultPct": 4.3,
+   "annualPay": 38228,
+   "diversity": 0.039
+  },
+  {
+   "district": "Fareham",
+   "crimePer1000": 51.0,
+   "deprivation": 9.0,
+   "density": 1542,
+   "youngAdultPct": 4.6,
+   "annualPay": 43740,
+   "diversity": 0.085
+  },
+  {
+   "district": "Rochford",
+   "crimePer1000": 50.8,
+   "deprivation": 10.4,
+   "density": 512,
+   "youngAdultPct": 4.9,
+   "annualPay": 44750,
+   "diversity": 0.08
+  },
+  {
+   "district": "Derbyshire Dales",
+   "crimePer1000": 50.3,
+   "deprivation": 11.9,
+   "density": 90,
+   "youngAdultPct": 3.9,
+   "annualPay": 43071,
+   "diversity": 0.043
+  },
+  {
+   "district": "Three Rivers",
+   "crimePer1000": 50.1,
+   "deprivation": 9.9,
+   "density": 1055,
+   "youngAdultPct": 4.7,
+   "annualPay": 43980,
+   "diversity": 0.38
+  },
+  {
+   "district": "South Staffordshire",
+   "crimePer1000": 50.1,
+   "deprivation": 13.1,
+   "density": 271,
+   "youngAdultPct": 4.9,
+   "annualPay": 38788,
+   "diversity": 0.121
+  },
+  {
+   "district": "Maldon",
+   "crimePer1000": 49.7,
+   "deprivation": 14.2,
+   "density": 185,
+   "youngAdultPct": 4.7,
+   "annualPay": 43385,
+   "diversity": 0.061
+  },
+  {
+   "district": "East Hampshire",
+   "crimePer1000": 48.8,
+   "deprivation": 10.3,
+   "density": 244,
+   "youngAdultPct": 4.3,
+   "annualPay": 47630,
+   "diversity": 0.089
+  },
+  {
+   "district": "West Lancashire",
+   "crimePer1000": 48.7,
+   "deprivation": 18.6,
+   "density": 338,
+   "youngAdultPct": 6.9,
+   "annualPay": 38102,
+   "diversity": 0.061
+  },
+  {
+   "district": "Western Suffolk",
+   "crimePer1000": 48.6,
+   "deprivation": 16.2,
+   "density": 173,
+   "youngAdultPct": 5.9,
+   "annualPay": 39628,
+   "diversity": 0.155
+  },
+  {
+   "district": "Harborough",
+   "crimePer1000": 47.5,
+   "deprivation": 8.0,
+   "density": 165,
+   "youngAdultPct": 4.4,
+   "annualPay": 42423,
+   "diversity": 0.168
+  },
+  {
+   "district": "Vale of White Horse",
+   "crimePer1000": 47.3,
+   "deprivation": 8.4,
+   "density": 240,
+   "youngAdultPct": 4.5,
+   "annualPay": 44454,
+   "diversity": 0.173
+  },
+  {
+   "district": "West Oxfordshire",
+   "crimePer1000": 47.1,
+   "deprivation": 8.7,
+   "density": 159,
+   "youngAdultPct": 4.7,
+   "annualPay": 43932,
+   "diversity": 0.093
+  },
+  {
+   "district": "East Hertfordshire",
+   "crimePer1000": 46.8,
+   "deprivation": 8.2,
+   "density": 315,
+   "youngAdultPct": 4.6,
+   "annualPay": 52184,
+   "diversity": 0.146
+  },
+  {
+   "district": "Wiltshire",
+   "crimePer1000": 46.5,
+   "deprivation": 13.4,
+   "density": 156,
+   "youngAdultPct": 4.7,
+   "annualPay": 37811,
+   "diversity": 0.11
+  },
+  {
+   "district": "Wokingham",
+   "crimePer1000": 46.0,
+   "deprivation": 5.8,
+   "density": 991,
+   "youngAdultPct": 4.6,
+   "annualPay": 52222,
+   "diversity": 0.343
+  },
+  {
+   "district": "North Hertfordshire",
+   "crimePer1000": 45.7,
+   "deprivation": 11.6,
+   "density": 354,
+   "youngAdultPct": 4.4,
+   "annualPay": 49224,
+   "diversity": 0.23
+  },
+  {
+   "district": "South Cambridgeshire",
+   "crimePer1000": 44.9,
+   "deprivation": 8.5,
+   "density": 179,
+   "youngAdultPct": 3.9,
+   "annualPay": 48916,
+   "diversity": 0.203
+  },
+  {
+   "district": "South Oxfordshire",
+   "crimePer1000": 44.3,
+   "deprivation": 8.5,
+   "density": 219,
+   "youngAdultPct": 4.3,
+   "annualPay": 48525,
+   "diversity": 0.132
+  },
+  {
+   "district": "Waverley",
+   "crimePer1000": 44.2,
+   "deprivation": 7.5,
+   "density": 371,
+   "youngAdultPct": 4.4,
+   "annualPay": 49769,
+   "diversity": 0.121
+  },
+  {
+   "district": "North Norfolk",
+   "crimePer1000": 44.1,
+   "deprivation": 21.1,
+   "density": 106,
+   "youngAdultPct": 3.8,
+   "annualPay": 34362,
+   "diversity": 0.038
+  },
+  {
+   "district": "East Cambridgeshire",
+   "crimePer1000": 44.0,
+   "deprivation": 11.5,
+   "density": 134,
+   "youngAdultPct": 4.2,
+   "annualPay": 41464,
+   "diversity": 0.106
+  },
+  {
+   "district": "South Norfolk",
+   "crimePer1000": 42.6,
+   "deprivation": 13.3,
+   "density": 156,
+   "youngAdultPct": 4.2,
+   "annualPay": 39438,
+   "diversity": 0.089
+  },
+  {
+   "district": "North Kesteven",
+   "crimePer1000": 41.8,
+   "deprivation": 11.6,
+   "density": 128,
+   "youngAdultPct": 4.7,
+   "annualPay": 37305,
+   "diversity": 0.055
+  },
+  {
+   "district": "Rutland",
+   "crimePer1000": 41.4,
+   "deprivation": 8.4,
+   "density": 107,
+   "youngAdultPct": 4.5,
+   "annualPay": 42355,
+   "diversity": 0.101
+  },
+  {
+   "district": "Wealden",
+   "crimePer1000": 41.0,
+   "deprivation": 12.3,
+   "density": 192,
+   "youngAdultPct": 4.2,
+   "annualPay": 43589,
+   "diversity": 0.078
+  },
+  {
+   "district": "Suffolk Coastal",
+   "crimePer1000": 40.1,
+   "deprivation": 19.6,
+   "density": 195,
+   "youngAdultPct": 4.4,
+   "annualPay": 36793,
+   "diversity": 0.074
+  },
+  {
+   "district": "Ribble Valley",
+   "crimePer1000": 38.5,
+   "deprivation": 10.6,
+   "density": 105,
+   "youngAdultPct": 4.4,
+   "annualPay": 40870,
+   "diversity": 0.074
+  },
+  {
+   "district": "Broadland",
+   "crimePer1000": 38.2,
+   "deprivation": 11.8,
+   "density": 238,
+   "youngAdultPct": 4.2,
+   "annualPay": 38195,
+   "diversity": 0.072
+  }
+ ],
+ "warnings": [],
+ "freshness": [
+  {
+   "producer": "medianPayAllDistricts",
+   "source": "cached",
+   "observedAt": "2026-09-14T21:24:25.948Z",
+   "keys": 1
+  },
+  {
+   "producer": "censusDensityAllDistricts",
+   "source": "live",
+   "observedAt": "2026-09-14T21:31:41.130Z",
+   "keys": 1
+  },
+  {
+   "producer": "censusYoungAdultsAllDistricts",
+   "source": "live",
+   "observedAt": "2026-09-14T21:31:41.130Z",
+   "keys": 1
+  },
+  {
+   "producer": "censusEthnicGroupsAllDistricts",
+   "source": "live",
+   "observedAt": "2026-09-14T21:31:41.115Z",
+   "keys": 1
+  },
+  {
+   "producer": "districtCrimeTable",
+   "source": "cached",
+   "observedAt": "2026-09-14T21:24:25.303Z",
+   "keys": 1
+  },
+  {
+   "producer": "imdDistrictSummaries",
+   "source": "live",
+   "observedAt": "2026-09-14T21:31:41.281Z",
+   "keys": 1
+  }
+ ],
+ "freshnessNote": "NOTE: not every figure here was read just now. `observedAt` is when the source was\nACTUALLY read, and `source: \"cached\"` means the value describes that source AS OF THAT\nMOMENT, served from cache \u2014 not the state right now. If the answer turns on how things\nstand currently, say when it was observed rather than implying it is live.\nServed warm: medianPayAllDistricts (2026-09-14T21:24:25.948Z), districtCrimeTable (2026-09-14T21:24:25.303Z).",
+ "cost": {
+  "ms": 3264,
+  "apiCalls": 3,
+  "llmCalls": 0
+ },
+ "reuseNote": "This result is stable for these arguments for the rest of your session. If you need it again, reuse what you already have rather than calling again."
+}
