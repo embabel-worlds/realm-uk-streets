@@ -172,6 +172,14 @@
     WHERE g.districtCode = c.districtCode
     WITH c, i, d, y, dep,
          1.0 - sum((toFloat(g.percent) / 100.0) * (toFloat(g.percent) / 100.0)) AS diversity
+    // EVERY predictor non-null, whether or not it is enabled. Without this the sample
+    // moves with the toggles — `regress` drops a row whose enabled predictors contain a
+    // null, so turning pay off readmitted the districts pay was missing for and n went
+    // 263 -> 271. A beta that changed would then be confounded by the sample changing,
+    // which is the exact mistake this view exists to let someone see.
+    WHERE toFloat(dep.imdAverageScore) IS NOT NULL AND toFloat(d.density) IS NOT NULL
+      AND toFloat(y.youngAdultPct) IS NOT NULL AND toFloat(i.annualPay) IS NOT NULL
+      AND diversity IS NOT NULL AND toFloat(c.population) IS NOT NULL
     WITH c, [x IN [
            CASE WHEN $deprivation THEN toFloat(dep.imdAverageScore) END,
            CASE WHEN $density     THEN toFloat(d.density) END,
