@@ -180,6 +180,9 @@ ADVERSARIAL = [
     "which constituencies have the highest proportion of asians",
     "which of my places has the largest land area",
     "what are the school ratings near my places",
+    # Not unanswerable — the regression view holds the answer — but its 'constituency'
+    # wording is a standing alias trap, so it earns the repeated fabrication checks.
+    "what are the best predictors of crime in a constituency, use linear algebra",
 ]
 for q in ADVERSARIAL:
     for i in range(runs):

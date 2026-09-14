@@ -52,3 +52,9 @@
     matchesView: { name: PayAtMyPlaces, column: annualPay }
 - question: "how do crime and income relate across my districts"
   expect: { nonEmpty: true }
+- question: "what are the best predictors of crime in a constituency, use linear algebra"
+  # The one statistical answer (WhatTracksDistrictCrime): a least-squares model row.
+  # Its cells are structured (betas, residual outliers), so figure reconciliation
+  # cannot apply — the floor is a non-empty model, and the adversarial pass holds the
+  # same question to the fabrication invariants across repeated runs.
+  expect: { nonEmpty: true }
