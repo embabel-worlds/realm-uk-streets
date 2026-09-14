@@ -366,7 +366,7 @@
 # packed city centre is SAFER per person than 300 on a quiet coast. The rate
 # assumes the LSOA's density holds across the mile — say so when presenting.
 - name: AreaDensity
-  description: "Census 2021 population density (persons per square km) of a watched place's immediate neighbourhood (LSOA). Reached via HAS_DENSITY. The denominator for crime rates: estimated residents within the 1-mile circle = density x 8.14 km². Absent at outcode level."
+  description: "Census 2021 population density (persons per square km) of a watched place's immediate neighbourhood (LSOA). Reached via HAS_DENSITY — AT MOST ONE row per place, so it needs no aggregation and a place with none (an outcode-level watch) simply has no row. The denominator for crime rates: estimated residents within the 1-mile circle = density x 8.14 km², so a per-head rate is `1000.0 * crimes / (density * 8.14)`. Rank on that, never on a raw incident count: a count rewards emptiness, and the places without a density belong at the END of a safest-first list rather than at the top."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_DENSITY
@@ -408,7 +408,7 @@
       recordKeyField: key
       producer: districtCrimeTable
       maxAnchors: 1
-      description: "Every row of the national table under one literal-seeded anchor — one cached file read, ~400 transient rows."
+      description: "Every row of the national table under one literal-seeded anchor. The literal is `{set:'england-and-wales'}` — that exact string is the only value this anchor takes. One cached file read, ~400 transient rows; filter `districtCode =~ '^[EW]0.*'` before ranking, because the table also carries force-area and combined-CSP subtotals."
   examples:
     # STEERING — pinned defect: "the best predictors of crime, use linear algebra" refused
     # (or regressed toFloat of an MP's NAME) while this exact analysis exists. Predictors of
@@ -506,7 +506,7 @@
       recordKeyField: key
       producer: censusEthnicGroupsAllDistricts
       maxAnchors: 1
-      description: "Every district's full Census 2021 ethnic composition in one call — the input to a diversity index."
+      description: "Every district's full Census 2021 ethnic composition in one call — the input to a diversity index. Pin `{set:'england-and-wales'}`; FIVE rows per district, so join on districtCode and aggregate."
   properties:
     id:
       description: "NOMIS observation URN. Identity."
@@ -529,7 +529,7 @@
       recordKeyField: key
       producer: censusYoungAdultsAllDistricts
       maxAnchors: 1
-      description: "All 331 districts' 20-24 share in one census call — the age axis of the national crime model."
+      description: "All 331 districts' 20-24 share in one census call — the age axis of the national crime model. Pin `{set:'england-and-wales'}`; join on districtCode."
   properties:
     id:
       description: "NOMIS observation URN. Identity."
@@ -551,7 +551,7 @@
       recordKeyField: key
       producer: censusDensityAllDistricts
       maxAnchors: 1
-      description: "All 331 district population densities in one census call — the urbanity axis of the national crime model."
+      description: "All 331 district population densities in one census call — the urbanity axis of the national crime model. Pin `{set:'england-and-wales'}`; join on districtCode."
   properties:
     id:
       description: "NOMIS observation URN. Identity."
@@ -573,7 +573,7 @@
       recordKeyField: key
       producer: medianPayAllConstituencies
       maxAnchors: 1
-      description: "All 632 constituency pay medians in one NOMIS call — the economic axis of any per-seat cross-section, a week of cache."
+      description: "All 632 constituency pay medians in one NOMIS call — the economic axis of any per-seat cross-section, a week of cache. The literal is `{set:'westminster-2024'}`, the only value this anchor takes."
   properties:
     id:
       description: "NOMIS observation URN. Identity."
@@ -600,7 +600,7 @@
       recordKeyField: key
       producer: medianPayAllDistricts
       maxAnchors: 1
-      description: "All ~370 district pay medians in one NOMIS call, a week of cache."
+      description: "All ~370 district pay medians in one NOMIS call, a week of cache. Pin the anchor `{set:'england-and-wales'}` — the same literal every UkDistricts join takes — and join to DistrictCrime on districtCode."
   properties:
     id:
       description: "NOMIS observation URN. Identity."

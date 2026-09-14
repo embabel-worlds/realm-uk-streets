@@ -10,7 +10,7 @@
       recordKeyField: feedState
       producer: openPetitions
       maxAnchors: 3
-      description: "The state's most-signed petitions, top page — 'what is Britain asking for'."
+      description: "The state's most-signed petitions, top page — 'what is Britain asking for'. Pin the anchor with one of the literals `{state:'open'}`, `{state:'closed'}` or `{state:'rejected'}`; `open` is what 'right now' means."
   properties:
     id:
       description: "The petition's id. Identity, and the key its signature map joins on."
@@ -58,7 +58,7 @@
       recordKeyField: publishedWindow
       producer: awardsInWindow
       maxAnchors: 2
-      description: "Awards first published in the ISO 'from/to' window, daily-partitioned and fetched completely — a capped day is reported by name, never passed off as the whole period."
+      description: "Awards first published in the ISO 'from/to' window, daily-partitioned and fetched completely — a capped day is reported by name, never passed off as the whole period. Pin the anchor with the window itself, e.g. `{window:'2026-08-01T00:00:00Z/2026-08-27T00:00:00Z'}`; there is no default, the caller chooses the period."
   properties:
     ocid:
       description: "Open Contracting id. Identity."
