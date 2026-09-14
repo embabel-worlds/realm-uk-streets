@@ -497,6 +497,29 @@
 # NOMIS publishes ASHE at Westminster seats, the petitions site reports
 # per-seat signatures, and they share the July 2024 GSS codes without either
 # knowing the other exists. Joining them is what this type is for.
+- name: DistrictEthnicGroup
+  description: "One ethnic group's share of one local authority's residents, Census 2021 — five top-level groups per district, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_ETHNIC_GROUP]->(g) — ONE call returns every district's full composition (1,655 rows); join to the other district types on districtCode. FIVE rows per district, not one, because a district's ethnic MIX is a property of the whole composition and cannot be read off any single group's share: use these to compute a diversity index (1 - the sum of squared shares, the chance two residents drawn at random belong to different groups), which is what 'mix' means. A single group's share is NOT a measure of mix and ranking districts by one is not an analysis."
+  virtualJoins:
+    - anchorLabel: UkDistricts
+      relationship: HAS_ETHNIC_GROUP
+      keyField: set
+      recordKeyField: key
+      producer: censusEthnicGroupsAllDistricts
+      maxAnchors: 1
+      description: "Every district's full Census 2021 ethnic composition in one call — the input to a diversity index."
+  properties:
+    id:
+      description: "NOMIS observation URN. Identity."
+      metadata:
+        identity: "true"
+    key: "The anchor set literal — the join link."
+    districtCode: "Local authority GSS code — equals DistrictCrime.districtCode."
+    area: "The district's name as the census styles it."
+    group: "The top-level census group, e.g. 'White', 'Asian, Asian British or Asian Welsh'."
+    percent:
+      type: number
+      description: "That group's percent of the district's usual residents, Census 2021."
+
 - name: DistrictYoungAdults
   description: "The share of one local authority's residents aged 20-24, Census 2021, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_AGE_STRUCTURE]->(y) — ONE call returns all 331 districts; join to DistrictCrime, DistrictIncome and DistrictDensity on matching districtCode. This is the DEMOGRAPHIC axis: criminology's most durable finding is the age-crime curve, so a district's age structure predicts recorded crime independently of its income and its urbanity. A university city reads high for reasons that are about who lives there, not about disorder."
   virtualJoins:

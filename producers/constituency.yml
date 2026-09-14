@@ -87,3 +87,27 @@
     area: geography.description
     youngAdultPct: obs_value.value
   cache: { kind: ttl, seconds: 604800 }
+
+# Every district's ethnic composition — all five top-level Census 2021 groups
+# as percentages, 1,655 rows in ONE call. Five rows per district rather than
+# one, deliberately: what a "mix" is cannot be read off any single group's
+# share, and a diversity index is computed FROM the whole composition
+# (see DistrictEthnicDiversity's view).
+- name: censusEthnicGroupsAllDistricts
+  kind: remote
+  operation: censusEthnicity
+  records: "$.obs[*]"
+  keyTemplate: "{key}"
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    geography: "TYPE154"
+    c2021_eth_20: "1001,1002,1003,1004,1005"
+    measures: "20301"
+  project:
+    id: urn
+    districtCode: geography.geogcode
+    area: geography.description
+    group: c2021_eth_20.description
+    percent: obs_value.value
+  cache: { kind: ttl, seconds: 604800 }
