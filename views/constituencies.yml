@@ -40,12 +40,18 @@
     MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY]->(cp:ConstituencyPay)
     WHERE cp.constituencyCode = cs.onsCode AND toFloat(cp.annualPay) IS NOT NULL
     WITH pt, cs, toFloat(cp.annualPay) AS pay, toFloat(cs.signatures) AS sigs
-    ORDER BY toInteger(pt.signatures) DESC, sigs DESC
-    WITH pt, collect({seat: cs.constituency, pay: pay, sigs: sigs}) AS seats
+    // Signature-ordered BEFORE the collect, so the head of the list is the seats that
+    // signed hardest and the tail the ones that signed least.
+    ORDER BY sigs DESC
+    // `correlate` is an AGGREGATE over rows — like sum(), grouped by everything else in
+    // the WITH — not a function over two lists. Handing it `[x IN seats | x.pay]` type-checks
+    // and returns null, which reads as "no association" when it means "not computed".
+    WITH pt, collect({seat: cs.constituency, pay: pay, sigs: sigs}) AS seats,
+         correlate(pay, sigs) AS payVsSignatures
     // Both ends of every range are stated: an open-ended `list[-20..]` cannot be
     // parsed by the scope rewriter, so it can never be safely scoped and is refused.
-    WITH pt, seats, size(seats) AS n
-    WITH pt, seats, n,
+    WITH pt, seats, payVsSignatures, size(seats) AS n
+    WITH pt, seats, payVsSignatures, n,
          [x IN seats[0..20] | x.pay] AS topPay,
          [x IN seats[(n - 20)..n] | x.pay] AS bottomPay
     RETURN pt.action AS petition,
@@ -53,7 +59,7 @@
            n AS seatsMatched,
            round(reduce(t = 0.0, p IN topPay | t + p) / size(topPay)) AS payOfKeenestSeats,
            round(reduce(t = 0.0, p IN bottomPay | t + p) / size(bottomPay)) AS payOfCoolestSeats,
-           correlate([x IN seats | x.pay], [x IN seats | x.sigs]) AS payVsSignatures
+           payVsSignatures
     ORDER BY nationalSignatures DESC
     LIMIT $petitions
 
