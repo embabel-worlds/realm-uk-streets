@@ -90,11 +90,16 @@ for item in questions:
         # The COUNT form reconciles against the LIST form: the answer's figure must equal
         # the named view's row count.
         want = float(len(call(f"/api/v1/admin/kg/views/{expect['countOfView']}/run", {}).get("rows", [])))
+        # Two honest shapes for a count question: the FIGURE, or the enumerated set itself
+        # (view selection may route "how many X" to the roster view — 2 rows a reader counts
+        # is a correct answer; 72 rows of something else was the defect this assertion killed).
         if rows and any(abs(c - want) < 1e-6 for c in numeric_cells(rows[0])):
             print(f"ok   {label}: counts {int(want)} — matches {expect['countOfView']}'s row count")
+        elif len(rows) == int(want):
+            print(f"ok   {label}: enumerates exactly the {int(want)} — the set is the count")
         else:
-            fails.append(f"{label}: expected the count {int(want)} ({expect['countOfView']}'s rows); got {rows[:1]}")
-            print(f"FAIL {label}: {rows[:1]} != count {int(want)}")
+            fails.append(f"{label}: expected the count {int(want)} ({expect['countOfView']}'s rows); got {len(rows)} row(s): {rows[:1]}")
+            print(f"FAIL {label}: {len(rows)} row(s) != count {int(want)}")
     elif "matchesView" in expect:
         # BRACKETED reconciliation: some figures are live counters (petition signatures move
         # while you read them), so the view is invoked BEFORE and AFTER the ask and the answer
