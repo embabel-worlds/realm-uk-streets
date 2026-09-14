@@ -39,3 +39,27 @@
   # parse, taking this producer with it while the realm still reported no
   # problems. The only symptom was `Unknown producer` at query time.
   cache: { kind: ttl, seconds: 604800 }
+
+# Population density for EVERY district in ONE census call (TYPE154, the 2022
+# local-authority set — 331 obs), so the national crime model gains an URBANITY
+# axis without fanning out per district. Density is the variable the crime
+# literature treats as dominant and this realm's model was missing: recorded
+# crime concentrates where people, premises and opportunity concentrate.
+- name: censusDensityAllDistricts
+  kind: remote
+  operation: censusDensity
+  records: "$.obs[*]"
+  keyTemplate: "{key}"
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    geography: "TYPE154"
+    measures: "20100"
+  project:
+    id: urn
+    districtCode: geography.geogcode
+    area: geography.description
+    density: obs_value.value
+  # A decennial census behind a weekly cache — see the note above; `remote`
+  # producers cache with TTL alone.
+  cache: { kind: ttl, seconds: 604800 }

@@ -53,3 +53,4 @@ exports:
   - DistrictCrime
   - DistrictIncome
   - ConstituencyPay
+  - DistrictDensity

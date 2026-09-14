@@ -497,6 +497,28 @@
 # NOMIS publishes ASHE at Westminster seats, the petitions site reports
 # per-seat signatures, and they share the July 2024 GSS codes without either
 # knowing the other exists. Joining them is what this type is for.
+- name: DistrictDensity
+  description: "Usual residents per square kilometre for one local authority, Census 2021, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DENSITY_STAT]->(d) — ONE call returns all 331 districts; join to DistrictCrime and DistrictIncome on matching districtCode. This is the URBANITY axis: recorded crime concentrates where people, premises and opportunity concentrate, so a crime model without density attributes to income what actually belongs to city-ness. England and Wales; 2022 local-authority boundaries, so authorities merged since find no partner."
+  virtualJoins:
+    - anchorLabel: UkDistricts
+      relationship: HAS_DENSITY_STAT
+      keyField: set
+      recordKeyField: key
+      producer: censusDensityAllDistricts
+      maxAnchors: 1
+      description: "All 331 district population densities in one census call — the urbanity axis of the national crime model."
+  properties:
+    id:
+      description: "NOMIS observation URN. Identity."
+      metadata:
+        identity: "true"
+    key: "The anchor set literal — the join link."
+    districtCode: "Local authority GSS code — equals DistrictCrime.districtCode and DistrictIncome.districtCode."
+    area: "The district's name as the census styles it."
+    density:
+      type: number
+      description: "Usual residents per square kilometre, Census 2021."
+
 - name: ConstituencyPay
   description: "Median gross ANNUAL pay (ASHE, full-time) for one Westminster parliamentary constituency, July 2024 boundaries, from the all-seats NOMIS batch. Reached via MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY]->(cp) — ONE call returns every seat (632 of 650). `constituencyCode` is the GSS code the rest of the constituency world uses: it EQUALS ConstituencySignal.onsCode (petition signatures per seat) and UkPlace.constituencyCode, so 'what does a seat earn' joins to 'what does that seat petition for' on a shared key. Great Britain only — ASHE excludes Northern Ireland, so the 18 NI seats have no row and a join simply finds none. Pay is measured where the JOB is, not where the worker lives: a commuter seat reports the pay of jobs located in it."
   virtualJoins:
