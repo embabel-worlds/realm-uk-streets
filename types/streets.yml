@@ -593,7 +593,8 @@
 
 
 # Every English district's deprivation summary in one cached file read — the
-# deprivation axis of the cross-district views, beside crime and pay.- name: DistrictDeprivation
+# deprivation axis of the cross-district views, beside crime and pay.
+- name: DistrictDeprivation
   description: "One English district's summary from the Indices of Multiple Deprivation 2019 (MHCLG File 10, lower-tier LAD). Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DEPRIVATION]->(d) — one read returns all 317 districts; join to DistrictCrime and DistrictIncome rows on matching districtCode. HIGHER score = MORE deprived and rank 1 = most deprived of 317 — say which way is up when presenting. England only: Welsh districts (W06) have no row (WIMD is a separate, non-comparable index). Boundaries are 2019 LADs, so authorities merged since (Buckinghamshire, North Northamptonshire, Cumberland, Somerset) find no partner in the current crime table."
   virtualJoins:
     - anchorLabel: UkDistricts
