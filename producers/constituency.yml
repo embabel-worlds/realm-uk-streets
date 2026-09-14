@@ -28,10 +28,14 @@
     constituency: geography.description
     annualPay: obs_value.value
     year: time.description
-  # ASHE is annual and the boundaries are fixed until the next review, so the
-  # figure cannot move between two queries — the cache exists to be polite to
-  # NOMIS, not to chase freshness. Both layers, as the other national batches
-  # carry: the file cache survives a realm_refresh, the TTL cache serves the
-  # repeat reads a regression makes while someone iterates on it.
-  fileCacheSeconds: 604800
+  # ASHE is annual and the boundaries hold until the next review, so the figure
+  # cannot move between two queries — this cache is politeness to NOMIS, not
+  # freshness engineering, and a week of it serves every repeat read a
+  # regression makes while somebody iterates on it.
+  #
+  # A week of TTL is the WHOLE cache story for a `remote` producer.
+  # `fileCacheSeconds` is a TABULAR field — the content-addressed cache of a
+  # downloaded spreadsheet — and setting it here failed the ENTIRE file's
+  # parse, taking this producer with it while the realm still reported no
+  # problems. The only symptom was `Unknown producer` at query time.
   cache: { kind: ttl, seconds: 604800 }
