@@ -189,3 +189,41 @@
            CASE WHEN $population  THEN toFloat(c.population) END
          ] WHERE x IS NOT NULL] AS predictors
     RETURN regress(predictors, toFloat(c.totalRate), c.district) AS model
+
+# The places behind the model. A coefficient is an argument about districts in
+# general; this is the districts themselves, so a reader can find somewhere they
+# know and see where it sits on every axis the model uses.
+- name: DistrictsRanked
+  description: "Every English district in the crime model, worst crime rate first, with the value of each predictor beside it — deprivation, density, the 20-24 share, median pay and ethnic diversity. The same 263 districts and the same figures the model fits, so a reader can find a place they know and see where it actually sits rather than taking the coefficients on trust. Crime is offences per 1,000 residents (ONS, year ending March 2024); Westminster's is inflated by its daytime population."
+  params:
+    limit:
+      type: int
+      default: 300
+      description: "How many districts, worst crime first (the whole set by default)."
+  cypher: |
+    MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
+    WHERE c.districtCode =~ '^[EW]0.*'
+    MATCH (u)-[:HAS_PAY]->(i:DistrictIncome)
+    WHERE i.districtCode = c.districtCode
+    MATCH (u)-[:HAS_DENSITY_STAT]->(d:DistrictDensity)
+    WHERE d.districtCode = c.districtCode
+    MATCH (u)-[:HAS_AGE_STRUCTURE]->(y:DistrictYoungAdults)
+    WHERE y.districtCode = c.districtCode
+    MATCH (u)-[:HAS_DEPRIVATION]->(dep:DistrictDeprivation)
+    WHERE dep.districtCode = c.districtCode
+    MATCH (u)-[:HAS_ETHNIC_GROUP]->(g:DistrictEthnicGroup)
+    WHERE g.districtCode = c.districtCode
+    WITH c, i, d, y, dep,
+         1.0 - sum((toFloat(g.percent) / 100.0) * (toFloat(g.percent) / 100.0)) AS diversity
+    WHERE toFloat(dep.imdAverageScore) IS NOT NULL AND toFloat(d.density) IS NOT NULL
+      AND toFloat(y.youngAdultPct) IS NOT NULL AND toFloat(i.annualPay) IS NOT NULL
+      AND diversity IS NOT NULL AND toFloat(c.population) IS NOT NULL
+    RETURN c.district AS district,
+           round(toFloat(c.totalRate), 1) AS crimePer1000,
+           round(toFloat(dep.imdAverageScore), 1) AS deprivation,
+           toInteger(d.density) AS density,
+           toFloat(y.youngAdultPct) AS youngAdultPct,
+           toInteger(i.annualPay) AS annualPay,
+           round(diversity, 3) AS diversity
+    ORDER BY crimePer1000 DESC
+    LIMIT $limit
