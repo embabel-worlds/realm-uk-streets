@@ -106,7 +106,10 @@ for item in questions:
         # must be a reading of the same counter — within [min, max] of the two references.
         # For static figures the bracket collapses to equality.
         mv = expect["matchesView"]
-        args = mv.get("args") or {}
+        # Params nest under "args": an un-nested body is ACCEPTED and the view's
+        # defaults quietly apply, so a reconciliation would compare against the wrong
+        # invocation and still pass.
+        args = {"args": mv["args"]} if mv.get("args") else {}
         try:
             before = top_figure(call(f"/api/v1/admin/kg/views/{mv['name']}/run", args).get("rows", []), mv["column"])
             d = call("/api/v1/admin/kg/ask", {"question": q})

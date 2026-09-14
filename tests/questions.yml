@@ -52,6 +52,16 @@
     matchesView: { name: PayAtMyPlaces, column: annualPay }
 - question: "how do crime and income relate across my districts"
   expect: { nonEmpty: true }
+- question: "which constituencies have the highest pay"
+  expect:
+    matchesView: { name: PayAcrossConstituencies, column: annualPay }
+- question: "does what a seat earns predict what it petitions parliament for"
+  # The cross-source answer (PayVsPetitionSigning): one row per live petition,
+  # each carrying a correlation object rather than a bare figure, so the floor is
+  # a non-empty result — the correctness of the numbers is verify.sh's join check.
+  expect: { minRows: 5 }
+- question: "which seats sign hardest for banning school attendance fines, and what do they earn"
+  expect: { nonEmpty: true }
 - question: "what are the best predictors of crime in a constituency, use linear algebra"
   # The one statistical answer (WhatTracksDistrictCrime): a least-squares model row.
   # Its cells are structured (betas, residual outliers), so figure reconciliation
