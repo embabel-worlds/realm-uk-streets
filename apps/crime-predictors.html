@@ -447,10 +447,15 @@ function renderCommentary(betas) {
     div.innerHTML = '<b>Ethnic diversity correlates with recorded crime at ' + fmt(dAlone) +
       ', and that is statistically detectable.</b> Taken alone it looks like a finding. It is not — ' +
       'now add density, and then deprivation, and watch this number.';
-  } else if (dOn && depOn && typeof dBeta === 'number' && Math.abs(dBeta) < 0.06) {
+  /* Keyed on how much of the alone figure SURVIVED, not on an absolute cut-off. The absolute
+   * one was set from a reading taken before the sample was pinned, and at the true value
+   * (0.063) the headline message silently stopped firing — the app's whole point, missing,
+   * with nothing broken enough to notice. A ratio tracks the claim instead of the number. */
+  } else if (dOn && depOn && typeof dBeta === 'number' && typeof dAlone === 'number' &&
+             Math.abs(dAlone) > 0.001 && Math.abs(dBeta) / Math.abs(dAlone) < 0.25) {
     div.className = 'note alert';
     div.innerHTML = '<b>Diversity has fallen to ' + fmt(dBeta) + ' — indistinguishable from nothing.</b> ' +
-      'Its apparent association belonged entirely to the variables it travels with: deprived, dense, ' +
+      'Its apparent association belonged almost entirely to the variables it travels with: deprived, dense, ' +
       'younger places are also more diverse places. The single-variable reading was confidently, ' +
       'detectably wrong, and only holding the others constant shows it.';
   } else if (state.on.size === 0) {

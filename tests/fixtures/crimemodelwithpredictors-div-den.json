@@ -1,0 +1,108 @@
+{
+ "rows": [
+  {
+   "model": {
+    "n": 263,
+    "dropped": 0,
+    "r2": 0.284,
+    "adjustedR2": 0.278,
+    "coefficients": [
+     {
+      "predictor": "x1",
+      "beta": 0.488
+     },
+     {
+      "predictor": "x2",
+      "beta": 0.059
+     }
+    ],
+    "abovePrediction": [
+     {
+      "label": "Westminster",
+      "actual": 446.4,
+      "predicted": 135.64,
+      "residual": 310.76
+     },
+     {
+      "label": "Middlesbrough",
+      "actual": 167.6,
+      "predicted": 88.13,
+      "residual": 79.47
+     },
+     {
+      "label": "Hartlepool",
+      "actual": 143.5,
+      "predicted": 74.72,
+      "residual": 68.78
+     }
+    ],
+    "belowPrediction": [
+     {
+      "label": "Tower Hamlets",
+      "actual": 114.2,
+      "predicted": 175.42,
+      "residual": -61.22
+     },
+     {
+      "label": "Wandsworth",
+      "actual": 82.7,
+      "predicted": 134.57,
+      "residual": -51.87
+     },
+     {
+      "label": "Merton",
+      "actual": 65.1,
+      "predicted": 110.71,
+      "residual": -45.61
+     }
+    ]
+   }
+  }
+ ],
+ "warnings": [],
+ "freshness": [
+  {
+   "producer": "medianPayAllDistricts",
+   "source": "cached",
+   "observedAt": "2026-09-14T21:04:09.096Z",
+   "keys": 1
+  },
+  {
+   "producer": "censusDensityAllDistricts",
+   "source": "cached",
+   "observedAt": "2026-09-14T21:04:08.935Z",
+   "keys": 1
+  },
+  {
+   "producer": "censusYoungAdultsAllDistricts",
+   "source": "cached",
+   "observedAt": "2026-09-14T21:05:21.004Z",
+   "keys": 1
+  },
+  {
+   "producer": "censusEthnicGroupsAllDistricts",
+   "source": "cached",
+   "observedAt": "2026-09-14T21:05:21.278Z",
+   "keys": 1
+  },
+  {
+   "producer": "districtCrimeTable",
+   "source": "cached",
+   "observedAt": "2026-09-14T21:04:09.148Z",
+   "keys": 1
+  },
+  {
+   "producer": "imdDistrictSummaries",
+   "source": "cached",
+   "observedAt": "2026-09-14T21:05:21.523Z",
+   "keys": 1
+  }
+ ],
+ "freshnessNote": "NOTE: not every figure here was read just now. `observedAt` is when the source was\nACTUALLY read, and `source: \"cached\"` means the value describes that source AS OF THAT\nMOMENT, served from cache \u2014 not the state right now. If the answer turns on how things\nstand currently, say when it was observed rather than implying it is live.\nServed warm: medianPayAllDistricts (2026-09-14T21:04:09.096Z), censusDensityAllDistricts (2026-09-14T21:04:08.935Z), censusYoungAdultsAllDistricts (2026-09-14T21:05:21.004Z), censusEthnicGroupsAllDistricts (2026-09-14T21:05:21.278Z), districtCrimeTable (2026-09-14T21:04:09.148Z), imdDistrictSummaries (2026-09-14T21:05:21.523Z).",
+ "cost": {
+  "ms": 1272,
+  "apiCalls": 0,
+  "llmCalls": 0
+ },
+ "note": "This result carries statistical cells (a correlation and/or a least-squares fit). Read them out in words, never as raw fields. For a correlation: give r WITH its n, and honour `detectable` \u2014 when false, say 'no detectable relationship on this sample' and do not report the r as a finding. For a fit: lead with what r2 means in plain terms (how much of the outcome these predictors explain \u2014 and so how much they don't), name only the strongest standardised beta(s), and tell `abovePrediction` / `belowPrediction` as the story: they are the named cases the pattern fails to explain, and an empty side means the divergence runs one way. `predicted` means predicted BY THIS FIT from its predictors \u2014 never a crowd, consensus, or external figure; a residual measures divergence from the subject's OWN pattern. Always association, never causation, and never a claim about any individual row's future."
+}
