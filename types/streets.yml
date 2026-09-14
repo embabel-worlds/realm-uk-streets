@@ -9,6 +9,14 @@
 # every downstream surface is keyed on the pair, so resolve once, store, reuse.
 - name: UkPlace
   description: "A UK place the user is watching, with coordinates already resolved from its postcode so crime, weather and air lookups need no further geocoding."
+  examples:
+    # STEERING — pinned defect: "how many places am I watching" matched 'watching' to the
+    # host's ConfigView label and dumped 72 saved-view records. The user's PLACES are
+    # UkPlace, full stop; count and list read the label directly.
+    - q: "how many places am I watching"
+      cypher: |
+        MATCH (p:UkPlace)
+        RETURN count(p) AS places
   properties:
     name:
       type: string

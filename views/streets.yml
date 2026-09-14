@@ -128,6 +128,13 @@
            toFloat(i.annualPay) AS districtMedianPay
     ORDER BY crimeRatePerThousand IS NULL, crimeRatePerThousand DESC LIMIT $limit
 
+- name: MyPlaces
+  description: "The places being watched — name, postcode and coordinates. The realm's roster: every other view starts from these."
+  cypher: |
+    MATCH (p:UkPlace)
+    RETURN p.name AS place, p.postcode AS postcode, p.lat AS lat, p.lon AS lon
+    ORDER BY place
+
 - name: PayAtMyPlaces
   description: "District median full-time annual pay (ONS ASHE) at each watched place, highest first — 'where do people earn the most among my places'. District-level: it describes where the place is, not the person next door."
   params:

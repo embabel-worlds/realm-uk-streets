@@ -86,17 +86,31 @@ for item in questions:
     if "matchesView" not in expect:
         d = call("/api/v1/admin/kg/ask", {"question": q})
         rows = d.get("rows", [])
-    if "matchesView" in expect:
+    if "countOfView" in expect:
+        # The COUNT form reconciles against the LIST form: the answer's figure must equal
+        # the named view's row count.
+        want = float(len(call(f"/api/v1/admin/kg/views/{expect['countOfView']}/run", {}).get("rows", [])))
+        if rows and any(abs(c - want) < 1e-6 for c in numeric_cells(rows[0])):
+            print(f"ok   {label}: counts {int(want)} — matches {expect['countOfView']}'s row count")
+        else:
+            fails.append(f"{label}: expected the count {int(want)} ({expect['countOfView']}'s rows); got {rows[:1]}")
+            print(f"FAIL {label}: {rows[:1]} != count {int(want)}")
+    elif "matchesView" in expect:
         # BRACKETED reconciliation: some figures are live counters (petition signatures move
         # while you read them), so the view is invoked BEFORE and AFTER the ask and the answer
         # must be a reading of the same counter — within [min, max] of the two references.
         # For static figures the bracket collapses to equality.
         mv = expect["matchesView"]
         args = mv.get("args") or {}
-        before = top_figure(call(f"/api/v1/admin/kg/views/{mv['name']}/run", args).get("rows", []), mv["column"])
-        d = call("/api/v1/admin/kg/ask", {"question": q})
-        rows = d.get("rows", [])
-        after = top_figure(call(f"/api/v1/admin/kg/views/{mv['name']}/run", args).get("rows", []), mv["column"])
+        try:
+            before = top_figure(call(f"/api/v1/admin/kg/views/{mv['name']}/run", args).get("rows", []), mv["column"])
+            d = call("/api/v1/admin/kg/ask", {"question": q})
+            rows = d.get("rows", [])
+            after = top_figure(call(f"/api/v1/admin/kg/views/{mv['name']}/run", args).get("rows", []), mv["column"])
+        except urllib.error.HTTPError as e:
+            fails.append(f"{label}: view {mv['name']} unreachable: HTTP {e.code}")
+            print(f"FAIL {label}: view {mv['name']} HTTP {e.code}")
+            continue
         if before is None or after is None:
             fails.append(f"{label}: view {mv['name']} gave no {mv['column']} to reconcile against")
             print(f"FAIL {label}: no reference figure")
@@ -104,7 +118,12 @@ for item in questions:
             fails.append(f"{label}: ask returned no rows; view {mv['name']} says {before}..{after}")
             print(f"FAIL {label}: empty vs {before}..{after}")
         else:
+            # An optional percentage widens the bracket for figures fetched through DIFFERENT
+            # producer-cache entries (the ask's query and the view carry different cache keys,
+            # so a live counter can be read at two moments even inside the bracket).
+            pct = float(mv.get("withinPct", 0)) / 100.0
             lo, hi = min(before, after) - 1e-6, max(before, after) + 1e-6
+            lo, hi = lo - abs(lo) * pct, hi + abs(hi) * pct
             if not any(lo <= c <= hi for c in numeric_cells(rows[0])):
                 fails.append(f"{label}: top row {rows[0]} carries no figure in {mv['name']}.{mv['column']} bracket [{before}, {after}]")
                 print(f"FAIL {label}: {rows[0]} not in [{before}, {after}]")

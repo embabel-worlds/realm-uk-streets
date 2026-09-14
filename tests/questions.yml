@@ -19,7 +19,9 @@
     matchesView: { name: SafestPlace, column: perThousandResidents }
 - question: "what is the most signed petition to parliament right now"
   expect:
-    matchesView: { name: WhatBritainSigns, column: signatures }
+    # withinPct: signatures are a LIVE counter, and the ask's fetch and the view's ride
+    # different producer-cache entries — readings minutes apart. Half a percent covers it.
+    matchesView: { name: WhatBritainSigns, column: signatures, withinPct: 0.5 }
 - question: "which of my places has the most schools nearby"
   expect:
     matchesView: { name: SchoolsNearMyPlaces, column: schools }
@@ -29,7 +31,13 @@
 - question: "who are the MPs for my places"
   expect: { minRows: 2 }
 - question: "how many places am I watching"
-  expect: { nonEmpty: true }
+  expect:
+    # countOfView: the answer's figure must equal the named view's ROW COUNT — the count
+    # form reconciling against the list form. (nonEmpty once passed 72 dumped config
+    # records as an answer to this question.)
+    countOfView: MyPlaces
+- question: "list the places I am watching"
+  expect: { minRows: 2 }
 - question: "what do homes actually sell for near my places"
   expect: { nonEmpty: true }
 - question: "which streets around my places have the most crime"
