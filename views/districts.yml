@@ -133,3 +133,51 @@
            correlate(diversity, crime) AS diversityVsCrime,
            correlate(pay, crime) AS payVsCrime,
            correlate(population, crime) AS populationVsCrime
+
+# The model the crime-predictors app drives: WHICH predictors are in the fit is
+# the caller's choice, so a person can add one and watch what it does to the
+# others. That is the whole finding — a variable's apparent strength belongs to
+# the variables it travels with — and it cannot be shown by any single model.
+#
+# EVERY hop is a required MATCH, deliberately: the district set is therefore the
+# SAME 263 for every combination of flags, so a beta that moves moved because the
+# MODEL changed and not because the sample did. Toggling deprivation off does not
+# readmit the Welsh districts it excludes; holding n constant is what makes the
+# before/after comparison honest.
+#
+# `regress` names positional predictors x1..xn over a computed list, so a caller
+# maps them back by the fixed order below: deprivation, density, youngAdults,
+# pay, diversity, population.
+- name: CrimeModelWithPredictors
+  description: "A least-squares fit of district crime rate on WHICHEVER of the six predictors the caller enables — deprivation, population density, the 20-24 share, median pay, ethnic diversity and population — with standardized betas, R², and the districts furthest above and below prediction. Enabling exactly one gives that predictor's association measured ALONE (a solo standardized beta is its correlation), so the same view answers 'what does this variable claim by itself' and 'what survives beside the others', which is the comparison that matters. The district set is identical for every combination (263, England only, since deprivation is England-only), so a beta that moves moved because the model changed, not the sample. Predictors are returned as x1..xn in this fixed order: deprivation, density, youngAdults, pay, diversity, population. Association across areas, never causation, and never a statement about any person."
+  params:
+    deprivation: { type: boolean, default: true, description: "Include IoD2019 average deprivation score." }
+    density: { type: boolean, default: true, description: "Include Census 2021 population density." }
+    youngAdults: { type: boolean, default: true, description: "Include the share of residents aged 20-24." }
+    pay: { type: boolean, default: true, description: "Include ASHE median annual pay." }
+    diversity: { type: boolean, default: true, description: "Include the ethnic diversity index (never a single group's share)." }
+    population: { type: boolean, default: true, description: "Include resident population." }
+  cypher: |
+    MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
+    WHERE c.districtCode =~ '^[EW]0.*'
+    MATCH (u)-[:HAS_PAY]->(i:DistrictIncome)
+    WHERE i.districtCode = c.districtCode
+    MATCH (u)-[:HAS_DENSITY_STAT]->(d:DistrictDensity)
+    WHERE d.districtCode = c.districtCode
+    MATCH (u)-[:HAS_AGE_STRUCTURE]->(y:DistrictYoungAdults)
+    WHERE y.districtCode = c.districtCode
+    MATCH (u)-[:HAS_DEPRIVATION]->(dep:DistrictDeprivation)
+    WHERE dep.districtCode = c.districtCode
+    MATCH (u)-[:HAS_ETHNIC_GROUP]->(g:DistrictEthnicGroup)
+    WHERE g.districtCode = c.districtCode
+    WITH c, i, d, y, dep,
+         1.0 - sum((toFloat(g.percent) / 100.0) * (toFloat(g.percent) / 100.0)) AS diversity
+    WITH c, [x IN [
+           CASE WHEN $deprivation THEN toFloat(dep.imdAverageScore) END,
+           CASE WHEN $density     THEN toFloat(d.density) END,
+           CASE WHEN $youngAdults THEN toFloat(y.youngAdultPct) END,
+           CASE WHEN $pay         THEN toFloat(i.annualPay) END,
+           CASE WHEN $diversity   THEN diversity END,
+           CASE WHEN $population  THEN toFloat(c.population) END
+         ] WHERE x IS NOT NULL] AS predictors
+    RETURN regress(predictors, toFloat(c.totalRate), c.district) AS model
