@@ -1,0 +1,37 @@
+# The CONSTITUENCY axis. Everything else in this realm is measured where the
+# STATE administers — districts, force areas, LSOAs — and every one of those
+# boundaries cuts across the one boundary a person actually recognises: their
+# seat. NOMIS publishes ASHE at Westminster constituencies (TYPE172, the July
+# 2024 boundaries), and the petitions site reports per-seat signatures on the
+# SAME codes. Neither source knows the other exists; the join is the point.
+#
+# One call, every seat, no fan-out — the medianPayAllDistricts pattern: the key
+# is not sent, the geography is a fixed arg, and the anchor literal just names
+# the batch.
+- name: medianPayAllConstituencies
+  kind: remote
+  operation: medianPay
+  records: "$.obs[*]"
+  keyTemplate: "{key}"
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    geography: "TYPE172"
+    sex: "8"
+    item: "2"
+    pay: "7"
+    measures: "20100"
+    time: latest
+  project:
+    id: urn
+    constituencyCode: geography.geogcode
+    constituency: geography.description
+    annualPay: obs_value.value
+    year: time.description
+  # ASHE is annual and the boundaries are fixed until the next review, so the
+  # figure cannot move between two queries — the cache exists to be polite to
+  # NOMIS, not to chase freshness. Both layers, as the other national batches
+  # carry: the file cache survives a realm_refresh, the TTL cache serves the
+  # repeat reads a regression makes while someone iterates on it.
+  fileCacheSeconds: 604800
+  cache: { kind: ttl, seconds: 604800 }

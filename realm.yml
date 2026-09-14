@@ -52,3 +52,4 @@ exports:
   - CareLocation
   - DistrictCrime
   - DistrictIncome
+  - ConstituencyPay

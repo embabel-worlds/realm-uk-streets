@@ -487,6 +487,42 @@
       description: "Public order offences, per 1,000 population."
 
 # Every district's median pay in one NOMIS call — the income axis of the
+# ── The CONSTITUENCY axis ────────────────────────────────────────────────────
+# UkConstituencies is a LITERAL-SEEDED anchor — MATCH (u:UkConstituencies
+# {set:'westminster-2024'}) mints it per query; nothing is stored.
+#
+# Why this type exists at all: every other measure in this realm is reported
+# where the STATE administers — districts, force areas, LSOAs — and each of
+# those boundaries cuts across the one boundary a person recognises as theirs.
+# NOMIS publishes ASHE at Westminster seats, the petitions site reports
+# per-seat signatures, and they share the July 2024 GSS codes without either
+# knowing the other exists. Joining them is what this type is for.
+- name: ConstituencyPay
+  description: "Median gross ANNUAL pay (ASHE, full-time) for one Westminster parliamentary constituency, July 2024 boundaries, from the all-seats NOMIS batch. Reached via MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY]->(cp) — ONE call returns every seat (632 of 650). `constituencyCode` is the GSS code the rest of the constituency world uses: it EQUALS ConstituencySignal.onsCode (petition signatures per seat) and UkPlace.constituencyCode, so 'what does a seat earn' joins to 'what does that seat petition for' on a shared key. Great Britain only — ASHE excludes Northern Ireland, so the 18 NI seats have no row and a join simply finds none. Pay is measured where the JOB is, not where the worker lives: a commuter seat reports the pay of jobs located in it."
+  virtualJoins:
+    - anchorLabel: UkConstituencies
+      relationship: HAS_CONSTITUENCY_PAY
+      keyField: set
+      recordKeyField: key
+      producer: medianPayAllConstituencies
+      maxAnchors: 1
+      description: "All 632 constituency pay medians in one NOMIS call — the economic axis of any per-seat cross-section, a week of cache."
+  properties:
+    id:
+      description: "NOMIS observation URN. Identity."
+      metadata:
+        identity: "true"
+    key: "The anchor set literal — the join link."
+    constituencyCode:
+      description: "Westminster constituency GSS code (E14/W07/S14), July 2024 boundaries — EQUALS ConstituencySignal.onsCode and UkPlace.constituencyCode. The join key across sources."
+      metadata:
+        alternateKey: "true"
+    constituency: "The seat's name as NOMIS styles it — spelling can differ from the petitions site's, so join on the CODE, never the name."
+    annualPay:
+      type: number
+      description: "Median gross annual pay in GBP, full-time jobs located in the seat."
+    year: "The ASHE year the figure belongs to."
+
 # cross-district views, so crime-vs-income never costs 300 keyed calls.
 - name: DistrictIncome
   description: "Median gross annual pay (ASHE, full-time) for one local authority, from the all-districts NOMIS batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_PAY]->(i) — one call returns every district; join to DistrictCrime rows on matching districtCode. The NOMIS geography set is a 2021 vintage: post-2023 unitaries (Buckinghamshire, North Yorkshire, Somerset) are absent, and their crime rows simply find no pay row."

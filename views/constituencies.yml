@@ -1,0 +1,72 @@
+# The CONSTITUENCY cross-section — the boundary a person recognises as theirs.
+#
+# Every other national view in this realm is per DISTRICT, because that is where
+# the state publishes crime. These are per SEAT, because that is where NOMIS
+# publishes pay and where the petitions site reports signatures — on the SAME
+# July 2024 GSS codes, with neither source aware of the other. The join is the
+# whole point: each half is a published table nobody would look twice at, and
+# together they answer a question neither publisher can.
+
+- name: PayAcrossConstituencies
+  description: "Median full-time annual pay for every Westminster constituency (ASHE, July 2024 boundaries), richest first — the national per-seat economic cross-section in one NOMIS call. Great Britain only: the 18 Northern Ireland seats are absent from ASHE. Pay is measured where the JOB is, not where the worker lives, so commuter seats read high."
+  params:
+    limit:
+      type: int
+      default: 650
+      description: "How many seats to return, highest pay first (the whole cross-section by default)."
+  cypher: |
+    MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY]->(cp:ConstituencyPay)
+    WHERE toFloat(cp.annualPay) IS NOT NULL
+    RETURN cp.constituency AS constituency, cp.constituencyCode AS constituencyCode,
+           toFloat(cp.annualPay) AS annualPay, cp.year AS year
+    ORDER BY annualPay DESC
+    LIMIT $limit
+
+# ── The cross-source join ────────────────────────────────────────────────────
+# The petitions site publishes, for each live petition, how many people in each
+# of the 650 seats signed it. It knows nothing about those seats. NOMIS
+# publishes what each seat earns. It knows nothing about petitions. Joined on
+# the GSS code, the pair answers a question neither can: does what a place
+# EARNS predict what it ASKS PARLIAMENT FOR?
+- name: WhatPoorSeatsAskFor
+  description: "Does a seat's PAY predict what it petitions Parliament for? For each of the most-signed live petitions, the median pay of the seats backing it hardest versus the seats backing it least — and the pay–signature correlation across every seat, computed in-query. Joins the petitions site's per-seat signature map to NOMIS ASHE pay on the shared July 2024 GSS code; neither source holds the other's half. Association across seats, never causation: a correlation here says richer or poorer places signed more, not that pay caused the signing. Signatures are a self-selecting sample of people who use the petitions site, which skews by age and internet access as well as by money."
+  params:
+    petitions:
+      type: int
+      default: 6
+      description: "How many of the most-signed live petitions to analyse."
+  cypher: |
+    MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)-[:HAS_SIGNATURES]->(cs:ConstituencySignal)
+    MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY]->(cp:ConstituencyPay)
+    WHERE cp.constituencyCode = cs.onsCode AND toFloat(cp.annualPay) IS NOT NULL
+    WITH pt, cs, toFloat(cp.annualPay) AS pay, toFloat(cs.signatures) AS sigs
+    ORDER BY toInteger(pt.signatures) DESC, sigs DESC
+    WITH pt, collect({seat: cs.constituency, pay: pay, sigs: sigs}) AS seats
+    WITH pt, seats,
+         [x IN seats[0..20] | x.pay] AS topPay,
+         [x IN seats[-20..] | x.pay] AS bottomPay
+    RETURN pt.action AS petition,
+           toInteger(pt.signatures) AS nationalSignatures,
+           size(seats) AS seatsMatched,
+           round(reduce(t = 0.0, p IN topPay | t + p) / size(topPay)) AS payOfKeenestSeats,
+           round(reduce(t = 0.0, p IN bottomPay | t + p) / size(bottomPay)) AS payOfCoolestSeats,
+           correlate([x IN seats | x.pay], [x IN seats | x.sigs]) AS payVsSignatures
+    ORDER BY nationalSignatures DESC
+    LIMIT $petitions
+
+# The same join asked as a MODEL rather than a league table: across every seat,
+# what does pay predict about how hard that seat signs? One petition at a time,
+# because pooling petitions would regress a seat's population as much as its
+# politics.
+- name: WhatPredictsSeatSigning
+  description: "A least-squares fit, across every constituency, of how hard a seat signed the single most-signed live petition on what that seat EARNS — standardized beta, honest R², and the seats furthest above and below their prediction by name. The residuals are the interesting half: a seat signing far harder than its pay predicts is telling you something pay cannot explain. Joins petition signatures to NOMIS ASHE pay on the shared GSS code. Association across seats, never causation; signatures are a self-selecting sample."
+  cypher: |
+    MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)-[:HAS_SIGNATURES]->(cs:ConstituencySignal)
+    WITH pt, collect(cs) AS signals
+    ORDER BY toInteger(pt.signatures) DESC
+    LIMIT 1
+    UNWIND signals AS cs
+    MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY]->(cp:ConstituencyPay)
+    WHERE cp.constituencyCode = cs.onsCode AND toFloat(cp.annualPay) IS NOT NULL
+    RETURN pt.action AS petition,
+           regress([toFloat(cp.annualPay)], toFloat(cs.signatures), cs.constituency) AS model
