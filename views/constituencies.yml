@@ -28,8 +28,34 @@
 # publishes what each seat earns. It knows nothing about petitions. Joined on
 # the GSS code, the pair answers a question neither can: does what a place
 # EARNS predict what it ASKS PARLIAMENT FOR?
+#
+# NOTE for anyone extending these: correlate/regress are AGGREGATES over rows,
+# finalized in the RETURN projection. In a WITH they type-check, compute
+# nothing, and hand back null — which reads as "no association" when it means
+# "not computed". Keep them in the RETURN.
+- name: PayVsPetitionSigning
+  description: "Does a seat's PAY predict how hard it signs a petition? For every live petition, the correlation across all 631 constituencies between what the seat earns (NOMIS ASHE) and how many people there signed (the petitions site's per-seat map) — with a confidence interval and whether the association is DETECTABLE at all, so a flat result reads as flat rather than as a small effect. A negative r means poorer seats signed harder. Joins two registers on the shared July 2024 GSS code; neither publisher holds the other's half. Association across seats, never causation, and signatures are a self-selecting sample of petition-site users, which skews by age and internet access as well as by money."
+  params:
+    limit:
+      type: int
+      default: 25
+      description: "How many live petitions to analyse (the feed's top page by default)."
+  cypher: |
+    MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)-[:HAS_SIGNATURES]->(cs:ConstituencySignal)
+    MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY]->(cp:ConstituencyPay)
+    WHERE cp.constituencyCode = cs.onsCode AND toFloat(cp.annualPay) IS NOT NULL
+    WITH pt, toFloat(cp.annualPay) AS pay, toFloat(cs.signatures) AS sigs
+    RETURN pt.action AS petition,
+           toInteger(pt.signatures) AS nationalSignatures,
+           count(*) AS seatsMatched,
+           correlate(pay, sigs) AS payVsSignatures
+    ORDER BY nationalSignatures DESC
+    LIMIT $limit
+
+# The same join read as a league table rather than a coefficient: which seats
+# actually back each cause, and what do they earn?
 - name: WhatPoorSeatsAskFor
-  description: "Does a seat's PAY predict what it petitions Parliament for? For each of the most-signed live petitions, the median pay of the seats backing it hardest versus the seats backing it least — and the pay–signature correlation across every seat, computed in-query. Joins the petitions site's per-seat signature map to NOMIS ASHE pay on the shared July 2024 GSS code; neither source holds the other's half. Association across seats, never causation: a correlation here says richer or poorer places signed more, not that pay caused the signing. Signatures are a self-selecting sample of people who use the petitions site, which skews by age and internet access as well as by money."
+  description: "For each of the most-signed live petitions, the average pay of the 20 constituencies that signed it HARDEST against the 20 that signed it least — the class gradient of what Britain asks Parliament for, in pounds rather than a coefficient. Joins the petitions site's per-seat signature map to NOMIS ASHE pay on the shared July 2024 GSS code. For whether a gap is statistically detectable at all, use PayVsPetitionSigning; a 20-seat contrast always produces two numbers, even when the relation is noise."
   params:
     petitions:
       type: int
@@ -43,15 +69,11 @@
     // Signature-ordered BEFORE the collect, so the head of the list is the seats that
     // signed hardest and the tail the ones that signed least.
     ORDER BY sigs DESC
-    // `correlate` is an AGGREGATE over rows — like sum(), grouped by everything else in
-    // the WITH — not a function over two lists. Handing it `[x IN seats | x.pay]` type-checks
-    // and returns null, which reads as "no association" when it means "not computed".
-    WITH pt, collect({seat: cs.constituency, pay: pay, sigs: sigs}) AS seats,
-         correlate(pay, sigs) AS payVsSignatures
+    WITH pt, collect({seat: cs.constituency, pay: pay, sigs: sigs}) AS seats
     // Both ends of every range are stated: an open-ended `list[-20..]` cannot be
     // parsed by the scope rewriter, so it can never be safely scoped and is refused.
-    WITH pt, seats, payVsSignatures, size(seats) AS n
-    WITH pt, seats, payVsSignatures, n,
+    WITH pt, seats, size(seats) AS n
+    WITH pt, seats, n,
          [x IN seats[0..20] | x.pay] AS topPay,
          [x IN seats[(n - 20)..n] | x.pay] AS bottomPay
     RETURN pt.action AS petition,
@@ -59,23 +81,22 @@
            n AS seatsMatched,
            round(reduce(t = 0.0, p IN topPay | t + p) / size(topPay)) AS payOfKeenestSeats,
            round(reduce(t = 0.0, p IN bottomPay | t + p) / size(bottomPay)) AS payOfCoolestSeats,
-           payVsSignatures
+           [x IN seats[0..5] | x.seat] AS keenestSeats,
+           [x IN seats[(n - 5)..n] | x.seat] AS coolestSeats
     ORDER BY nationalSignatures DESC
     LIMIT $petitions
 
-# The same join asked as a MODEL rather than a league table: across every seat,
-# what does pay predict about how hard that seat signs? One petition at a time,
-# because pooling petitions would regress a seat's population as much as its
-# politics.
+# The same join asked as a MODEL: across every seat, what does pay predict
+# about how hard that seat signs — and which seats does pay fail to explain?
 - name: WhatPredictsSeatSigning
-  description: "A least-squares fit, across every constituency, of how hard a seat signed the single most-signed live petition on what that seat EARNS — standardized beta, honest R², and the seats furthest above and below their prediction by name. The residuals are the interesting half: a seat signing far harder than its pay predicts is telling you something pay cannot explain. Joins petition signatures to NOMIS ASHE pay on the shared GSS code. Association across seats, never causation; signatures are a self-selecting sample."
+  description: "A least-squares fit, across all 631 constituencies, of how hard each seat signed the single most-signed live petition on what that seat EARNS — standardized beta, honest R², and the seats furthest above and below their prediction by name. The residuals are the interesting half: a seat signing far harder than its pay predicts is telling you something pay cannot explain. Joins petition signatures to NOMIS ASHE pay on the shared GSS code. Association across seats, never causation; signatures are a self-selecting sample."
   cypher: |
     MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition)-[:HAS_SIGNATURES]->(cs:ConstituencySignal)
-    WITH pt, collect(cs) AS signals
-    ORDER BY toInteger(pt.signatures) DESC
-    LIMIT 1
-    UNWIND signals AS cs
     MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY]->(cp:ConstituencyPay)
     WHERE cp.constituencyCode = cs.onsCode AND toFloat(cp.annualPay) IS NOT NULL
-    RETURN pt.action AS petition,
-           regress([toFloat(cp.annualPay)], toFloat(cs.signatures), cs.constituency) AS model
+    WITH pt, cs, cp
+    ORDER BY toInteger(pt.signatures) DESC
+    WITH collect({pt: pt, cs: cs, cp: cp})[0..631] AS top
+    UNWIND top AS row
+    RETURN row.pt.action AS petition,
+           regress([toFloat(row.cp.annualPay)], toFloat(row.cs.signatures), row.cs.constituency) AS model
