@@ -1,0 +1,43 @@
+# ── English Indices of Deprivation 2019, district summaries (MHCLG) ──────────
+# File 10 of the IoD2019 release: the lower-tier local authority summaries,
+# one row per district, "IMD" sheet — the composite index. A static statistical
+# publication (the next edition is years apart, not months), served as xlsx
+# from gov.uk assets; the file cache downloads it once per deployment.
+#
+# Data honesty, learned from the file itself:
+# - ENGLAND ONLY. Wales has its own WIMD on a different methodology; Welsh
+#   crime rows (W06...) simply find no deprivation row, an honest gap.
+# - HIGHER score = MORE deprived, and rank 1 = MOST deprived of 317 — the
+#   opposite polarity to most league tables. Views must say which way is up.
+# - Boundaries are 2019 LADs. Authorities merged since (Buckinghamshire,
+#   North Northamptonshire, Cumberland, Somerset...) carry codes the current
+#   crime table no longer uses, so those districts drop out of any join.
+# - The summary measures answer different questions: average score is the
+#   district's overall level, proportion-in-most-deprived-decile is how much
+#   concentrated poverty it contains. A leafy district with one hard-pressed
+#   town scores low on the first and high on the second.
+# - Header cells in the sheet end with a literal trailing space, which the
+#   reader trims — the projections below are the trimmed form, and reproducing
+#   the raw trailing space matches nothing.
+
+# The WHOLE table under the literal-seeded UkDistricts anchor, joinable to
+# DistrictCrime and DistrictIncome on districtCode — the deprivation axis of
+# cross-district analysis.
+- name: imdDistrictSummaries
+  kind: tabular
+  url: "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/833995/File_10_-_IoD2019_Local_Authority_District_Summaries__lower-tier__.xlsx"
+  format: xlsx
+  sheet: "IMD"
+  headerContains: "Local Authority District code"
+  rowIdAs: id
+  userAgent: browser
+  project:
+    districtCode: "Local Authority District code (2019)"
+    district: "Local Authority District name (2019)"
+    imdAverageScore: "IMD - Average score"
+    imdRank: "IMD - Rank of average score"
+    proportionMostDeprived: "IMD - Proportion of LSOAs in most deprived 10% nationally"
+    extent: "IMD 2019 - Extent"
+  # A once-per-parliament publication; a week of cache is already generous.
+  fileCacheSeconds: 604800
+  cache: { kind: ttl, seconds: 604800 }

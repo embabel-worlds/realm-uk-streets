@@ -592,3 +592,34 @@
     year: "The ASHE year the figure belongs to."
 
 
+# Every English district's deprivation summary in one cached file read — the
+# deprivation axis of the cross-district views, beside crime and pay.- name: DistrictDeprivation
+  description: "One English district's summary from the Indices of Multiple Deprivation 2019 (MHCLG File 10, lower-tier LAD). Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DEPRIVATION]->(d) — one read returns all 317 districts; join to DistrictCrime and DistrictIncome rows on matching districtCode. HIGHER score = MORE deprived and rank 1 = most deprived of 317 — say which way is up when presenting. England only: Welsh districts (W06) have no row (WIMD is a separate, non-comparable index). Boundaries are 2019 LADs, so authorities merged since (Buckinghamshire, North Northamptonshire, Cumberland, Somerset) find no partner in the current crime table."
+  virtualJoins:
+    - anchorLabel: UkDistricts
+      relationship: HAS_DEPRIVATION
+      keyField: set
+      recordKeyField: key
+      producer: imdDistrictSummaries
+      maxAnchors: 1
+      description: "All 317 English district IMD summaries under one literal-seeded anchor — one cached file read."
+  properties:
+    id:
+      description: "Synthesized per-row id (key:ordinal), deterministic per file edition. Identity."
+      metadata:
+        identity: "true"
+    key: "The anchor set literal — the join link."
+    districtCode: "Local authority GSS code, 2019 boundaries — equals DistrictCrime.districtCode where the district still exists."
+    district: "Local authority district name, 2019."
+    imdAverageScore:
+      type: number
+      description: "Average IMD 2019 score across the district's LSOAs — the overall deprivation level. Higher = more deprived."
+    imdRank:
+      type: number
+      description: "Rank of average score among the 317 English districts. 1 = MOST deprived."
+    proportionMostDeprived:
+      type: number
+      description: "Proportion of the district's LSOAs in England's most deprived decile (0–1) — concentrated poverty, distinct from the average: a comfortable district with one hard-pressed town is low on average, high here."
+    extent:
+      type: number
+      description: "IMD extent measure (0–1): the share of the population living in the most deprived areas, weighted toward the very most deprived."
