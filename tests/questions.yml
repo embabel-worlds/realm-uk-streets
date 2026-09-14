@@ -62,6 +62,10 @@
   expect: { minRows: 5 }
 - question: "which seats sign hardest for banning school attendance fines, and what do they earn"
   expect: { nonEmpty: true }
+- question: "what best predicts crime across the country — income, density or age"
+  # WhatBestPredictsCrime: one model row, structured cells (betas, residual
+  # outliers), so the floor is a non-empty fit.
+  expect: { nonEmpty: true }
 - question: "what are the best predictors of crime in a constituency, use linear algebra"
   # The one statistical answer (WhatTracksDistrictCrime): a least-squares model row.
   # Its cells are structured (betas, residual outliers), so figure reconciliation
