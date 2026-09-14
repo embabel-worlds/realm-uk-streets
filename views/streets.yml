@@ -128,6 +128,19 @@
            toFloat(i.annualPay) AS districtMedianPay
     ORDER BY crimeRatePerThousand IS NULL, crimeRatePerThousand DESC LIMIT $limit
 
+- name: PayAtMyPlaces
+  description: "District median full-time annual pay (ONS ASHE) at each watched place, highest first — 'where do people earn the most among my places'. District-level: it describes where the place is, not the person next door."
+  params:
+    limit:
+      type: int
+      default: 15
+      description: "How many places to return, highest pay first."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_INCOME]->(i:AreaIncome)
+    RETURN p.name AS place, i.area AS district, toFloat(i.annualPay) AS annualPay, i.year AS year
+    ORDER BY annualPay DESC
+    LIMIT $limit
+
 - name: SeatsAndMargins
   description: Every watched place's MP, party, majority and turnout — with the district's median pay beside it, so "what do the safe seats earn" is the same table as "who holds the marginals".
   params:

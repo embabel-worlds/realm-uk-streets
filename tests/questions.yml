@@ -1,0 +1,46 @@
+# tests/questions.yml — the natural-language battery (realm-spec README, `tests/`).
+#
+# The questions a person actually types at this realm, with what a correct answer
+# must satisfy. Run by tests/verify.sh through the ask surface. `matchesView` is the
+# assertion for FIGURES: the ask's top-row number must equal the named view's — the
+# realm reconciling against itself, so the test survives data changes. `nonEmpty` /
+# `minRows` are the floor where a windowed or judged answer has no stable reference.
+#
+# Add every question that ever disappointed a user; each becomes a permanent
+# regression test. (The adversarial fabrication battery — questions the DATA cannot
+# answer, which once produced confidently-wrong queries — lives in verify.sh itself,
+# because its assertion is about the generated query's honesty, not a figure.)
+
+- question: "which of my places is the safest"
+  expect:
+    matchesView: { name: SafestPlace, column: perThousandResidents }
+- question: "where is crime lowest among my watched places"
+  expect:
+    matchesView: { name: SafestPlace, column: perThousandResidents }
+- question: "what is the most signed petition to parliament right now"
+  expect:
+    matchesView: { name: WhatBritainSigns, column: signatures }
+- question: "which of my places has the most schools nearby"
+  expect:
+    matchesView: { name: SchoolsNearMyPlaces, column: schools }
+- question: "which of my places sits in the most marginal seat"
+  expect:
+    matchesView: { name: SeatsAndMargins, column: majority }
+- question: "who are the MPs for my places"
+  expect: { minRows: 2 }
+- question: "how many places am I watching"
+  expect: { nonEmpty: true }
+- question: "what do homes actually sell for near my places"
+  expect: { nonEmpty: true }
+- question: "which streets around my places have the most crime"
+  expect: { nonEmpty: true }
+- question: "what are people in my seats petitioning about"
+  expect: { nonEmpty: true }
+- question: "which of my places' districts has the highest median pay"
+  expect:
+    matchesView: { name: PayAtMyPlaces, column: annualPay }
+- question: "where do people earn the most among my places"
+  expect:
+    matchesView: { name: PayAtMyPlaces, column: annualPay }
+- question: "how do crime and income relate across my districts"
+  expect: { nonEmpty: true }

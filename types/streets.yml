@@ -178,6 +178,16 @@
       description: "Median gross annual pay, GBP, full-time workers."
     area: "The district's name as ONS states it."
     year: "The ASHE reference year."
+  examples:
+    # STEERING — pinned defect: asked for the highest median pay among watched places, the
+    # generator reached for the all-districts UkDistricts batch with invented door names and
+    # answered an empty. Pay AT a place is the ONE-HOP read below; the batch exists for
+    # whole-country league tables, and its door needs its own literal seed.
+    - q: "which of my places' districts has the highest median pay"
+      cypher: |
+        MATCH (p:UkPlace)-[:HAS_INCOME]->(i:AreaIncome)
+        RETURN p.name AS place, i.area AS district, toFloat(i.annualPay) AS annualPay
+        ORDER BY annualPay DESC
 
 # ── The neighbourhood (LSOA) axis ────────────────────────────────────────────
 - name: EthnicGroupShare
@@ -480,3 +490,5 @@
       type: number
       description: "Median gross ANNUAL pay in GBP, full-time jobs held in the district."
     year: "The ASHE year the figure belongs to."
+
+
