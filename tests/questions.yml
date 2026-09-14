@@ -62,6 +62,8 @@
   expect: { minRows: 5 }
 - question: "which seats sign hardest for banning school attendance fines, and what do they earn"
   expect: { nonEmpty: true }
+- question: "what best predicts crime — deprivation, density, age or ethnic mix"
+  expect: { nonEmpty: true }
 - question: "what best predicts crime across the country — income, density or age"
   # WhatBestPredictsCrime: one model row, structured cells (betas, residual
   # outliers), so the floor is a non-empty fit.
