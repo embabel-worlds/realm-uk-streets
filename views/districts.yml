@@ -61,7 +61,7 @@
 # regress). On an older engine this view errors with an unknown function —
 # the row views above carry the same data either way.
 - name: WhatTracksDistrictCrime
-  description: "Does money track crime across England & Wales? One statistical answer over the whole district cross-section: the pay–crime correlation, and a least-squares fit of the crime rate on median pay and population with the districts most above and below their prediction, by name. Deterministic arithmetic over official figures — association across areas, never causation, and Westminster's daytime-population inflation applies."
+  description: "What are the best PREDICTORS of crime — 'what drives crime', 'run a regression on crime', 'which factors explain crime levels'? One statistical answer over the whole England & Wales district cross-section: the pay–crime correlation, and a least-squares fit of the crime rate on median pay and population, standardized betas ranking the predictors, with the districts most above and below their prediction by name. Asked per constituency or per area, the DISTRICT is the statistical unit the sources share. Deterministic arithmetic over official figures — association across areas, never causation, and Westminster's daytime-population inflation applies."
   cypher: |
     MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
     WHERE c.districtCode =~ '^[EW]0.*'

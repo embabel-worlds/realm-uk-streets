@@ -409,6 +409,18 @@
       producer: districtCrimeTable
       maxAnchors: 1
       description: "Every row of the national table under one literal-seeded anchor — one cached file read, ~400 transient rows."
+  examples:
+    # STEERING — pinned defect: "the best predictors of crime, use linear algebra" refused
+    # (or regressed toFloat of an MP's NAME) while this exact analysis exists. Predictors of
+    # crime are the whole-country least-squares fit below; a "per constituency" phrasing is
+    # answered at district level, the unit the sources share.
+    - q: "what are the best predictors of crime across the country"
+      cypher: |
+        MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
+        WHERE c.districtCode =~ '^[EW]0.*'
+        MATCH (u)-[:HAS_PAY]->(i:DistrictIncome)
+        WHERE i.districtCode = c.districtCode
+        RETURN regress([toFloat(i.annualPay), toFloat(c.population)], toFloat(c.totalRate), c.district) AS model
   properties:
     id:
       description: "Synthesized per-row id (key:ordinal), deterministic per file edition. Identity."
