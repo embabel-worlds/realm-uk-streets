@@ -497,6 +497,28 @@
 # NOMIS publishes ASHE at Westminster seats, the petitions site reports
 # per-seat signatures, and they share the July 2024 GSS codes without either
 # knowing the other exists. Joining them is what this type is for.
+- name: DistrictYoungAdults
+  description: "The share of one local authority's residents aged 20-24, Census 2021, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_AGE_STRUCTURE]->(y) — ONE call returns all 331 districts; join to DistrictCrime, DistrictIncome and DistrictDensity on matching districtCode. This is the DEMOGRAPHIC axis: criminology's most durable finding is the age-crime curve, so a district's age structure predicts recorded crime independently of its income and its urbanity. A university city reads high for reasons that are about who lives there, not about disorder."
+  virtualJoins:
+    - anchorLabel: UkDistricts
+      relationship: HAS_AGE_STRUCTURE
+      keyField: set
+      recordKeyField: key
+      producer: censusYoungAdultsAllDistricts
+      maxAnchors: 1
+      description: "All 331 districts' 20-24 share in one census call — the age axis of the national crime model."
+  properties:
+    id:
+      description: "NOMIS observation URN. Identity."
+      metadata:
+        identity: "true"
+    key: "The anchor set literal — the join link."
+    districtCode: "Local authority GSS code — equals DistrictCrime.districtCode."
+    area: "The district's name as the census styles it."
+    youngAdultPct:
+      type: number
+      description: "Percent of usual residents aged 20-24, Census 2021."
+
 - name: DistrictDensity
   description: "Usual residents per square kilometre for one local authority, Census 2021, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DENSITY_STAT]->(d) — ONE call returns all 331 districts; join to DistrictCrime and DistrictIncome on matching districtCode. This is the URBANITY axis: recorded crime concentrates where people, premises and opportunity concentrate, so a crime model without density attributes to income what actually belongs to city-ness. England and Wales; 2022 local-authority boundaries, so authorities merged since find no partner."
   virtualJoins:

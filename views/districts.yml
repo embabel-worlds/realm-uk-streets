@@ -76,7 +76,7 @@
 # other — ONS recorded crime, NOMIS ASHE pay, Census 2021 density — meeting on
 # the district code.
 - name: WhatBestPredictsCrime
-  description: "What is the best PREDICTOR of recorded crime across England & Wales — income, urbanity, or population? A least-squares fit of each district's crime rate on median pay, population density and population together, with STANDARDIZED betas so the three are directly comparable, honest R², and the districts furthest above and below their prediction by name. Joins three registers on the district code: ONS recorded crime, NOMIS ASHE pay, Census 2021 density. Read the betas as strength of ASSOCIATION across areas, never causation and never a statement about any person. Two warnings the numbers cannot carry: recorded crime counts where offences HAPPEN and residents where they LIVE, which inflates city-centre and retail districts (Westminster above all); and R² here is modest by design — the joinable open data holds economic and structural variables, not the policing, reporting and opportunity factors that drive much of the remainder."
+  description: "What is the best PREDICTOR of recorded crime across England & Wales — income, urbanity, age structure, or population? A least-squares fit of each district's crime rate — offences per 1,000 RESIDENTS, the publisher's own per-capita figure, so this is not a population-size artefact — on median pay, population density, the share of residents aged 20-24 and population together, with STANDARDIZED betas so the four are directly comparable, honest R², and the districts furthest above and below their prediction by name. Joins four registers on the district code: ONS recorded crime, NOMIS ASHE pay, Census 2021 density, Census 2021 age structure. Read the betas as strength of ASSOCIATION across areas, never causation and never a statement about any person. Two warnings the numbers cannot carry: recorded crime counts where offences HAPPEN and residents where they LIVE, which inflates city-centre and retail districts (Westminster above all); and R² here is modest by design — the joinable open data holds economic and structural variables, not the policing, reporting and opportunity factors that drive much of the remainder."
   cypher: |
     MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
     WHERE c.districtCode =~ '^[EW]0.*'
@@ -84,8 +84,10 @@
     WHERE i.districtCode = c.districtCode
     MATCH (u)-[:HAS_DENSITY_STAT]->(d:DistrictDensity)
     WHERE d.districtCode = c.districtCode
+    MATCH (u)-[:HAS_AGE_STRUCTURE]->(y:DistrictYoungAdults)
+    WHERE y.districtCode = c.districtCode
     RETURN regress(
-             [toFloat(i.annualPay), toFloat(d.density), toFloat(c.population)],
+             [toFloat(i.annualPay), toFloat(d.density), toFloat(y.youngAdultPct), toFloat(c.population)],
              toFloat(c.totalRate),
              c.district
            ) AS model
@@ -94,7 +96,7 @@
 # above can be read against what each variable claims on its own — the gap
 # between them IS the confounding.
 - name: CrimePredictorsOneByOne
-  description: "Each candidate predictor of district crime measured alone — pay, population density and population each correlated with the crime rate on its own, with a confidence interval and whether the association is DETECTABLE. Read beside WhatBestPredictsCrime: a variable that looks strong here and weak there is one whose apparent effect belonged to a variable it travels with. Association across areas, never causation."
+  description: "Each candidate predictor of district crime measured alone — pay, population density, the 20-24 share and population each correlated with the crime rate on its own, with a confidence interval and whether the association is DETECTABLE. Read beside WhatBestPredictsCrime: a variable that looks strong here and weak there is one whose apparent effect belonged to a variable it travels with. Association across areas, never causation."
   cypher: |
     MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
     WHERE c.districtCode =~ '^[EW]0.*'
@@ -102,8 +104,12 @@
     WHERE i.districtCode = c.districtCode
     MATCH (u)-[:HAS_DENSITY_STAT]->(d:DistrictDensity)
     WHERE d.districtCode = c.districtCode
+    MATCH (u)-[:HAS_AGE_STRUCTURE]->(y:DistrictYoungAdults)
+    WHERE y.districtCode = c.districtCode
     WITH toFloat(c.totalRate) AS crime, toFloat(i.annualPay) AS pay,
-         toFloat(d.density) AS density, toFloat(c.population) AS population
+         toFloat(d.density) AS density, toFloat(y.youngAdultPct) AS youngAdults,
+         toFloat(c.population) AS population
     RETURN correlate(pay, crime) AS payVsCrime,
            correlate(density, crime) AS densityVsCrime,
+           correlate(youngAdults, crime) AS youngAdultsVsCrime,
            correlate(population, crime) AS populationVsCrime

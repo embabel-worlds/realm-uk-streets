@@ -172,6 +172,54 @@
           }
         }
       }
+    },
+    "/api/v01/dataset/NM_2020_1.data.json": {
+      "get": {
+        "operationId": "censusAgeStructure",
+        "summary": "Census 2021 age structure of an area, one five-year band at a time",
+        "description": "`obs[]` carries `obs_value.value` for the age band pinned by `c2021_age_19` (TS007A). Pin ONE band and ask for `measures=20301` to get that band's SHARE of residents directly, rather than a count needing a denominator. Bands: 0 total, 1 under-5, then five-year steps \u2014 4 is 15-19, 5 is 20-24. Works at district codes and LSOA alike.",
+        "parameters": [
+          {
+            "name": "geography",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GSS code or a NOMIS geography set, e.g. TYPE154 for all districts."
+          },
+          {
+            "name": "c2021_age_19",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The age band to pin, 0-18. 5 = aged 20 to 24."
+          },
+          {
+            "name": "measures",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`20100` = count, `20301` = percentage of the area's residents."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Observations under obs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

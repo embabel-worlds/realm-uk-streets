@@ -63,3 +63,27 @@
   # A decennial census behind a weekly cache — see the note above; `remote`
   # producers cache with TTL alone.
   cache: { kind: ttl, seconds: 604800 }
+
+# The young-adult share of every district in ONE census call — the DEMOGRAPHIC
+# axis of the national crime model. Criminology's most durable finding is the
+# age-crime curve: offending peaks in late adolescence and early adulthood, so
+# a district's age structure is a structural predictor independent of both its
+# income and its urbanity. Band 5 (aged 20-24) as a PERCENTAGE, so no
+# denominator arithmetic is needed downstream.
+- name: censusYoungAdultsAllDistricts
+  kind: remote
+  operation: censusAgeStructure
+  records: "$.obs[*]"
+  keyTemplate: "{key}"
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    geography: "TYPE154"
+    c2021_age_19: "5"
+    measures: "20301"
+  project:
+    id: urn
+    districtCode: geography.geogcode
+    area: geography.description
+    youngAdultPct: obs_value.value
+  cache: { kind: ttl, seconds: 604800 }

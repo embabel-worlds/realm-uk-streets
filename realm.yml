@@ -54,3 +54,4 @@ exports:
   - DistrictIncome
   - ConstituencyPay
   - DistrictDensity
+  - DistrictYoungAdults
