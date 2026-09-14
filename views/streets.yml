@@ -132,7 +132,8 @@
   description: "The places being watched — name, postcode and coordinates. The realm's roster: every other view starts from these."
   cypher: |
     MATCH (p:UkPlace)
-    RETURN p.name AS place, p.postcode AS postcode, p.lat AS lat, p.lon AS lon
+    RETURN p.name AS place, p.postcode AS postcode,
+           p.latitude AS latitude, p.longitude AS longitude
     ORDER BY place
 
 - name: PayAtMyPlaces
