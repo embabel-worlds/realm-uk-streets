@@ -21,7 +21,12 @@
     signatures:
       type: number
       description: "Nationwide signature count."
-    petitionState: "open | closed | rejected."
+    petitionState:
+      description: "open | closed | rejected. These three are the whole domain."
+      values:
+        - "open"
+        - "closed"
+        - "rejected"
 
 # A petition's per-seat signature counts — 650 rows per petition, so ALWAYS
 # narrow the petitions upstream (ORDER BY signatures DESC LIMIT n) before

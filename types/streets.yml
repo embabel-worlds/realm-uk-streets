@@ -525,7 +525,14 @@
       metadata:
         joinKey: "gss-lad"
     area: "The district's name as the census styles it."
-    group: "The top-level census group, e.g. 'White', 'Asian, Asian British or Asian Welsh'."
+    group:
+      description: "The top-level census group, e.g. 'White', 'Asian, Asian British or Asian Welsh'. These five are the WHOLE domain — a query must use one verbatim, never a short form like 'Asian'."
+      values:
+        - "Asian, Asian British or Asian Welsh"
+        - "Black, Black British, Black Welsh, Caribbean or African"
+        - "Mixed or Multiple ethnic groups"
+        - "White"
+        - "Other ethnic group"
     percent:
       type: number
       description: "That group's percent of the district's usual residents, Census 2021."
