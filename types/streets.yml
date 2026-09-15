@@ -54,6 +54,8 @@
     districtCode:
       type: string
       description: "GSS code of the local authority (E09…/E06…) — the key income data joins on."
+      metadata:
+        joinKey: "gss-lad"
     districtSlug:
       type: string
       description: "The local authority as a lowercase slug (greenwich, tower-hamlets) — the key the House Price Index joins on."
@@ -66,6 +68,8 @@
     constituencyCode:
       type: string
       description: "ONS constituency code (E14…) — the key petition signature maps join on."
+      metadata:
+        joinKey: "gss-constituency"
     latlon:
       type: string
       description: "The pair as one string, 'lat,lon' — a convenience key for query templates."
@@ -427,7 +431,10 @@
       metadata:
         identity: "true"
     key: "The join key that produced the row — the district code (from a place) or the anchor set literal (from the national table)."
-    districtCode: "Local authority GSS code (E06/E07/E08/E09/W06) — equals UkPlace.districtCode. Force subtotals and combined-CSP rows carry text here instead; filter =~ '^[EW]0.*' for real districts."
+    districtCode:
+      description: "Local authority GSS code (E06/E07/E08/E09/W06) — equals UkPlace.districtCode. Force subtotals and combined-CSP rows carry text here instead; filter =~ '^[EW]0.*' for real districts."
+      metadata:
+        joinKey: "gss-lad"
     district: "Local authority name."
     csp: "Community Safety Partnership name — the police-side area; distinct from the LA name where authorities merged."
     force: "Police force area name."
@@ -513,7 +520,10 @@
       metadata:
         identity: "true"
     key: "The anchor set literal — the join link."
-    districtCode: "Local authority GSS code — equals DistrictCrime.districtCode."
+    districtCode:
+      description: "Local authority GSS code — equals DistrictCrime.districtCode."
+      metadata:
+        joinKey: "gss-lad"
     area: "The district's name as the census styles it."
     group: "The top-level census group, e.g. 'White', 'Asian, Asian British or Asian Welsh'."
     percent:
@@ -536,7 +546,10 @@
       metadata:
         identity: "true"
     key: "The anchor set literal — the join link."
-    districtCode: "Local authority GSS code — equals DistrictCrime.districtCode."
+    districtCode:
+      description: "Local authority GSS code — equals DistrictCrime.districtCode."
+      metadata:
+        joinKey: "gss-lad"
     area: "The district's name as the census styles it."
     youngAdultPct:
       type: number
@@ -558,7 +571,10 @@
       metadata:
         identity: "true"
     key: "The anchor set literal — the join link."
-    districtCode: "Local authority GSS code — equals DistrictCrime.districtCode and DistrictIncome.districtCode."
+    districtCode:
+      description: "Local authority GSS code — equals DistrictCrime.districtCode and DistrictIncome.districtCode."
+      metadata:
+        joinKey: "gss-lad"
     area: "The district's name as the census styles it."
     density:
       type: number
@@ -583,6 +599,7 @@
     constituencyCode:
       description: "Westminster constituency GSS code (E14/W07/S14), July 2024 boundaries — EQUALS ConstituencySignal.onsCode and UkPlace.constituencyCode. The join key across sources."
       metadata:
+        joinKey: "gss-constituency"
         alternateKey: "true"
     constituency: "The seat's name as NOMIS styles it — spelling can differ from the petitions site's, so join on the CODE, never the name."
     annualPay:
@@ -607,7 +624,10 @@
       metadata:
         identity: "true"
     key: "The anchor set literal — the join link."
-    districtCode: "Local authority GSS code — equals DistrictCrime.districtCode and UkPlace.districtCode."
+    districtCode:
+      description: "Local authority GSS code — equals DistrictCrime.districtCode and UkPlace.districtCode."
+      metadata:
+        joinKey: "gss-lad"
     area: "The district's name as NOMIS styles it."
     annualPay:
       type: number
@@ -633,7 +653,10 @@
       metadata:
         identity: "true"
     key: "The anchor set literal — the join link."
-    districtCode: "Local authority GSS code, 2019 boundaries — equals DistrictCrime.districtCode where the district still exists."
+    districtCode:
+      description: "Local authority GSS code, 2019 boundaries — equals DistrictCrime.districtCode where the district still exists."
+      metadata:
+        joinKey: "gss-lad"
     district: "Local authority district name, 2019."
     imdAverageScore:
       type: number

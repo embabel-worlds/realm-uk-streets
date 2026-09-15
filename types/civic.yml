@@ -41,7 +41,10 @@
       description: "The petition's 650-seat signature split — one call per petition, 650 rows each; the whole feed page is the unit of cost."
   properties:
     petitionId: "The petition it belongs to — the join link."
-    onsCode: "ONS constituency code (E14…) — equals UkPlace.constituencyCode."
+    onsCode:
+      description: "ONS constituency code (E14…) — equals UkPlace.constituencyCode."
+      metadata:
+        joinKey: "gss-constituency"
     constituency: "The seat's name."
     mp: "The sitting MP as the petition site styles them."
     signatures:
