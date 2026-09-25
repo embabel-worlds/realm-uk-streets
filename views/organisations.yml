@@ -5,7 +5,7 @@
 # The charity population of a place, from the Commission's own area-of-
 # operation declarations, joined to each charity's record.
 - name: CharitiesOperatingHere
-  description: "Registered charities declaring each watched place's local authority as an area of operation — name, legal form, registration status, registered date, latest income, town and postcode, company number where it is a company, and the trustees' activities text — from the Charity Commission's daily register. Removed charities included and marked. Largest income first. Ask 'which charities operate in Blackpool', 'who works with young people in Middlesbrough' (filter on activities), 'biggest charities here'. A place whose district name finds no rows may be a spelling mismatch with the Commission's name for the authority, not a charity-free district."
+  description: "Registered charities declaring each watched place's local authority as an area of operation — name, legal form, registration status, registered date, latest income, town and postcode, company number where it is a company, and the trustees' activities text — from the Charity Commission's daily register. The Commission records operation by UPPER-TIER authority, so a place in a two-tier district reads its county's charities (Clacton reads Essex) — narrow with basedInPostcode ('CO15') for the ones based in the town. Removed charities included and marked. Largest income first. Ask 'which charities operate in Blackpool', 'who works with young people in Middlesbrough' (filter on activities), 'biggest charities here'. A place whose district name finds no rows may be a spelling mismatch with the Commission's name for the authority, not a charity-free district."
   params:
     place:
       type: string
@@ -19,6 +19,10 @@
       type: boolean
       default: false
       description: "Also list charities removed from the register."
+    basedInPostcode:
+      type: string
+      default: ""
+      description: "Keep only charities whose contact postcode starts with this, e.g. 'CO15' or 'FY' — narrows a county-level answer (the Commission records operation by county) to the charities based in the town."
     limit:
       type: int
       default: 100
@@ -30,6 +34,7 @@
     WHERE c.linkedCharityNumber = '0'
       AND ($includeRemoved OR c.registrationStatus = 'Registered')
       AND ($activityContains = '' OR toLower(coalesce(c.activities, '')) CONTAINS toLower($activityContains))
+      AND ($basedInPostcode = '' OR toUpper(coalesce(c.postcode, '')) STARTS WITH toUpper($basedInPostcode))
     RETURN p.name AS place, c.registeredCharityNumber AS charityNumber, c.name AS charity,
            c.charityType AS legalForm, c.registrationStatus AS status,
            left(c.dateOfRegistration, 10) AS registered, left(c.dateOfRemoval, 10) AS removed,

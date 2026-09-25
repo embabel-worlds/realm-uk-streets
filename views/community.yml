@@ -9,7 +9,7 @@
 # missing row (a two-tier district's children's indicators sit with its
 # county), never a zero.
 - name: PlaceProfile
-  description: "The community profile of each watched place's local authority in one table: residents and children (ONS mid-year estimate), claimant count (latest month), deprivation rank and the share of neighbourhoods in England's most deprived tenth (IoD 2025), school readiness, first-time entrants to the youth justice system, 16-17 NEET, children in low-income families, under-18 conceptions, Year 6 overweight, life expectancy — each with its period. Fingertips figures are the headline rows (Persons, no breakdown, latest period). A blank cell is a figure the publisher does not hold for that authority — a two-tier district's children's indicators belong to its county — not a zero. Ask 'profile Blackpool' / 'what is Middlesbrough like' / 'community profile of my places'."
+  description: "The community profile of each watched place's local authority in one table: residents and children (ONS mid-year estimate), claimant count (latest month), deprivation rank and the share of neighbourhoods in England's most deprived tenth (IoD 2025), school readiness, first-time entrants to the youth justice system, 16-17 NEET, children in low-income families, under-18 conceptions, Year 6 overweight, life expectancy — each with its period. Fingertips figures are the headline rows (Persons, no breakdown, latest period) for the CHILDREN'S-SERVICES authority named in childrensServicesAuthority — the county for a place in a two-tier district, so Clacton's school readiness is Essex's. A blank cell is a figure the publisher does not hold, not a zero. Ask 'profile Blackpool' / 'what is Middlesbrough like' / 'community profile of my places'."
   params:
     place:
       type: string
@@ -32,6 +32,7 @@
     ORDER BY toFloat(x.periodSortable) DESC
     WITH p, everyone, kids, work, cc, dep, x.indicatorId + ':' + x.sex AS ind, head(collect(x)) AS latest
     RETURN p.name AS place, p.district AS district,
+           max(latest.area) AS childrensServicesAuthority,
            toInteger(toFloat(everyone.persons)) AS residents, everyone.year AS populationYear,
            toInteger(toFloat(kids.persons)) AS children0to15,
            toInteger(toFloat(cc.claimants)) AS claimants, cc.month AS claimantsMonth,

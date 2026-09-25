@@ -198,7 +198,7 @@ async function watch() {
       data = { name: /\d/.test(q) ? r.postcode : q, level: 'postcode', postcode: r.postcode.toUpperCase(),
         outcode: r.outcode, latitude: r.latitude, longitude: r.longitude,
         latlon: r.latitude + ',' + r.longitude, wkt: 'Point(' + r.longitude + ' ' + r.latitude + ')',
-        district: r.admin_district, districtCode: r.codes.admin_district, districtSlug: slugify(r.admin_district),
+        district: r.admin_district, districtCode: r.codes.admin_district, districtSlug: slugify(r.admin_district), upperTierCode: (r.codes.admin_county && r.codes.admin_county !== 'E99999999') ? r.codes.admin_county : r.codes.admin_district, upperTierName: r.admin_county || r.admin_district,
         lsoa: r.codes.lsoa, lsoaName: r.lsoa, ward: r.admin_ward,
         constituency: r.parliamentary_constituency, constituencyCode: r.codes.parliamentary_constituency,
         region: r.region || r.country };
@@ -239,7 +239,7 @@ async function select(p) {
         latitude: r.latitude, longitude: r.longitude,
         latlon: r.latitude + ',' + r.longitude, wkt: 'Point(' + r.longitude + ' ' + r.latitude + ')',
         outcode: r.outcode, district: r.admin_district, districtCode: r.codes.admin_district,
-        districtSlug: slugify(r.admin_district), lsoa: r.codes.lsoa, lsoaName: r.lsoa,
+        districtSlug: slugify(r.admin_district), upperTierCode: (r.codes.admin_county && r.codes.admin_county !== 'E99999999') ? r.codes.admin_county : r.codes.admin_district, upperTierName: r.admin_county || r.admin_district, lsoa: r.codes.lsoa, lsoaName: r.lsoa,
         ward: r.admin_ward, constituency: r.parliamentary_constituency,
         constituencyCode: r.codes.parliamentary_constituency, region: r.region || r.country,
       }});
@@ -427,7 +427,7 @@ $('map').addEventListener('click', async (e) => {
     const ep = { name: r.admin_ward || r.admin_district, ephemeral: true, full: r,
       postcode: r.postcode, level: 'postcode', lat: r.latitude, lon: r.longitude,
       district: r.admin_district, districtCode: r.codes.admin_district,
-      districtSlug: slugify(r.admin_district), lsoa: r.codes.lsoa, lsoaName: r.lsoa,
+      districtSlug: slugify(r.admin_district), upperTierCode: (r.codes.admin_county && r.codes.admin_county !== 'E99999999') ? r.codes.admin_county : r.codes.admin_district, upperTierName: r.admin_county || r.admin_district, lsoa: r.codes.lsoa, lsoaName: r.lsoa,
       constituency: r.parliamentary_constituency };
     ghost = ep;
     status('resolved ' + r.postcode + ' · ' + (r.admin_ward || r.admin_district));

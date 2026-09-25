@@ -56,7 +56,7 @@ keys into the publishers themselves, and an organisation register beside them.
 | district code | ONS mid-year population, five age bands | `HAS_POPULATION → PopulationBand` |
 | district code | Indices of Deprivation **2025** (lower-tier summaries) | `HAS_DEPRIVATION_2025 → DistrictDeprivation2025` |
 | district code | DfE early-years profile (good level of development, with the FSM gap) · pupil absence · key stage 4 | `HAS_SCHOOL_READINESS → SchoolReadiness` · `HAS_PUPIL_ABSENCE → PupilAbsence` · `HAS_KS4_ATTAINMENT → Ks4Attainment` |
-| district name | Charity Commission area-of-operation → the charity's daily register row → its event history (registrations, removals with reason, transfers) | `HAS_CHARITY_LINK → CharityAreaLink -[:HAS_CHARITY]-> Charity -[:HAS_EVENT]-> CharityEvent` |
+| upper-tier authority name | Charity Commission area-of-operation → the charity's daily register row → its event history (registrations, removals with reason, transfers) | `HAS_CHARITY_LINK → CharityAreaLink -[:HAS_CHARITY]-> Charity -[:HAS_EVENT]-> CharityEvent` |
 | district name | 360Giving GrantNav — every published grant into the district, with recipient charity / company numbers | `HAS_GRANT → GrantIntoPlace` |
 | an org-id | Find that Charity — the register record behind GB-CHC-… / GB-COH-… | `(:OrgLookup {orgId})-[:RESOLVES_TO]-> OrgRecord` |
 
@@ -114,8 +114,9 @@ so no realm declares anything about them.
   results) are published for upper-tier authorities. A place in a two-tier
   district finds them empty because the place does not yet store its county
   code — an honest gap, not a zero.
-- The Charity Commission keys areas of operation on its own spelling of an
-  authority's name; a district whose postcodes.io name differs finds no rows.
+- The Charity Commission records areas of operation by upper-tier authority
+  (county or unitary) under its own spelling; a place joins on the county name
+  postcodes.io gives it, and a spelling that differs finds no rows.
 - GrantNav rate-limits scripted fetches: one district file a day, cached.
 
 No API keys, no accounts, nothing to configure — the realm works the moment it

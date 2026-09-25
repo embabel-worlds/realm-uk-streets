@@ -4,15 +4,15 @@
 
 # A charity's declaration that it operates in a local authority.
 - name: CharityAreaLink
-  description: "One line of the Charity Commission's area-of-operation table: a registered charity (by number) declaring it operates in a geographic area. Reached from a watched place via HAS_CHARITY_LINK, keyed on the place's district NAME as the Commission spells it — the common case matches; a place whose district finds nothing may be a spelling mismatch ('Kingston upon Hull, City of'), so say 'no rows for this name' rather than 'no charities'. Insist on areaType = 'Local Authority' — the same description can appear as a region or county row. Removed charities are included; follow HAS_CHARITY to read status and dates. England and Wales only."
+  description: "One line of the Charity Commission's area-of-operation table: a registered charity (by number) declaring it operates in a geographic area. Reached from a watched place via HAS_CHARITY_LINK, keyed on the place's upperTierName — the county for a two-tier district, since the Commission records operation by upper-tier authority — as postcodes.io spells it; a place whose name finds nothing may be a spelling mismatch ('Kingston upon Hull, City of'), so say 'no rows for this name' rather than 'no charities'. Insist on areaType = 'Local Authority' — the same description can appear as a region or county row. Removed charities are included; follow HAS_CHARITY to read status and dates. England and Wales only."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_CHARITY_LINK
-      keyField: district
+      keyField: upperTierName
       recordKeyField: key
       producer: charitiesOperatingIn
       maxAnchors: 10
-      description: "Every charity declaring the place's local authority as an area of operation — hundreds for a town, thousands for a city. Follow HAS_CHARITY for the charity itself; never list raw links."
+      description: "Every charity declaring the place's UPPER-TIER authority as an area of operation — the Commission records operation by county or unitary, never by shire district, so a Tendring place reads Essex's ~7,000. Hundreds for a unitary town, thousands for a city or county. Follow HAS_CHARITY for the charity itself; never list raw links."
   properties:
     id:
       description: "Synthesized per-row id, deterministic per extract. Identity."
@@ -40,8 +40,8 @@
       keyField: registeredCharityNumber
       recordKeyField: key
       producer: charityByNumber
-      maxAnchors: 800
-      description: "The charity behind an area link — one main row, plus subsidiary rows for linked charities. Bounded so a city's thousands of links are answered in batches; a town's hundreds in one."
+      maxAnchors: 8000
+      description: "The charity behind an area link — one main row, plus subsidiary rows for linked charities. The ceiling covers the largest upper-tier authority (Essex declares ~7,000): the register file is scanned once per key batch, so a county's links cost one pass of the 160MB file, not one call each."
   properties:
     id:
       description: "Synthesized per-row id, deterministic per extract. Identity."
@@ -91,8 +91,8 @@
       keyField: registeredCharityNumber
       recordKeyField: key
       producer: charityEventsByNumber
-      maxAnchors: 800
-      description: "Every recorded event for the charity, in the Commission's order."
+      maxAnchors: 8000
+      description: "Every recorded event for the charity, in the Commission's order. Same ceiling and the same one-pass reason as HAS_CHARITY."
   properties:
     id:
       description: "Synthesized per-row id, deterministic per extract. Identity."

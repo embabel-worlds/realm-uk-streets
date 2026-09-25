@@ -16,11 +16,12 @@
 # charities stay in the files with a date_of_removal, which is what makes
 # "who left" answerable at all.
 
-# Which charities declare a local authority as an area of operation. Keyed on
-# the LA NAME as the Commission spells it ("Blackpool", "Middlesbrough",
-# "Kingston upon Hull, City of") — UkPlace.district as postcodes.io spells it
-# matches in the common case and not always; a place whose district finds no
-# rows may be a naming mismatch, not a charity-free district. The file also
+# Which charities declare a local authority as an area of operation. The
+# Commission's 'Local Authority' rows are UPPER-TIER authorities — counties and
+# unitaries ("Essex", "Blackpool", "Kingston upon Hull, City of"), never shire
+# districts — so the key is UkPlace.upperTierName as postcodes.io spells it;
+# a place whose name finds no rows may be a naming mismatch, not a charity-free
+# authority. Essex carries ~7,000 rows, hence the per-key ceiling. The file also
 # carries regions, countries and "Throughout England and Wales" rows under other
 # geographic_area_type values; the type is projected so a view can insist on
 # 'Local Authority'. 4.4MB zip, 540k rows; Blackpool 410, Middlesbrough 800,
@@ -35,7 +36,7 @@
   keyAs: key
   rowIdAs: id
   maxRows: 1000000
-  maxRowsPerKey: 6000
+  maxRowsPerKey: 12000
   project:
     extractDate: "date_of_extract"
     organisationNumber: "organisation_number"

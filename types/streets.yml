@@ -56,6 +56,14 @@
       description: "GSS code of the local authority (E09…/E06…) — the key income data joins on."
       metadata:
         joinKey: "gss-lad"
+    upperTierCode:
+      type: string
+      description: "GSS code of the CHILDREN'S-SERVICES authority: the county (E10…) for a place in a two-tier district, otherwise the district itself — the key school readiness, youth justice, NEET and DfE results join on, because they are published for upper-tier authorities. Set at save time from postcodes.io's admin_county code when one exists."
+      metadata:
+        joinKey: "gss-lad"
+    upperTierName:
+      type: string
+      description: "The children's-services authority's NAME as postcodes.io spells it — the county ('Essex') for a place in a two-tier district, otherwise the district — the key the Charity Commission's areas of operation join on, because the Commission records operation by upper-tier authority."
     districtSlug:
       type: string
       description: "The local authority as a lowercase slug (greenwich, tower-hamlets) — the key the House Price Index joins on."

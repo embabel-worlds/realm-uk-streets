@@ -11,11 +11,11 @@
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_CHILD_INDICATOR
-      keyField: districtCode
+      keyField: upperTierCode
       recordKeyField: key
       producer: healthIndicatorsUpperTier
       maxAnchors: 15
-      description: "The upper-tier authority's rows for fourteen indicators, every period and breakdown — filter to categoryType empty, the right sex, and the latest periodSortable per indicator. A place in a two-tier district (E07…) finds nothing here: its children's-services indicators belong to the county, which the place does not yet store."
+      description: "The upper-tier authority's rows for fourteen indicators, every period and breakdown — filter to categoryType empty, the right sex, and the latest periodSortable per indicator. Keyed on the place's upperTierCode — the county for a two-tier district — so a place in Essex reads Essex's figures; a place saved before upperTierCode existed finds nothing until it is re-saved."
     - anchorLabel: UkPlace
       relationship: HAS_LOCAL_INDICATOR
       keyField: districtCode

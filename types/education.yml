@@ -3,11 +3,11 @@
 # stores for a unitary, met or London borough.
 
 - name: SchoolReadiness
-  description: "One row of the DfE early years foundation stage profile for a local authority: the share of children reaching a GOOD LEVEL OF DEVELOPMENT at the end of Reception (age 5) — school readiness — with the count behind it, plus 'at expected level in all early learning goals' and 'in communication, language and literacy'. Reached from a watched place via HAS_SCHOOL_READINESS. Many rows per authority: every academic year (period '202425' = 2024/25) and every breakdown; the HEADLINE is breakdownTopic 'Total', breakdown 'Total', sex 'Total' at the greatest period. Other breakdownTopic values cut by free school meals, SEN, ethnicity and first language — compare the FSM row with the Total row for the disadvantage gap. Values are strings; toFloat(). A two-tier district's place finds no rows (its county holds them)."
+  description: "One row of the DfE early years foundation stage profile for a local authority: the share of children reaching a GOOD LEVEL OF DEVELOPMENT at the end of Reception (age 5) — school readiness — with the count behind it, plus 'at expected level in all early learning goals' and 'in communication, language and literacy'. Reached from a watched place via HAS_SCHOOL_READINESS. Many rows per authority: every academic year (period '202425' = 2024/25) and every breakdown; the HEADLINE is breakdownTopic 'Total', breakdown 'Total', sex 'Total' at the greatest period. Other breakdownTopic values cut by free school meals, SEN, ethnicity and first language — compare the FSM row with the Total row for the disadvantage gap. Values are strings; toFloat(). Keyed on upperTierCode, so a two-tier district's place reads its county's rows."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_SCHOOL_READINESS
-      keyField: districtCode
+      keyField: upperTierCode
       recordKeyField: key
       producer: schoolReadinessByLa
       maxAnchors: 15
@@ -54,7 +54,7 @@
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_PUPIL_ABSENCE
-      keyField: districtCode
+      keyField: upperTierCode
       recordKeyField: key
       producer: pupilAbsenceByLa
       maxAnchors: 15
@@ -86,7 +86,7 @@
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_KS4_ATTAINMENT
-      keyField: districtCode
+      keyField: upperTierCode
       recordKeyField: key
       producer: ks4AttainmentByLa
       maxAnchors: 15

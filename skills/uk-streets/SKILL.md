@@ -37,7 +37,7 @@ street-level facts and stay empty there, which is correct, not missing.
 | `districtCode` | OHID Fingertips, 14 indicators with the publisher's "compared to England" | `HAS_CHILD_INDICATOR` (upper-tier) / `HAS_LOCAL_INDICATOR` (lower-tier) |
 | `districtCode` | NOMIS claimant count · ONS population by age · IoD 2025 | `HAS_CLAIMANTS` `HAS_POPULATION` `HAS_DEPRIVATION_2025` |
 | `districtCode` | DfE early-years profile · pupil absence · KS4 | `HAS_SCHOOL_READINESS` `HAS_PUPIL_ABSENCE` `HAS_KS4_ATTAINMENT` |
-| `district` (name) | Charity Commission area of operation → `Charity` → `CharityEvent` | `HAS_CHARITY_LINK` → `HAS_CHARITY` → `HAS_EVENT` |
+| `upperTierName` (county or unitary) | Charity Commission area of operation → `Charity` → `CharityEvent` | `HAS_CHARITY_LINK` → `HAS_CHARITY` → `HAS_EVENT` |
 | `district` (name) | 360Giving GrantNav, every grant into the district | `HAS_GRANT` |
 | an org-id literal | Find that Charity record | `MATCH (l:OrgLookup {orgId:'GB-CHC-…'})-[:RESOLVES_TO]->(o:OrgRecord)` |
 
@@ -49,9 +49,10 @@ Rules that keep these honest:
   significance test — quote it, never invent a score.
 - DfE rows: pin `breakdownTopic = 'Total'` (KS4) / `breakdown = 'Total'`
   (early years) / `absenceType` and `phase` (absence) before reading a figure.
-- Children's-services figures are published for UPPER-TIER authorities. A
-  place in a two-tier district (E07…) finds them empty — say the county holds
-  them; it is not a zero.
+- Children's-services figures are published for UPPER-TIER authorities and
+  join on `upperTierCode` (the county for a two-tier district). Set it when
+  watching a place: `r.codes.admin_county` when it is not 'E99999999', else
+  `r.codes.admin_district`. A place saved without it reads nothing there.
 - A function inside a WHERE over a producer-backed edge is NOT applied — bind
   it first: `WITH g, left(g.awardDate,4) AS year WHERE year >= '2020'`.
 - `NULLS LAST` is not in the dialect and silently disables the ORDER BY and
@@ -103,6 +104,8 @@ await gateway.repository.createEntry({ type: 'UkPlace', data: {
   name: 'Greenwich', level: 'postcode', postcode: r.postcode.toUpperCase(),
   latitude: r.latitude, longitude: r.longitude,
   latlon: r.latitude + ',' + r.longitude, wkt: `Point(${r.longitude} ${r.latitude})`,
+  upperTierCode: (r.codes.admin_county && r.codes.admin_county !== 'E99999999') ? r.codes.admin_county : r.codes.admin_district,
+  upperTierName: r.admin_county || r.admin_district,
   outcode: r.outcode, district: r.admin_district, districtCode: r.codes.admin_district,
   districtSlug: r.admin_district.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
   lsoa: r.codes.lsoa, lsoaName: r.lsoa, ward: r.admin_ward,
