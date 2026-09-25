@@ -64,7 +64,9 @@ Rules that keep these honest:
   charity's reason lives on its `CharityEvent`, not on the `Charity` row.
 
 Views: `PlaceProfile` (the one-page community profile) · `WhereThisPlaceStandsOut`
-(worse / better than England, by the publisher's test) · `IndicatorTrendAtPlace`
+(worse / better than England, by the publisher's test) · `SmartInsights` (ranked
+against every upper-tier authority in England; `dial` = minimum extremity 0–100,
+so "what is most striking about X" is dial 80) · `IndicatorTrendAtPlace`
 (one indicator, every period) · `WhoLivesHere` · `IndicatorAcrossEngland`
 (rank one indicator nationally) · `MostDeprivedDistricts2025` ·
 `ClaimantsPayAndDeprivation` · `CharitiesOperatingHere` (filter on activities)
@@ -73,6 +75,9 @@ Views: `PlaceProfile` (the one-page community profile) · `WhereThisPlaceStandsO
 `FundedOrganisationsHere` (by identifier kind) · `WhatIsThisOrganisation`
 (one org-id) · `SchoolReadinessAtPlace` (with the FSM gap) ·
 `Ks4AttainmentAtPlace` (with the disadvantage gap) · `PupilAbsenceAtPlace`.
+
+The Community Profile app (`/apps/realm-uk-streets/community-profile.html`)
+shows all of this for a watched place on one page, with the dial.
 
 ## Saved views — reach for these first
 

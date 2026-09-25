@@ -24,7 +24,7 @@
     OPTIONAL MATCH (p)-[:HAS_CLAIMANTS]->(cc:ClaimantCount)
     OPTIONAL MATCH (p)-[:HAS_DEPRIVATION_2025]->(dep:DistrictDeprivation2025)
     OPTIONAL MATCH (p)-[:HAS_CHILD_INDICATOR]->(x:AreaIndicator)
-    WHERE coalesce(x.categoryType, '') = ''
+    WHERE coalesce(x.categoryType, '') = '' AND NOT (x.indicatorId IN ['90366','93562'] AND coalesce(x.periodRange, '') = '1y')
       AND ((x.sex = 'Persons' AND x.indicatorId IN ['90631','10401','93203','93701','20602'])
            OR (x.sex = 'Female' AND x.indicatorId IN ['20401','90366'])
            OR (x.sex = 'Male' AND x.indicatorId = '90366'))
@@ -78,7 +78,7 @@
     MATCH (p:UkPlace)
     WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
     MATCH (p)-[:HAS_CHILD_INDICATOR]->(x:AreaIndicator)
-    WHERE coalesce(x.categoryType, '') = ''
+    WHERE coalesce(x.categoryType, '') = '' AND NOT (x.indicatorId IN ['90366','93562'] AND coalesce(x.periodRange, '') = '1y')
       AND ((x.sex = 'Persons' AND NOT x.indicatorId IN ['20401','93085','90366','93562'])
            OR (x.sex = 'Female' AND x.indicatorId IN ['20401','93085','90366','93562'])
            OR (x.sex = 'Male' AND x.indicatorId IN ['90366','93562']))
@@ -117,7 +117,7 @@
     MATCH (p:UkPlace)
     WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
     MATCH (p)-[:HAS_CHILD_INDICATOR]->(x:AreaIndicator)
-    WHERE x.indicatorId = $indicatorId AND coalesce(x.categoryType, '') = '' AND x.sex = $sex
+    WHERE x.indicatorId = $indicatorId AND coalesce(x.categoryType, '') = '' AND NOT (x.indicatorId IN ['90366','93562'] AND coalesce(x.periodRange, '') = '1y') AND x.sex = $sex
     RETURN p.name AS place, x.indicator AS indicator, x.period AS period,
            round(toFloat(x.value), 2) AS value,
            round(toFloat(x.lowerCi), 2) AS lower95, round(toFloat(x.upperCi), 2) AS upper95,
@@ -168,7 +168,7 @@
       description: "How many authorities."
   cypher: |
     MATCH (s:IndicatorAcrossEngland {indicatorId: $indicatorId})-[:ACROSS_AREAS]->(x:AreaIndicator)
-    WHERE coalesce(x.categoryType, '') = '' AND x.sex IN ['Persons', 'Female']
+    WHERE coalesce(x.categoryType, '') = '' AND NOT (x.indicatorId IN ['90366','93562'] AND coalesce(x.periodRange, '') = '1y') AND x.sex IN ['Persons', 'Female']
       AND x.areaCode =~ '^E(06|08|09|10).*'
     WITH x ORDER BY toFloat(x.periodSortable) DESC
     WITH x.areaCode AS areaCode, head(collect(x)) AS latest
@@ -227,3 +227,79 @@
            toFloat(i.annualPay) AS medianAnnualPay,
            toInteger(toFloat(d.rankOfAverageScore)) AS deprivationRankOf296
     ORDER BY claimants DESC LIMIT $limit
+
+# The "smart insight", with a dial — and every step of it published. For each of
+# the fourteen indicators the place is ranked against EVERY upper-tier authority
+# in England at the latest period, from the bad end: standing = the share of
+# authorities doing better. Extremity = how far that standing is from the middle
+# (0 = median, 100 = the very best or worst in England). The dial is a minimum
+# extremity: 0 shows all fourteen ranked, 50 the outer half, 80 the outer fifth,
+# 90 the outer tenth. Polarity is a declared fact per indicator, not inferred.
+# Beside it, the distance from England's own figure in standard errors, from the
+# publisher's confidence interval. Nothing here is a score of ours: it is a rank,
+# a share, and an arithmetic distance, each reproducible from the rows.
+- name: SmartInsights
+  description: "Where each watched place's authority stands against EVERY upper-tier authority in England on fourteen children's, health and wellbeing indicators — ranked from the bad end. For each indicator: the value, England's value, the period, the share of authorities doing BETTER (0 = the best in England, 100 = the worst), the rank from worst, the distance from England in standard errors (from the publisher's confidence interval), the publisher's own 'compared to England' judgement and trend. The DIAL is a minimum extremity (how far from the national middle, 0–100): 0 lists all fourteen most-extreme-first, 50 keeps the outer half, 80 the outer fifth, 90 the outer tenth. Polarity is declared per indicator (higher NEET is worse; higher school readiness is better), never inferred. Ask 'what is most striking about Blackpool', 'where is Middlesbrough near the bottom nationally', 'smart insights for my place at 80'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    dial:
+      type: int
+      default: 60
+      description: "Minimum extremity 0–100: 0 = everything ranked, 50 = outer half of authorities, 80 = outer fifth, 90 = outer tenth."
+    limit:
+      type: int
+      default: 20
+      description: "Maximum rows per place."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    WITH p
+    MATCH (s:IndicatorAcrossEngland)
+    WHERE s.indicatorId IN ['90631','90632','10401','93203','93701','20401','20602','93085','20101','30309','41001','90366','92313','93562']
+    MATCH (s)-[:ACROSS_AREAS]->(x:AreaIndicator)
+    WHERE coalesce(x.categoryType, '') = '' AND NOT (x.indicatorId IN ['90366','93562'] AND coalesce(x.periodRange, '') = '1y')
+      AND (x.areaCode =~ '^E(06|08|09|10).*' OR x.areaCode = 'E92000001')
+      AND ((x.sex = 'Persons' AND NOT x.indicatorId IN ['20401','93085','90366','93562'])
+           OR (x.sex = 'Female' AND x.indicatorId IN ['20401','93085','90366','93562'])
+           OR (x.sex = 'Male' AND x.indicatorId IN ['90366','93562']))
+    // Latest per (indicator, area) by an explicit max, not by ORDER BY into collect — over
+    // ~2,000 rows per indicator the collected order is not the sorted order.
+    WITH p, x.indicatorId + ':' + x.sex AS ind, x.areaCode AS areaCode,
+         max(toFloat(x.periodSortable)) AS latestPeriod, collect(x) AS xs
+    WITH p, ind, areaCode, head([r IN xs WHERE toFloat(r.periodSortable) = latestPeriod]) AS latest
+    WITH p, ind, collect(latest) AS rows
+    WITH p, ind,
+         head([r IN rows WHERE r.areaCode = p.upperTierCode]) AS mine,
+         head([r IN rows WHERE r.areaCode = 'E92000001']) AS eng,
+         [r IN rows WHERE r.areaCode <> 'E92000001' AND toFloat(r.value) IS NOT NULL | toFloat(r.value)] AS vals
+    WHERE mine IS NOT NULL AND toFloat(mine.value) IS NOT NULL AND size(vals) > 0
+    WITH p, ind, mine, eng, vals, toFloat(mine.value) AS v,
+         CASE WHEN mine.indicatorId IN ['10401','93203','93701','20401','20602','93085','20101','41001'] THEN true ELSE false END AS higherIsWorse
+    WITH p, ind, mine, eng, v, higherIsWorse, size(vals) AS n,
+         size([q IN vals WHERE q > v]) AS above, size([q IN vals WHERE q < v]) AS below
+    WITH p, ind, mine, eng, v, higherIsWorse, n,
+         CASE WHEN higherIsWorse THEN below ELSE above END AS doingBetter,
+         CASE WHEN higherIsWorse THEN above ELSE below END AS doingWorse
+    WITH p, ind, mine, eng, v, higherIsWorse, n, doingBetter, doingWorse,
+         round(100.0 * doingBetter / n, 0) AS betterSharePct
+    WITH p, ind, mine, eng, v, higherIsWorse, n, doingBetter, doingWorse, betterSharePct,
+         round(abs(betterSharePct - 50.0) * 2.0, 0) AS extremity
+    WHERE extremity >= $dial
+    RETURN p.name AS place, mine.area AS authority,
+           mine.indicator + CASE WHEN mine.sex = 'Persons' THEN '' ELSE ' (' + mine.sex + ')' END AS indicator,
+           round(v, 1) AS value,
+           round(toFloat(eng.value), 1) AS englandValue,
+           mine.period AS period,
+           CASE WHEN higherIsWorse THEN 'higher is worse' ELSE 'higher is better' END AS polarity,
+           betterSharePct AS pctOfAuthoritiesDoingBetter,
+           doingWorse + 1 AS rankFromWorst, n AS ofAuthorities,
+           extremity,
+           CASE WHEN eng IS NOT NULL AND toFloat(mine.upperCi) IS NOT NULL AND toFloat(mine.upperCi) > toFloat(mine.lowerCi)
+                THEN round((v - toFloat(eng.value)) / ((toFloat(mine.upperCi) - toFloat(mine.lowerCi)) / 3.92), 1) END AS standardErrorsFromEngland,
+           mine.comparedToEngland AS publisherVsEngland,
+           mine.trend AS recentTrend
+    ORDER BY place, extremity DESC, betterSharePct DESC
+    LIMIT $limit

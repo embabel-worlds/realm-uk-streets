@@ -1,0 +1,115 @@
+{
+ "rows": [
+  {
+   "place": "Blackpool",
+   "funder": "Department for Business, Energy and Industrial Strategy",
+   "grants": 27,
+   "totalAwarded": 177033505,
+   "recipients": 12,
+   "firstAward": "2020-04-01",
+   "latestAward": "2022-04-01"
+  },
+  {
+   "place": "Blackpool",
+   "funder": "Department for Levelling Up, Housing and Communities",
+   "grants": 147,
+   "totalAwarded": 66959063,
+   "recipients": 9,
+   "firstAward": "2020-04-01",
+   "latestAward": "2024-03-26"
+  },
+  {
+   "place": "Blackpool",
+   "funder": "Department for Education",
+   "grants": 151,
+   "totalAwarded": 61782767,
+   "recipients": 67,
+   "firstAward": "2020-04-01",
+   "latestAward": "2024-06-10"
+  },
+  {
+   "place": "Blackpool",
+   "funder": "Department for Transport",
+   "grants": 42,
+   "totalAwarded": 28201603,
+   "recipients": 12,
+   "firstAward": "2020-04-01",
+   "latestAward": "2022-04-01"
+  },
+  {
+   "place": "Blackpool",
+   "funder": "Ministry of Housing, Communities & Local Government",
+   "grants": 99,
+   "totalAwarded": 20388810,
+   "recipients": 5,
+   "firstAward": "2024-04-04",
+   "latestAward": "2025-03-27"
+  },
+  {
+   "place": "Blackpool",
+   "funder": "Department for Digital, Culture, Media & Sport",
+   "grants": 98,
+   "totalAwarded": 16087583,
+   "recipients": 67,
+   "firstAward": "2020-02-28",
+   "latestAward": "2023-01-30"
+  },
+  {
+   "place": "Blackpool",
+   "funder": "The National Lottery Community Fund",
+   "grants": 147,
+   "totalAwarded": 11701430,
+   "recipients": 87,
+   "firstAward": "2020-02-24",
+   "latestAward": "2026-06-18"
+  },
+  {
+   "place": "Blackpool",
+   "funder": "Department for Work and Pensions",
+   "grants": 49,
+   "totalAwarded": 10466528,
+   "recipients": 35,
+   "firstAward": "2020-04-01",
+   "latestAward": "2024-03-01"
+  },
+  {
+   "place": "Blackpool",
+   "funder": "Department for Environment, Food and Rural Affairs",
+   "grants": 16,
+   "totalAwarded": 6002870,
+   "recipients": 8,
+   "firstAward": "2020-04-01",
+   "latestAward": "2024-04-01"
+  },
+  {
+   "place": "Blackpool",
+   "funder": "Home Office",
+   "grants": 22,
+   "totalAwarded": 5078895,
+   "recipients": 4,
+   "firstAward": "2020-04-01",
+   "latestAward": "2023-06-23"
+  }
+ ],
+ "warnings": [],
+ "freshness": [
+  {
+   "producer": "grantsIntoDistrict",
+   "source": "cached",
+   "observedAt": "2026-09-25T02:02:16.417Z",
+   "keys": 1
+  },
+  {
+   "producer": "grantsIntoDistrict",
+   "source": "live",
+   "observedAt": "2026-09-25T04:38:13.609Z",
+   "keys": 1
+  }
+ ],
+ "freshnessNote": "NOTE: not every figure here was read just now. `observedAt` is when the source was\nACTUALLY read, and `source: \"cached\"` means the value describes that source AS OF THAT\nMOMENT, served from cache \u2014 not the state right now. If the answer turns on how things\nstand currently, say when it was observed rather than implying it is live.\nServed warm: grantsIntoDistrict (2026-09-25T02:02:16.417Z).",
+ "cost": {
+  "ms": 421,
+  "apiCalls": 0,
+  "llmCalls": 0
+ }
+}

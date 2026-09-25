@@ -1,0 +1,198 @@
+{
+ "rows": [
+  {
+   "place": "Blackpool",
+   "date": "2026-09-19",
+   "event": "Asset transfer in",
+   "reason": "Does not operate",
+   "charityNumber": "1081427",
+   "charity": "LANCASHIRE MIND LIMITED",
+   "latestIncome": 2534902,
+   "otherCharity": "LANCASHIRE OCCUPATIONAL HEALTH AND SAFETY GROUP",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-09-01",
+   "event": "CIO registration",
+   "reason": "",
+   "charityNumber": "1219453",
+   "charity": "FYLDE COAST MATES CIO",
+   "latestIncome": null,
+   "otherCharity": "",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-08-25",
+   "event": "Asset transfer in",
+   "reason": "Does not operate",
+   "charityNumber": "1132312",
+   "charity": "THE PAROCHIAL CHURCH COUNCIL OF THE ECCLESIASTICAL PARISH OF ST. THOMAS, BLACKPOOL.",
+   "latestIncome": 144897,
+   "otherCharity": "ST THOMAS PASTORIAL TRUST",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-06-10",
+   "event": "Removed",
+   "reason": "Removed by application",
+   "charityNumber": "1207563",
+   "charity": "HUGO'S SMALL ANIMAL RESCUE AND SANCTUARY",
+   "latestIncome": 28198,
+   "otherCharity": "",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-06-08",
+   "event": "Asset transfer out",
+   "reason": "Removed by application",
+   "charityNumber": "1202301",
+   "charity": "FYLDE COAST PREGNANCY CRISIS CENTRE",
+   "latestIncome": 3611,
+   "otherCharity": "PREGNANCY CENTRES NETWORK",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-06-08",
+   "event": "Removed",
+   "reason": "Removed by application",
+   "charityNumber": "1202301",
+   "charity": "FYLDE COAST PREGNANCY CRISIS CENTRE",
+   "latestIncome": 3611,
+   "otherCharity": "",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-05-21",
+   "event": "Asset transfer out",
+   "reason": "Amalgamated",
+   "charityNumber": "1134584",
+   "charity": "THE LANCASHIRE DISTRICT OF THE METHODIST CHURCH IN GREAT BRITAIN",
+   "latestIncome": 559461,
+   "otherCharity": "METHODIST CHURCH - NORTH WEST ENGLAND DISTRICT",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-05-21",
+   "event": "Removed",
+   "reason": "Amalgamated",
+   "charityNumber": "1134584",
+   "charity": "THE LANCASHIRE DISTRICT OF THE METHODIST CHURCH IN GREAT BRITAIN",
+   "latestIncome": 559461,
+   "otherCharity": "",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-05-13",
+   "event": "Standard registration",
+   "reason": "",
+   "charityNumber": "1218046",
+   "charity": "STANLEY PRIMARY SCHOOL PTFA",
+   "latestIncome": null,
+   "otherCharity": "",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-03-18",
+   "event": "Removed",
+   "reason": "Does not operate",
+   "charityNumber": "292352",
+   "charity": "THE WHEELCHAIR DANCE ASSOCIATION",
+   "latestIncome": 0,
+   "otherCharity": "",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-03-14",
+   "event": "Removed",
+   "reason": "Ceased to exist",
+   "charityNumber": "519348",
+   "charity": "DISTRICT 105BN LIONS CHARITY TRUST FUND",
+   "latestIncome": 140,
+   "otherCharity": "",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-03-14",
+   "event": "Asset transfer out",
+   "reason": "Ceased to exist",
+   "charityNumber": "519348",
+   "charity": "DISTRICT 105BN LIONS CHARITY TRUST FUND",
+   "latestIncome": 140,
+   "otherCharity": "LIONS CLUBS INTERNATIONAL DISTRICT 105CN FOUNDATION",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-03-03",
+   "event": "CIO registration",
+   "reason": "",
+   "charityNumber": "1217076",
+   "charity": "ROYAL SOCIETY FOR THE PREVENTION OF CRUELTY TO ANIMALS BLACKPOOL AND NORTH LANCASHIRE BRANCH CIO",
+   "latestIncome": null,
+   "otherCharity": "",
+   "registerAsAt": "2026-09-25"
+  },
+  {
+   "place": "Blackpool",
+   "date": "2026-03-03",
+   "event": "Removed",
+   "reason": "Transfer of funds",
+   "charityNumber": "1057178",
+   "charity": "THE BLACKPOOL WYRE AND FYLDE COUNCIL FOR VOLUNTARY SERVICE",
+   "latestIncome": 0,
+   "otherCharity": "",
+   "registerAsAt": "2026-09-25"
+  }
+ ],
+ "warnings": [],
+ "freshness": [
+  {
+   "producer": "charitiesOperatingIn",
+   "source": "cached",
+   "observedAt": "2026-09-25T04:38:14.412Z",
+   "keys": 1
+  },
+  {
+   "producer": "charityByNumber",
+   "source": "cached",
+   "observedAt": "2026-09-25T02:05:30.732Z",
+   "keys": 410
+  },
+  {
+   "producer": "charityByNumber",
+   "source": "live",
+   "observedAt": "2026-09-25T04:38:16.779Z",
+   "keys": 410
+  },
+  {
+   "producer": "charityEventsByNumber",
+   "source": "cached",
+   "observedAt": "2026-09-25T02:21:54.517Z",
+   "keys": 410
+  },
+  {
+   "producer": "charityEventsByNumber",
+   "source": "live",
+   "observedAt": "2026-09-25T04:38:17.442Z",
+   "keys": 410
+  }
+ ],
+ "freshnessNote": "NOTE: not every figure here was read just now. `observedAt` is when the source was\nACTUALLY read, and `source: \"cached\"` means the value describes that source AS OF THAT\nMOMENT, served from cache \u2014 not the state right now. If the answer turns on how things\nstand currently, say when it was observed rather than implying it is live.\nServed warm: charitiesOperatingIn (2026-09-25T04:38:14.412Z), charityByNumber (2026-09-25T02:05:30.732Z), charityEventsByNumber (2026-09-25T02:21:54.517Z).",
+ "cost": {
+  "ms": 1826,
+  "apiCalls": 0,
+  "llmCalls": 0
+ },
+ "reuseNote": "This result is stable for these arguments for the rest of your session. If you need it again, reuse what you already have rather than calling again."
+}

@@ -51,6 +51,7 @@
     category: "Category"
     period: "Time period"
     periodSortable: "Time period Sortable"
+    periodRange: "Time period range"
     value: "Value"
     lowerCi: "Lower CI 95.0 limit"
     upperCi: "Upper CI 95.0 limit"
@@ -88,6 +89,7 @@
     category: "Category"
     period: "Time period"
     periodSortable: "Time period Sortable"
+    periodRange: "Time period range"
     value: "Value"
     lowerCi: "Lower CI 95.0 limit"
     upperCi: "Upper CI 95.0 limit"
@@ -115,8 +117,12 @@
   keyAs: key
   rowIdAs: id
   userAgent: browser
-  maxRows: 400000
-  maxRowsPerKey: 40000
+  maxRows: 600000
+  # One indicator is EVERY area × every period × every breakdown — life expectancy
+  # alone is ~45k rows — and a per-key cap below that silently drops the later
+  # areas' recent periods (measured: Blackpool's life expectancy stopped at 2020-22
+  # under a 40k cap). The file is ~150k rows in all; the cap is above it.
+  maxRowsPerKey: 200000
   project:
     indicatorId: "Indicator ID"
     indicator: "Indicator Name"
@@ -128,7 +134,10 @@
     categoryType: "Category Type"
     period: "Time period"
     periodSortable: "Time period Sortable"
+    periodRange: "Time period range"
     value: "Value"
+    lowerCi: "Lower CI 95.0 limit"
+    upperCi: "Upper CI 95.0 limit"
     count: "Count"
     denominator: "Denominator"
     trend: "Recent Trend"

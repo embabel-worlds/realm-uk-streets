@@ -105,4 +105,7 @@
 - question: "what is the claimant count in Middlesbrough"
   expect:
     matchesView: { name: PlaceProfile, column: claimants, args: { place: Middlesbrough } }
+- question: "what is most striking about Blackpool compared to the rest of England"
+  expect:
+    matchesView: { name: SmartInsights, column: value, args: { place: Blackpool, dial: 80 } }
 

@@ -1,0 +1,121 @@
+{
+ "rows": [
+  {
+   "place": "Blackpool",
+   "year": "2015",
+   "grants": 61,
+   "totalAwarded": 3690939,
+   "funders": 12,
+   "recipients": 55
+  },
+  {
+   "place": "Blackpool",
+   "year": "2016",
+   "grants": 66,
+   "totalAwarded": 13060569,
+   "funders": 14,
+   "recipients": 65
+  },
+  {
+   "place": "Blackpool",
+   "year": "2017",
+   "grants": 89,
+   "totalAwarded": 22411051,
+   "funders": 22,
+   "recipients": 60
+  },
+  {
+   "place": "Blackpool",
+   "year": "2018",
+   "grants": 152,
+   "totalAwarded": 47780683,
+   "funders": 26,
+   "recipients": 74
+  },
+  {
+   "place": "Blackpool",
+   "year": "2019",
+   "grants": 166,
+   "totalAwarded": 40636714,
+   "funders": 22,
+   "recipients": 72
+  },
+  {
+   "place": "Blackpool",
+   "year": "2020",
+   "grants": 311,
+   "totalAwarded": 205673747,
+   "funders": 27,
+   "recipients": 143
+  },
+  {
+   "place": "Blackpool",
+   "year": "2021",
+   "grants": 258,
+   "totalAwarded": 91321449,
+   "funders": 36,
+   "recipients": 132
+  },
+  {
+   "place": "Blackpool",
+   "year": "2022",
+   "grants": 291,
+   "totalAwarded": 37212574,
+   "funders": 31,
+   "recipients": 108
+  },
+  {
+   "place": "Blackpool",
+   "year": "2023",
+   "grants": 307,
+   "totalAwarded": 45413665,
+   "funders": 31,
+   "recipients": 82
+  },
+  {
+   "place": "Blackpool",
+   "year": "2024",
+   "grants": 325,
+   "totalAwarded": 30653107,
+   "funders": 31,
+   "recipients": 77
+  },
+  {
+   "place": "Blackpool",
+   "year": "2025",
+   "grants": 253,
+   "totalAwarded": 6797883,
+   "funders": 21,
+   "recipients": 54
+  },
+  {
+   "place": "Blackpool",
+   "year": "2026",
+   "grants": 92,
+   "totalAwarded": 2559713,
+   "funders": 10,
+   "recipients": 20
+  }
+ ],
+ "warnings": [],
+ "freshness": [
+  {
+   "producer": "grantsIntoDistrict",
+   "source": "cached",
+   "observedAt": "2026-09-25T02:02:16.417Z",
+   "keys": 1
+  },
+  {
+   "producer": "grantsIntoDistrict",
+   "source": "live",
+   "observedAt": "2026-09-25T04:38:13.105Z",
+   "keys": 1
+  }
+ ],
+ "freshnessNote": "NOTE: not every figure here was read just now. `observedAt` is when the source was\nACTUALLY read, and `source: \"cached\"` means the value describes that source AS OF THAT\nMOMENT, served from cache \u2014 not the state right now. If the answer turns on how things\nstand currently, say when it was observed rather than implying it is live.\nServed warm: grantsIntoDistrict (2026-09-25T02:02:16.417Z).",
+ "cost": {
+  "ms": 459,
+  "apiCalls": 0,
+  "llmCalls": 0
+ }
+}

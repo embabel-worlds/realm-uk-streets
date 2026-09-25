@@ -18,3 +18,10 @@
 
   Store the **unwrapped** envelope: the browser shim returns `body.result`, so a fixture of the
   wrapped shape would test a contract the app never meets.
+
+- **`community-profile.spec.mjs`** — drives `apps/community-profile.html` in a real browser
+  against `fixtures/` (myplaces, placeprofile-blackpool, smartinsights-blackpool-{60,90}, …):
+  every panel renders from its view, the dial re-queries and the list shrinks, a failed
+  source shows an error and not an empty answer, the badge and the How-it-works link exist.
+  `node --test tests/community-profile.spec.mjs`. Re-capture with the same `view_run` curl.
+

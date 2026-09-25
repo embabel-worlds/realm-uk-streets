@@ -70,10 +70,29 @@ worse or better than England on — the publisher's test, not a score),
 `IndicatorTrendAtPlace`, `WhoLivesHere`, `IndicatorAcrossEngland`,
 `MostDeprivedDistricts2025`, `ClaimantsPayAndDeprivation`,
 `CharitiesOperatingHere`, `CharityChangesHere` (arrivals and removals since a
-date, with the Commission's reason), `WhoFundsThisPlace`,
+date, with the Commission's reason), `SmartInsights` (the dial), `WhoFundsThisPlace`,
 `GrantsIntoPlaceByYear`, `BiggestGrantsHere`, `FundedOrganisationsHere`,
 `WhatIsThisOrganisation`, `SchoolReadinessAtPlace`, `Ks4AttainmentAtPlace`,
 `PupilAbsenceAtPlace`.
+
+**The smart insight, with a dial.** `SmartInsights` ranks the place against every
+upper-tier authority in England on all fourteen indicators at the latest period,
+from the bad end: the share of authorities doing better (0 = the best in
+England, 100 = the worst), the rank from worst, the distance from England in
+standard errors from the publisher's confidence interval, and the publisher's
+own judgement beside it. The dial is a minimum extremity — how far from the
+national middle a figure must be to show: 0 lists all fourteen, 50 the outer
+half, 80 the outer fifth, 90 the outer tenth. Polarity is declared per
+indicator in the view, never inferred, and the whole method is the Cypher.
+
+**The dashboard.** `apps/community-profile.html` — a place's community profile
+on one page: the at-a-glance tiles, the stands-in-England bars with the dial,
+school readiness with the free-school-meals gap, the youth-justice series with
+its interval, grants by year, who funds it, the charities operating here and the
+register's own change feed — every panel one saved view, every figure with its
+period, the footer stating when each publisher was read, and a How-it-works
+section that reads the views' Cypher back from the server. Driven in a real
+browser by `tests/community-profile.spec.mjs` against captured envelopes.
 
 Three of the sources needed the engine to grow (me ≥ 2026-09-25): the Charity
 Commission publishes a zip of tab-delimited parts with literal quotes inside

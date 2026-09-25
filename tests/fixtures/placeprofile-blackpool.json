@@ -1,0 +1,81 @@
+{
+ "rows": [
+  {
+   "place": "Blackpool",
+   "district": "Blackpool",
+   "childrensServicesAuthority": "Blackpool",
+   "residents": 143492,
+   "populationYear": "2025",
+   "children0to15": 24954,
+   "claimants": 5105,
+   "claimantsMonth": "August 2026",
+   "claimantsPctOfWorkingAge": 5.8,
+   "deprivationRankOf296": 1,
+   "pctNeighbourhoodsMostDeprivedTenth": 40.0,
+   "schoolReadinessPct": 63.5,
+   "schoolReadinessPeriod": "2024/25",
+   "schoolReadinessVsEngland": "Worse",
+   "youthJusticeFirstTimeEntrantsPer100k": 294.6,
+   "youthJusticePeriod": "2025",
+   "youthJusticeVsEngland": "Worse",
+   "neet16to17Pct": 9.1,
+   "neetPeriod": "2025/26",
+   "neetVsEngland": "Worse",
+   "childrenLowIncomePct": 30.5,
+   "childrenLowIncomePeriod": "2024/25",
+   "childrenLowIncomeVsEngland": "Worse",
+   "under18ConceptionsPer1000": 26.4,
+   "under18ConceptionsPeriod": "2022",
+   "year6OverweightPct": 43.5,
+   "year6OverweightPeriod": "2024/25",
+   "lifeExpectancyFemaleYears": 79.3,
+   "lifeExpectancyMaleYears": 74.2,
+   "lifeExpectancyPeriod": "2023 - 25"
+  }
+ ],
+ "warnings": [],
+ "freshness": [
+  {
+   "producer": "populationByAge",
+   "source": "live",
+   "observedAt": "2026-09-25T04:37:59.861Z",
+   "keys": 1
+  },
+  {
+   "producer": "healthIndicatorsUpperTier",
+   "source": "cached",
+   "observedAt": "2026-09-25T02:01:56.216Z",
+   "keys": 1
+  },
+  {
+   "producer": "healthIndicatorsUpperTier",
+   "source": "live",
+   "observedAt": "2026-09-25T04:38:00.032Z",
+   "keys": 1
+  },
+  {
+   "producer": "claimantCount",
+   "source": "live",
+   "observedAt": "2026-09-25T04:38:00.441Z",
+   "keys": 1
+  },
+  {
+   "producer": "imd2025DistrictSummary",
+   "source": "cached",
+   "observedAt": "2026-09-25T02:01:58.222Z",
+   "keys": 1
+  },
+  {
+   "producer": "imd2025DistrictSummary",
+   "source": "live",
+   "observedAt": "2026-09-25T04:38:00.650Z",
+   "keys": 1
+  }
+ ],
+ "freshnessNote": "NOTE: not every figure here was read just now. `observedAt` is when the source was\nACTUALLY read, and `source: \"cached\"` means the value describes that source AS OF THAT\nMOMENT, served from cache \u2014 not the state right now. If the answer turns on how things\nstand currently, say when it was observed rather than implying it is live.\nServed warm: healthIndicatorsUpperTier (2026-09-25T02:01:56.216Z), imd2025DistrictSummary (2026-09-25T02:01:58.222Z).",
+ "cost": {
+  "ms": 2317,
+  "apiCalls": 2,
+  "llmCalls": 0
+ }
+}

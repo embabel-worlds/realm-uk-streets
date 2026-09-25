@@ -28,8 +28,8 @@
       keyField: indicatorId
       recordKeyField: key
       producer: indicatorAcrossUpperTier
-      maxAnchors: 3
-      description: "EVERY upper-tier authority's rows for ONE indicator, under a literal-seeded anchor: MATCH (s:IndicatorAcrossEngland {indicatorId:'10401'})-[:ACROSS_AREAS]->(x). The id is a Fingertips indicator id as a string. Keep the headline row per area at its latest period before ranking."
+      maxAnchors: 16
+      description: "EVERY upper-tier authority's rows for ONE indicator, under a literal-seeded anchor: MATCH (s:IndicatorAcrossEngland {indicatorId:'10401'})-[:ACROSS_AREAS]->(x), or all fourteen at once with WHERE s.indicatorId IN [...] — the ceiling covers the whole set because they are one cached file read keyed fourteen ways. Keep the headline row per area at its latest period before ranking."
   examples:
     # STEERING — pinned defect: "what stands out about Blackpool compared to England" returned
     # 200 rows — every period and breakdown of every indicator — because the generator read
@@ -83,6 +83,7 @@
     periodSortable:
       type: number
       description: "The period as a sortable integer (20240000) — take the max per indicator for 'latest'."
+    periodRange: "'1y' or '3y' — an indicator published as BOTH a single-year and a three-year series (life expectancy) carries both under one id; pin one series before taking 'latest', or a 1y point and a 3y point of the same year will compete."
     value:
       type: number
       description: "The indicator value in the indicator's own unit — percent, per 1,000, per 100,000, or years."

@@ -1,0 +1,158 @@
+{
+ "rows": [
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2014",
+   "value": 463.05,
+   "lower95": 352.23,
+   "upper95": 597.68,
+   "count": 58,
+   "denominator": 12681,
+   "vsEngland": "Similar"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2015",
+   "value": 541.17,
+   "lower95": 419.8,
+   "upper95": 686.67,
+   "count": 67,
+   "denominator": 12473,
+   "vsEngland": "Worse"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2016",
+   "value": 435.47,
+   "lower95": 326.63,
+   "upper95": 568.93,
+   "count": 53,
+   "denominator": 12281,
+   "vsEngland": "Similar"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2017",
+   "value": 458.3,
+   "lower95": 346.07,
+   "upper95": 595.31,
+   "count": 55,
+   "denominator": 12195,
+   "vsEngland": "Worse"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2018",
+   "value": 314.22,
+   "lower95": 222.42,
+   "upper95": 431.16,
+   "count": 38,
+   "denominator": 12119,
+   "vsEngland": "Similar"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2019",
+   "value": 232.68,
+   "lower95": 155.0,
+   "upper95": 335.56,
+   "count": 28,
+   "denominator": 12180,
+   "vsEngland": "Similar"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2020",
+   "value": 292.06,
+   "lower95": 204.99,
+   "upper95": 403.6,
+   "count": 36,
+   "denominator": 12470,
+   "vsEngland": "Worse"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2021",
+   "value": 215.1,
+   "lower95": 141.8,
+   "upper95": 312.82,
+   "count": 27,
+   "denominator": 12585,
+   "vsEngland": "Similar"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2022",
+   "value": 365.07,
+   "lower95": 267.42,
+   "upper95": 486.7,
+   "count": 46,
+   "denominator": 12647,
+   "vsEngland": "Worse"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2023",
+   "value": 277.07,
+   "lower95": 193.87,
+   "upper95": 383.85,
+   "count": 35,
+   "denominator": 12939,
+   "vsEngland": "Worse"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2024",
+   "value": 317.21,
+   "lower95": 228.25,
+   "upper95": 429.33,
+   "count": 41,
+   "denominator": 13130,
+   "vsEngland": "Worse"
+  },
+  {
+   "place": "Blackpool",
+   "indicator": "First time entrants to the youth justice system",
+   "period": "2025",
+   "value": 294.57,
+   "lower95": 209.73,
+   "upper95": 402.24,
+   "count": 39,
+   "denominator": 13338,
+   "vsEngland": "Worse"
+  }
+ ],
+ "warnings": [],
+ "freshness": [
+  {
+   "producer": "healthIndicatorsUpperTier",
+   "source": "cached",
+   "observedAt": "2026-09-25T02:01:56.216Z",
+   "keys": 1
+  },
+  {
+   "producer": "healthIndicatorsUpperTier",
+   "source": "live",
+   "observedAt": "2026-09-25T04:38:12.868Z",
+   "keys": 1
+  }
+ ],
+ "freshnessNote": "NOTE: not every figure here was read just now. `observedAt` is when the source was\nACTUALLY read, and `source: \"cached\"` means the value describes that source AS OF THAT\nMOMENT, served from cache \u2014 not the state right now. If the answer turns on how things\nstand currently, say when it was observed rather than implying it is live.\nServed warm: healthIndicatorsUpperTier (2026-09-25T02:01:56.216Z).",
+ "cost": {
+  "ms": 236,
+  "apiCalls": 0,
+  "llmCalls": 0
+ },
+ "reuseNote": "This result is stable for these arguments for the rest of your session. If you need it again, reuse what you already have rather than calling again."
+}

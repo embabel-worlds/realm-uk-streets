@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Community Profile</title>
+<link rel="icon" type="image/svg+xml" href="community-profile.svg">
+<link rel="stylesheet" href="/api/v1/apps-runtime/v1/theme.css">
+<script src="/api/v1/apps-runtime/v1/embabel.js"></script>
+<script src="/api/v1/apps-runtime/gateway.js"></script>
+<style>
+  /* Tokens: the data-viz reference palette, selected for light and dark. Charts are
+     written against roles, never raw hex, so a theme swaps in one place. */
+  :root {
+    color-scheme: light;
+    --bg: #f6f6f3; --surface: #fcfcfb; --line: #e2e1dc; --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #8a8985;
+    --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a;
+    --seq-200: #9ec5f4; --seq-450: #2a78d6;
+    --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+    --accent: #1c5cab;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #111110; --surface: #1a1a19; --line: #2c2c2a; --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8d8c85;
+      --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+      --seq-200: #1c5cab; --seq-450: #3987e5;
+      --accent: #6da7ec;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #111110; --surface: #1a1a19; --line: #2c2c2a; --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8d8c85;
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+    --seq-200: #1c5cab; --seq-450: #3987e5;
+    --accent: #6da7ec;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         min-height: 100vh; padding: 20px 16px 56px; font-size: 14px; line-height: 1.45; }
+  .frame { max-width: 1180px; margin: 0 auto; }
+  header { display: flex; flex-wrap: wrap; align-items: end; gap: 14px 22px; margin-bottom: 18px; }
+  h1 { font-size: 24px; font-weight: 700; letter-spacing: 0.01em; }
+  h1 small { display: block; font-size: 13px; font-weight: 400; color: var(--ink-2); margin-top: 2px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; margin-left: auto; }
+  select, input[type=range] { font: inherit; }
+  select { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; min-width: 180px; }
+  .dial { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 13px; }
+  .dial input { width: 160px; accent-color: var(--accent); }
+  .dial b { color: var(--ink); min-width: 2.2em; text-align: right; font-variant-numeric: tabular-nums; }
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+  .span-12 { grid-column: span 12; } .span-6 { grid-column: span 6; } .span-4 { grid-column: span 4; } .span-3 { grid-column: span 3; }
+  @media (max-width: 900px) { .span-6, .span-4, .span-3 { grid-column: span 12; } .grid { gap: 12px; } }
+  @media (min-width: 600px) and (max-width: 900px) { .span-3 { grid-column: span 6; } }
+  h2 { font-size: 14px; font-weight: 600; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  h2 span { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink-3); }
+  .tiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  @media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+  .tile { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+  .tile .l { color: var(--ink-2); font-size: 12px; }
+  .tile .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 2px 0; }
+  .tile .p { color: var(--ink-3); font-size: 11px; }
+  .tile .s { font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+  .s.worse { color: var(--critical); } .s.better { color: var(--good); } .s.similar { color: var(--ink-3); }
+  .quiet { color: var(--ink-3); font-size: 12px; }
+  .note { color: var(--ink-2); font-size: 12px; margin-top: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th { text-align: left; color: var(--ink-2); font-weight: 600; border-bottom: 1px solid var(--line); padding: 6px 8px 6px 0; white-space: nowrap; }
+  td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .scroll { overflow-x: auto; }
+  svg text { font-family: inherit; }
+  .tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+         border-radius: 6px; padding: 6px 9px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.18); display: none; z-index: 50; max-width: 320px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); margin: 4px 0 6px; }
+  .legend i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+  .bars .row { display: grid; grid-template-columns: minmax(160px, 1.4fr) 3fr minmax(150px, 1fr); gap: 10px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  .bars .row:last-child { border-bottom: none; }
+  @media (max-width: 600px) { .bars .row { grid-template-columns: 1fr; gap: 4px; } .bars .val { text-align: left; } }
+  .bars .name { font-size: 12.5px; line-height: 1.3; }
+  .bars .name small { display: block; color: var(--ink-3); }
+  .bars .val { font-size: 12px; color: var(--ink-2); text-align: right; font-variant-numeric: tabular-nums; }
+  .bars .val b { color: var(--ink); }
+  .track { position: relative; height: 14px; }
+  .track .mid { position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px dashed var(--line); }
+  .track .fill { position: absolute; top: 3px; height: 8px; border-radius: 4px; }
+  .track .eng { position: absolute; top: 0; width: 2px; height: 14px; background: var(--ink-3); }
+  .axis { display: flex; justify-content: space-between; color: var(--ink-3); font-size: 11px; padding: 0 0 4px; }
+  .feed li { padding: 5px 0; border-bottom: 1px solid var(--line); list-style: none; font-size: 13px; }
+  .feed li:last-child { border-bottom: none; }
+  .feed .d { color: var(--ink-3); font-variant-numeric: tabular-nums; margin-right: 8px; }
+  .feed .e { font-weight: 600; margin-right: 6px; }
+  .feed .e.removed { color: var(--critical); } .feed .e.registration { color: var(--good); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--ink-3); display: flex; gap: 14px; flex-wrap: wrap; }
+  footer a { color: var(--ink-2); }
+  #how-it-works { display: none; margin-top: 18px; }
+  #how-it-works:target { display: block; }
+  #how-it-works h3 { font-size: 14px; margin: 14px 0 6px; }
+  #how-it-works pre { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow-x: auto; font-size: 11.5px; line-height: 1.4; }
+  #how-it-works p, #how-it-works li { font-size: 13px; color: var(--ink-2); }
+  #how-it-works ul { padding-left: 18px; }
+  .pending { color: var(--ink-3); font-size: 12px; font-style: italic; }
+  .err { color: var(--critical); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <header>
+    <h1>Community Profile <small id="strap">a place, read from the publishers</small></h1>
+    <div class="controls">
+      <select id="place" aria-label="Watched place"></select>
+      <label class="dial" title="Minimum extremity: how far from the national middle an indicator must be to show. 0 lists all, 50 the outer half, 80 the outer fifth, 90 the outer tenth.">
+        dial <input id="dial" type="range" min="0" max="98" step="2" value="60"> <b id="dialv">60</b>
+      </label>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card span-12">
+      <h2>At a glance <span id="glance-as"></span></h2>
+      <div class="tiles" id="tiles"><div class="pending">asking the publishers…</div></div>
+    </section>
+
+    <section class="card span-12">
+      <h2>Where it stands in England <span>— the share of upper-tier authorities doing better, by the publisher's polarity; the tick is England; the dial sets how extreme a figure must be to appear</span></h2>
+      <div class="axis"><span>best in England</span><span>national middle</span><span>worst in England</span></div>
+      <div class="bars" id="stands"><div class="pending">ranking against every authority…</div></div>
+      <div class="note" id="stands-note"></div>
+    </section>
+
+    <section class="card span-6">
+      <h2>School readiness <span>— % of five-year-olds with a good level of development (DfE)</span></h2>
+      <div class="legend"><span><i style="background:var(--series-1)"></i>all children</span><span><i style="background:var(--series-2)"></i>free school meals</span></div>
+      <div id="readiness"><div class="pending">loading…</div></div>
+    </section>
+
+    <section class="card span-6">
+      <h2>Youth justice <span>— first-time entrants per 100,000 aged 10–17 (OHID), with the 95% interval</span></h2>
+      <div id="youth"><div class="pending">loading…</div></div>
+    </section>
+
+    <section class="card span-6">
+      <h2>Grant funding into the district by year <span>— published grants, 360Giving</span></h2>
+      <div id="grants"><div class="pending">loading…</div></div>
+      <div class="note">A late year is incomplete until its funders publish; a funder joining the standard adds history it never published before.</div>
+    </section>
+
+    <section class="card span-6">
+      <h2>Who funds it <span>— since 2020, largest first</span></h2>
+      <div class="scroll" id="funders"><div class="pending">loading…</div></div>
+    </section>
+
+    <section class="card span-6">
+      <h2>Charities operating here <span id="charities-sub">— Charity Commission register, largest income first</span></h2>
+      <div class="scroll" id="charities"><div class="pending">loading…</div></div>
+    </section>
+
+    <section class="card span-6">
+      <h2>What changed <span>— the register's own event log, last twelve months</span></h2>
+      <ul class="feed" id="changes"><li class="pending">loading…</li></ul>
+    </section>
+  </div>
+
+  <footer>
+    <span id="asat">figures fetched from each publisher at query time</span>
+    <a href="#how-it-works">How it works</a>
+    <a href="#" id="hide-how" style="display:none">hide</a>
+  </footer>
+
+  <section class="card span-12" id="how-it-works">
+    <h2>How it works</h2>
+    <h3>1. The data</h3>
+    <p>Everything on this page is fetched from the publisher when the view runs, cached at the publisher's own cadence, and never copied into the world. The place is the only thing stored: a <code>UkPlace</code> with its postcode resolved once into the codes each register keys on.</p>
+    <ul>
+      <li><b>OHID Fingertips</b> — fourteen indicators (school readiness, youth-justice first-time entrants, NEET, children in low income, under-18 conceptions, Year 6 overweight, smoking at delivery, low birth weight, MMR, suicide, life expectancy, employment, disability-free life expectancy) as <code>AreaIndicator</code>, keyed on the upper-tier authority code; cached a day. The "compared to England" column is the publisher's significance test.</li>
+      <li><b>NOMIS</b> — claimant count (monthly) and mid-year population by age band; cached a day and a week.</li>
+      <li><b>MHCLG Indices of Deprivation 2025</b> — lower-tier district summaries; cached a week.</li>
+      <li><b>DfE Explore Education Statistics</b> — the early years foundation stage profile as <code>SchoolReadiness</code>; cached a day.</li>
+      <li><b>Charity Commission</b> — the daily bulk register: area of operation (by upper-tier authority), the charity row, the event history; each row carries the Commission's own extract date.</li>
+      <li><b>360Giving GrantNav</b> — every published grant into the district as <code>GrantIntoPlace</code>; one file per district per day.</li>
+    </ul>
+    <h3>2. The questions</h3>
+    <p>Each panel is one saved view, invoked by name with the place as its parameter. The Cypher shown below is read back from the server when this section opens — it is the query that ran, not a copy.</p>
+    <div id="how-views"><p class="pending">open this section to read the views back…</p></div>
+    <h3>3. When it looks wrong</h3>
+    <ul>
+      <li><b>A blank tile or an empty panel</b> means the publisher holds no figure for this authority — a place in a two-tier district reads its county's children's figures and the profile names that county; it is not a zero.</li>
+      <li><b>No charities</b> almost always means the Commission spells the authority differently from the place's stored name (it records operation by county or unitary, under its own spelling).</li>
+      <li><b>Figures that differ from the publisher's site</b> inside a day are the cache, not a bug; the footer states when each source was read.</li>
+      <li><b>The "stands in England" list shrinks as the dial rises</b> by design: it is a minimum extremity, and an authority near the national middle on everything shows nothing at 80.</li>
+    </ul>
+    <h3>4. What made this possible</h3>
+    <ul>
+      <li>The "smart insight" is a rank, a share and an arithmetic distance computed inside the query over every authority's rows — the polarity is declared per indicator in the view, and the standard-error distance uses the publisher's own confidence interval. Nothing is scored by a model and nothing is opaque: the Cypher in section 2 is the whole method.</li>
+      <li>The grants, charity and statistics panels are joins across four publishers on a code the place resolved once; on a conventional stack each is a nightly copy with its own staleness.</li>
+      <li>The Charity Commission's zipped tab-delimited register and the DfE's gzip-encoded CSV are read by the engine's tabular producer as they are published; no ETL was written for this page.</li>
+      <li>This page asks the world by view name at load; there is no backend of its own to deploy or patch.</li>
+    </ul>
+  </section>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const tip = $('tip');
+const fmt = (n, d = 0) => (n == null || n === '' || isNaN(+n)) ? '—' : (+n).toLocaleString('en-GB', { maximumFractionDigits: d, minimumFractionDigits: d });
+const money = (n) => (n == null || isNaN(+n)) ? '—' : (+n >= 1e6 ? '£' + (+n / 1e6).toFixed(1) + 'M' : +n >= 1e3 ? '£' + Math.round(+n / 1e3) + 'k' : '£' + Math.round(+n));
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let place = null, dial = 60, freshness = {}, pendingDial = null;
+const VIEWS = ['PlaceProfile', 'SmartInsights', 'SchoolReadinessAtPlace', 'IndicatorTrendAtPlace', 'GrantsIntoPlaceByYear', 'WhoFundsThisPlace', 'CharitiesOperatingHere', 'CharityChangesHere', 'MyPlaces'];
+
+async function run(name, params) {
+  const res = await gateway.view.run({ name, params: params && Object.keys(params).length ? params : undefined });
+  (res.freshness || []).forEach((f) => { freshness[f.producer] = f.observedAt; });
+  return res;
+}
+function showTip(e, html) { tip.innerHTML = html; tip.style.display = 'block'; moveTip(e); }
+function moveTip(e) { tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 330) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; }
+function hideTip() { tip.style.display = 'none'; }
+function statusMark(v) {
+  if (v === 'Worse' || v === 'Higher') return '<span class="s worse">▲ worse than England</span>';
+  if (v === 'Better' || v === 'Lower') return '<span class="s better">● better than England</span>';
+  if (v === 'Similar' || v === 'Same') return '<span class="s similar">≈ similar to England</span>';
+  return '';
+}
+function fail(id, e) { $(id).innerHTML = `<div class="err">${esc(String(e && e.message || e).slice(0, 200))}</div>`; }
+
+/* ── the roster ── */
+async function loadPlaces() {
+  const res = await run('MyPlaces');
+  const rows = res.rows || [];
+  $('place').innerHTML = rows.map((r) => `<option value="${esc(r.place)}">${esc(r.place)} · ${esc(r.postcode)}</option>`).join('');
+  if (!rows.length) { $('tiles').innerHTML = '<div class="quiet">No places are watched yet. Watch one in Street Lens (or via the realm skill) and come back.</div>'; return; }
+  const wanted = decodeURIComponent(location.hash.replace(/^#/, ''));
+  place = rows.find((r) => r.place === wanted) ? wanted : rows[0].place;
+  $('place').value = place;
+  render();
+}
+$('place').addEventListener('change', () => { place = $('place').value; render(); });
+$('dial').addEventListener('input', () => { dial = +$('dial').value; $('dialv').textContent = dial; clearTimeout(pendingDial); pendingDial = setTimeout(renderStands, 250); });
+
+/* ── render everything for the place ── */
+let profile = null;
+async function render() {
+  freshness = {};
+  $('strap').textContent = place;
+  ['tiles', 'stands', 'readiness', 'youth', 'grants', 'funders', 'charities'].forEach((id) => { $(id).innerHTML = '<div class="pending">asking the publishers…</div>'; });
+  $('changes').innerHTML = '<li class="pending">asking the register…</li>';
+  profile = null;
+  await Promise.allSettled([
+    renderTiles(), renderStands(), renderReadiness(), renderYouth(), renderGrants(), renderFunders(), renderChanges(),
+  ]);
+  renderAsAt();
+}
+
+async function renderTiles() {
+  try {
+    const res = await run('PlaceProfile', { place });
+    const r = (res.rows || [])[0];
+    profile = r || null;
+    if (!r) { $('tiles').innerHTML = '<div class="quiet">No profile row — is the place watched under this name?</div>'; return; }
+    const pct = r.claimantsPctOfWorkingAge;
+    const t = (l, v, p, s) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="p">${esc(p || '')}${s || ''}</div></div>`;
+    $('tiles').innerHTML =
+      t('Residents', fmt(r.residents), r.populationYear + ' estimate') +
+      t('Children 0–15', fmt(r.children0to15), r.populationYear + ' estimate') +
+      t('Claimants', pct == null ? fmt(r.claimants) : fmt(pct, 1) + '%', (pct == null ? '' : 'of working age · ') + (r.claimantsMonth || '')) +
+      t('Deprivation rank', r.deprivationRankOf296 == null ? '—' : fmt(r.deprivationRankOf296) + '<span class="p" style="font-size:12px"> of 296</span>', r.pctNeighbourhoodsMostDeprivedTenth == null ? 'IoD 2025' : fmt(r.pctNeighbourhoodsMostDeprivedTenth) + '% of neighbourhoods in the most deprived tenth') +
+      t('School readiness', r.schoolReadinessPct == null ? '—' : fmt(r.schoolReadinessPct, 1) + '%', r.schoolReadinessPeriod, statusMark(r.schoolReadinessVsEngland)) +
+      t('Youth justice entrants', r.youthJusticeFirstTimeEntrantsPer100k == null ? '—' : fmt(r.youthJusticeFirstTimeEntrantsPer100k), (r.youthJusticePeriod || '') + ' · per 100,000', statusMark(r.youthJusticeVsEngland));
+    $('glance-as').textContent = r.childrensServicesAuthority && r.childrensServicesAuthority !== r.district ? `— ${r.district}; children's figures are ${r.childrensServicesAuthority}'s` : `— ${r.district || ''}`;
+    renderCharities(); // the outcode filter depends on the profile
+  } catch (e) { fail('tiles', e); renderCharities(); }
+}
+
+async function renderStands() {
+  try {
+    const res = await run('SmartInsights', { place, dial, limit: 20 });
+    const rows = res.rows || [];
+    if (!rows.length) { $('stands').innerHTML = `<div class="quiet">Nothing this far from the national middle at dial ${dial}. Lower the dial.</div>`; $('stands-note').textContent = ''; return; }
+    $('stands').innerHTML = rows.map((r) => {
+      const worse = r.pctOfAuthoritiesDoingBetter; // 0 best … 100 worst
+      const bad = worse >= 50;
+      const colour = r.publisherVsEngland === 'Worse' ? 'var(--critical)' : r.publisherVsEngland === 'Better' ? 'var(--good)' : 'var(--seq-450)';
+      const left = bad ? 50 : worse, width = Math.max(1, Math.abs(worse - 50));
+      const se = r.standardErrorsFromEngland;
+      const tipHtml = `<b>${esc(r.indicator)}</b><br>${esc(r.authority)}: <b>${fmt(r.value, 1)}</b> · England ${fmt(r.englandValue, 1)} · ${esc(r.period)}<br>` +
+        `${fmt(worse)}% of ${fmt(r.ofAuthorities)} authorities do better (rank ${fmt(r.rankFromWorst)} from worst)<br>` +
+        `${esc(r.polarity)}${se == null ? '' : ' · ' + (se > 0 ? '+' : '') + fmt(se, 1) + ' standard errors from England'}<br>` +
+        `publisher: ${esc(r.publisherVsEngland || '—')}${r.recentTrend ? ' · trend: ' + esc(r.recentTrend) : ''}`;
+      return `<div class="row" data-tip="${esc(tipHtml)}">
+        <div class="name">${esc(r.indicator)}<small>${esc(r.period)} · ${esc(r.polarity)}</small></div>
+        <div class="track"><div class="mid"></div><div class="fill" style="left:${left}%;width:${width}%;background:${colour}"></div></div>
+        <div class="val"><b>${fmt(r.value, 1)}</b> vs England ${fmt(r.englandValue, 1)}<br>${fmt(worse)}% of authorities do better ${statusMark(r.publisherVsEngland)}</div>
+      </div>`;
+    }).join('');
+    $('stands').querySelectorAll('.row').forEach((el) => {
+      el.addEventListener('mouseenter', (e) => showTip(e, el.dataset.tip));
+      el.addEventListener('mousemove', moveTip);
+      el.addEventListener('mouseleave', hideTip);
+    });
+    const worst = rows.filter((r) => r.rankFromWorst <= 5).length;
+    $('stands-note').textContent = `${rows.length} indicator${rows.length === 1 ? '' : 's'} at least ${dial} from the middle` + (worst ? ` · ${worst} in England's worst five` : '') + '. A bar to the right of the middle is worse than most authorities; the colour is the publisher\'s own judgement against England.';
+  } catch (e) { fail('stands', e); }
+}
+
+/* ── line charts, hand-drawn SVG: thin marks, one axis, hover crosshair ── */
+function lineChart(el, series, opts) {
+  // series: [{name, colour, points:[{x:label, y:number, lo?, hi?}]}] sharing x labels in order
+  const W = Math.max(280, el.clientWidth || 480), H = 190, m = { t: 14, r: 12, b: 28, l: 38 };
+  const labels = [...new Set(series.flatMap((s) => s.points.map((p) => p.x)))];
+  const ys = series.flatMap((s) => s.points.flatMap((p) => [p.y, p.lo, p.hi])).filter((v) => v != null && !isNaN(v));
+  if (!labels.length || !ys.length) { el.innerHTML = '<div class="quiet">No published series for this authority.</div>'; return; }
+  let lo = Math.min(...ys), hi = Math.max(...ys);
+  if (opts && opts.zero) lo = 0;
+  // Clean tick values: a 1/2/5 step over the data's span, the axis snapped to it.
+  const span = (hi - lo) || 1, raw = span / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 5, 10].map((k) => k * mag).find((k) => k >= raw) || mag;
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  if (hi === lo) hi = lo + step;
+  const x = (i) => m.l + (labels.length === 1 ? 0 : i * (W - m.l - m.r) / (labels.length - 1));
+  const y = (v) => m.t + (H - m.t - m.b) * (1 - (v - lo) / (hi - lo));
+  const tickVals = []; for (let v = lo; v <= hi + step / 1e6; v += step) tickVals.push(+v.toFixed(6));
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(opts.label || '')}">`;
+  tickVals.forEach((v) => { svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end" font-size="10" fill="var(--ink-3)">${fmt(v, step < 1 ? 1 : 0)}</text>`; });
+  const lstep = Math.ceil(labels.length / 6);
+  labels.forEach((lb, i) => { if (i % lstep === 0 || i === labels.length - 1) svg += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--ink-3)">${esc(lb)}</text>`; });
+  series.forEach((s) => {
+    const idx = (p) => labels.indexOf(p.x);
+    const band = s.points.filter((p) => p.lo != null && p.hi != null);
+    if (band.length > 1) {
+      const top = band.map((p) => `${x(idx(p))},${y(p.hi)}`), bot = band.slice().reverse().map((p) => `${x(idx(p))},${y(p.lo)}`);
+      svg += `<polygon points="${top.concat(bot).join(' ')}" fill="${s.colour}" opacity="0.14"/>`;
+    }
+    const pts = s.points.filter((p) => p.y != null);
+    svg += `<polyline fill="none" stroke="${s.colour}" stroke-width="2" stroke-linejoin="round" points="${pts.map((p) => `${x(idx(p))},${y(p.y)}`).join(' ')}"/>`;
+    pts.forEach((p) => { svg += `<circle cx="${x(idx(p))}" cy="${y(p.y)}" r="3.5" fill="${s.colour}" stroke="var(--surface)" stroke-width="2"/>`; });
+    const last = pts[pts.length - 1];
+    if (last) svg += `<text x="${x(idx(last)) - 4}" y="${y(last.y) - 8}" text-anchor="end" font-size="11" fill="var(--ink-2)">${fmt(last.y, opts.dec == null ? 0 : opts.dec)}</text>`;
+  });
+  svg += `<line id="xh" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>`;
+  svg += `<rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}" fill="transparent" class="hit"/></svg>`;
+  el.innerHTML = svg;
+  const hit = el.querySelector('.hit'), xh = el.querySelector('#xh'), svgEl = el.querySelector('svg');
+  hit.addEventListener('mousemove', (e) => {
+    const box = svgEl.getBoundingClientRect(), px = (e.clientX - box.left) * W / box.width;
+    let i = 0, best = Infinity; labels.forEach((_, k) => { const d = Math.abs(x(k) - px); if (d < best) { best = d; i = k; } });
+    xh.setAttribute('x1', x(i)); xh.setAttribute('x2', x(i)); xh.setAttribute('opacity', '1');
+    const lines = series.map((s) => { const p = s.points.find((q) => q.x === labels[i]); return p && p.y != null ? `<span style="color:${s.colour}">■</span> ${esc(s.name)}: <b>${fmt(p.y, opts.dec == null ? 1 : opts.dec)}</b>${p.lo != null ? ` (${fmt(p.lo, 0)}–${fmt(p.hi, 0)})` : ''}${p.note ? ' · ' + esc(p.note) : ''}` : null; }).filter(Boolean);
+    showTip(e, `<b>${esc(labels[i])}</b><br>${lines.join('<br>')}`);
+  });
+  hit.addEventListener('mouseleave', () => { xh.setAttribute('opacity', '0'); hideTip(); });
+}
+
+async function renderReadiness() {
+  try {
+    const res = await run('SchoolReadinessAtPlace', { place });
+    const rows = res.rows || [];
+    if (!rows.length) { $('readiness').innerHTML = '<div class="quiet">The DfE publishes this for upper-tier authorities; none found for this place\'s authority.</div>'; return; }
+    lineChart($('readiness'), [
+      { name: 'all children', colour: 'var(--series-1)', points: rows.map((r) => ({ x: r.academicYear, y: r.goodLevelOfDevelopmentPct })) },
+      { name: 'free school meals', colour: 'var(--series-2)', points: rows.map((r) => ({ x: r.academicYear, y: r.fsmGoodLevelOfDevelopmentPct, note: r.fsmGapPoints != null ? 'gap ' + fmt(r.fsmGapPoints, 1) + ' points' : '' })) },
+    ], { label: 'School readiness by academic year', dec: 1 });
+  } catch (e) { fail('readiness', e); }
+}
+async function renderYouth() {
+  try {
+    const res = await run('IndicatorTrendAtPlace', { place, indicatorId: '10401', sex: 'Persons' });
+    const rows = res.rows || [];
+    if (!rows.length) { $('youth').innerHTML = '<div class="quiet">No youth-justice series for this authority.</div>'; return; }
+    lineChart($('youth'), [{ name: 'first-time entrants per 100k', colour: 'var(--series-1)', points: rows.map((r) => ({ x: r.period, y: r.value, lo: r.lower95, hi: r.upper95, note: r.vsEngland ? r.vsEngland + ' than England' : '' })) }], { label: 'Youth justice first-time entrants', dec: 0, zero: true });
+  } catch (e) { fail('youth', e); }
+}
+function columns(el, rows, key, val, opts) {
+  const W = Math.max(280, el.clientWidth || 480), H = 180, m = { t: 16, r: 8, b: 26, l: 8 };
+  if (!rows.length) { el.innerHTML = '<div class="quiet">Nothing published.</div>'; return; }
+  const max = Math.max(...rows.map((r) => +r[val] || 0)) || 1;
+  const bw = (W - m.l - m.r) / rows.length, gap = 2;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(opts.label)}">`;
+  rows.forEach((r, i) => {
+    const h = (H - m.t - m.b) * (+r[val] || 0) / max, x = m.l + i * bw + gap / 2, y = H - m.b - h;
+    svg += `<rect class="col" data-i="${i}" x="${x}" y="${y}" width="${bw - gap}" height="${h}" rx="4" ry="4" fill="var(--seq-450)"/>`;
+    if (i === rows.length - 1 || i % Math.ceil(rows.length / 8) === 0) svg += `<text x="${x + (bw - gap) / 2}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--ink-3)">${esc(r[key])}</text>`;
+  });
+  const top = rows.reduce((a, b) => (+b[val] > +a[val] ? b : a));
+  const ti = rows.indexOf(top);
+  svg += `<text x="${m.l + ti * bw + (bw - gap) / 2}" y="${H - m.b - (H - m.t - m.b) * (+top[val]) / max - 4}" text-anchor="middle" font-size="11" fill="var(--ink-2)">${opts.fmt(top[val])}</text>`;
+  svg += '</svg>';
+  el.innerHTML = svg;
+  el.querySelectorAll('.col').forEach((c) => {
+    c.addEventListener('mouseenter', (e) => { const r = rows[+c.dataset.i]; showTip(e, opts.tip(r)); });
+    c.addEventListener('mousemove', moveTip); c.addEventListener('mouseleave', hideTip);
+  });
+}
+async function renderGrants() {
+  try {
+    const res = await run('GrantsIntoPlaceByYear', { place, fromYear: '2015' });
+    columns($('grants'), res.rows || [], 'year', 'totalAwarded', { label: 'Grants by year', fmt: money,
+      tip: (r) => `<b>${esc(r.year)}</b><br>${money(r.totalAwarded)} across ${fmt(r.grants)} grants<br>${fmt(r.funders)} funders · ${fmt(r.recipients)} recipients` });
+  } catch (e) { fail('grants', e); }
+}
+async function renderFunders() {
+  try {
+    const res = await run('WhoFundsThisPlace', { place, fromYear: '2020', limit: 10 });
+    const rows = res.rows || [];
+    if (!rows.length) { $('funders').innerHTML = '<div class="quiet">No published grants into this district since 2020.</div>'; return; }
+    $('funders').innerHTML = `<table><tr><th>Funder</th><th class="n">Awarded</th><th class="n">Grants</th><th class="n">Recipients</th><th class="n">Latest</th></tr>` +
+      rows.map((r) => `<tr><td>${esc(r.funder)}</td><td class="n">${money(r.totalAwarded)}</td><td class="n">${fmt(r.grants)}</td><td class="n">${fmt(r.recipients)}</td><td class="n">${esc(r.latestAward)}</td></tr>`).join('') + '</table>';
+  } catch (e) { fail('funders', e); }
+}
+async function renderCharities() {
+  try {
+    const params = { place, limit: 12 };
+    let sub = '— Charity Commission register, largest income first';
+    if (profile && profile.childrensServicesAuthority && profile.childrensServicesAuthority !== profile.district) {
+      const outcode = (($('place').selectedOptions[0] || {}).text || '').split('·')[1] || '';
+      const oc = outcode.trim().split(' ')[0].replace(/\d.*$/, '');
+      if (oc) { params.basedInPostcode = oc; sub = `— operating in ${esc(profile.childrensServicesAuthority)} (the Commission records by county), based in ${esc(oc)} postcodes`; }
+    }
+    const res = await run('CharitiesOperatingHere', params);
+    const rows = res.rows || [];
+    $('charities-sub').innerHTML = sub;
+    if (!rows.length) { $('charities').innerHTML = '<div class="quiet">No rows under this authority\'s name — the Commission may spell it differently.</div>'; return; }
+    $('charities').innerHTML = `<table><tr><th>Charity</th><th class="n">Income</th><th>Since</th><th>Postcode</th></tr>` +
+      rows.map((r) => `<tr><td title="${esc(r.activities || '')}">${esc(r.charity)}</td><td class="n">${money(r.latestIncome)}</td><td>${esc((r.registered || '').slice(0, 4))}</td><td>${esc(r.postcode)}</td></tr>`).join('') + '</table>' +
+      `<div class="note">Register as at ${esc(rows[0].registerAsAt)}. Hover a name for the trustees' own description.</div>`;
+  } catch (e) { fail('charities', e); }
+}
+async function renderChanges() {
+  try {
+    const since = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
+    const res = await run('CharityChangesHere', { place, since, limit: 14 });
+    const rows = res.rows || [];
+    if (!rows.length) { $('changes').innerHTML = '<li class="quiet">No register events in the last twelve months.</li>'; return; }
+    $('changes').innerHTML = rows.map((r) => {
+      const cls = /Removed/.test(r.event) ? 'removed' : /registration/i.test(r.event) ? 'registration' : '';
+      return `<li><span class="d">${esc(r.date)}</span><span class="e ${cls}">${esc(r.event)}</span>${esc(r.charity)}${r.reason ? ` <span class="quiet">— ${esc(r.reason)}</span>` : ''}${r.otherCharity ? ` <span class="quiet">↔ ${esc(r.otherCharity)}</span>` : ''}</li>`;
+    }).join('');
+  } catch (e) { $('changes').innerHTML = `<li class="err">${esc(String(e && e.message || e).slice(0, 200))}</li>`; }
+}
+function renderAsAt() {
+  const names = { healthIndicatorsUpperTier: 'OHID Fingertips', indicatorAcrossUpperTier: 'OHID Fingertips (national)', claimantCount: 'NOMIS claimants', populationByAge: 'ONS population', imd2025DistrictSummary: 'IoD 2025', schoolReadinessByLa: 'DfE', charitiesOperatingIn: 'Charity Commission', charityByNumber: 'Charity Commission', charityEventsByNumber: 'Charity Commission', grantsIntoDistrict: '360Giving' };
+  const seen = {};
+  Object.entries(freshness).forEach(([k, v]) => { const n = names[k] || k; if (!seen[n] || v > seen[n]) seen[n] = v; });
+  const parts = Object.entries(seen).map(([n, v]) => `${n} ${String(v).slice(0, 16).replace('T', ' ')}`);
+  $('asat').textContent = parts.length ? 'read: ' + parts.join(' · ') : 'figures fetched from each publisher at query time';
+}
+
+/* ── How it works: read the views back from the server when opened ── */
+async function loadHow() {
+  const el = $('how-views');
+  if (el.dataset.loaded) return;
+  el.dataset.loaded = '1';
+  el.innerHTML = '';
+  for (const name of VIEWS) {
+    try {
+      const res = await gateway.view.run({ name, params: name === 'MyPlaces' ? undefined : (name === 'IndicatorTrendAtPlace' ? { place: place || '', indicatorId: '10401' } : { place: place || '' }), explain: true });
+      el.insertAdjacentHTML('beforeend', `<h3><code>${esc(name)}</code></h3><pre>${esc(res.cypher || '(the server did not return the query)')}</pre>`);
+    } catch (e) {
+      el.insertAdjacentHTML('beforeend', `<h3><code>${esc(name)}</code></h3><p class="err">${esc(String(e && e.message || e).slice(0, 160))}</p>`);
+    }
+  }
+}
+window.addEventListener('hashchange', () => { if (location.hash === '#how-it-works') { $('hide-how').style.display = ''; loadHow(); } else $('hide-how').style.display = 'none'; });
+$('hide-how').addEventListener('click', (e) => { e.preventDefault(); history.replaceState(null, '', location.pathname + location.search); $('hide-how').style.display = 'none'; $('how-it-works').style.display = ''; });
+if (location.hash === '#how-it-works') { $('hide-how').style.display = ''; setTimeout(loadHow, 800); }
+
+loadPlaces().catch((e) => { $('tiles').innerHTML = `<div class="err">${esc(String(e && e.message || e))}</div>`; });
+</script>
+<div id="embabel-badge" style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:6px 0;background:rgba(10,10,15,0.9);border-top:1px solid rgba(99,192,245,0.2);font-size:0.75rem;color:#6b7280;z-index:9999;pointer-events:none;">
+  Created with <a href="https://embabel.com" target="_blank" rel="noopener noreferrer" style="color:#63c0f5;text-decoration:none;pointer-events:auto;">Embabel Me</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+ "rows": [
+  {
+   "place": "Blackpool",
+   "postcode": "FY1 4BJ",
+   "latitude": 53.815963,
+   "longitude": -3.05494
+  },
+  {
+   "place": "Middlesbrough",
+   "postcode": "TS1 2RE",
+   "latitude": 54.575627,
+   "longitude": -1.228594
+  },
+  {
+   "place": "SE10 9JY",
+   "postcode": "SE10 9JY",
+   "latitude": 51.480069,
+   "longitude": -0.011862
+  },
+  {
+   "place": "clacton",
+   "postcode": "CO15 1ST",
+   "latitude": 51.790002,
+   "longitude": 1.153742
+  }
+ ],
+ "warnings": [],
+ "cost": {
+  "ms": 220,
+  "apiCalls": 0,
+  "llmCalls": 0
+ }
+}

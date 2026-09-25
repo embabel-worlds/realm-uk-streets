@@ -1,0 +1,65 @@
+{
+ "rows": [
+  {
+   "place": "Blackpool",
+   "authority": "Blackpool",
+   "academicYear": "2021/22",
+   "childrenAssessed": 1652,
+   "goodLevelOfDevelopmentPct": 60.1,
+   "fsmGoodLevelOfDevelopmentPct": null,
+   "fsmGapPoints": null,
+   "communicationLanguageLiteracyPct": 61.3
+  },
+  {
+   "place": "Blackpool",
+   "authority": "Blackpool",
+   "academicYear": "2022/23",
+   "childrenAssessed": 1605,
+   "goodLevelOfDevelopmentPct": 63.9,
+   "fsmGoodLevelOfDevelopmentPct": 53.3,
+   "fsmGapPoints": 10.6,
+   "communicationLanguageLiteracyPct": 65.2
+  },
+  {
+   "place": "Blackpool",
+   "authority": "Blackpool",
+   "academicYear": "2023/24",
+   "childrenAssessed": 1607,
+   "goodLevelOfDevelopmentPct": 63.2,
+   "fsmGoodLevelOfDevelopmentPct": 51.7,
+   "fsmGapPoints": 11.5,
+   "communicationLanguageLiteracyPct": 64.3
+  },
+  {
+   "place": "Blackpool",
+   "authority": "Blackpool",
+   "academicYear": "2024/25",
+   "childrenAssessed": 1491,
+   "goodLevelOfDevelopmentPct": 63.5,
+   "fsmGoodLevelOfDevelopmentPct": 52.3,
+   "fsmGapPoints": 11.2,
+   "communicationLanguageLiteracyPct": 64.9
+  }
+ ],
+ "warnings": [],
+ "freshness": [
+  {
+   "producer": "schoolReadinessByLa",
+   "source": "cached",
+   "observedAt": "2026-09-25T02:05:22.610Z",
+   "keys": 1
+  },
+  {
+   "producer": "schoolReadinessByLa",
+   "source": "live",
+   "observedAt": "2026-09-25T04:38:12.511Z",
+   "keys": 1
+  }
+ ],
+ "freshnessNote": "NOTE: not every figure here was read just now. `observedAt` is when the source was\nACTUALLY read, and `source: \"cached\"` means the value describes that source AS OF THAT\nMOMENT, served from cache \u2014 not the state right now. If the answer turns on how things\nstand currently, say when it was observed rather than implying it is live.\nServed warm: schoolReadinessByLa (2026-09-25T02:05:22.610Z).",
+ "cost": {
+  "ms": 215,
+  "apiCalls": 0,
+  "llmCalls": 0
+ }
+}
