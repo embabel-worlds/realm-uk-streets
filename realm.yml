@@ -43,6 +43,8 @@ tags:
   - maps
   - apps
 exports:
+  # the skill — a realm with an explicit export list publishes only the skills it names
+  - uk-streets
   - police_uk
   - postcodes_io
   - land_registry

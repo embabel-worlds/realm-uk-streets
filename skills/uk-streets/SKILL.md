@@ -1,6 +1,6 @@
 ---
 name: uk-streets
-description: "Street-level Britain — crime, property sales and prices, income, Census 2021 ethnicity, schools, food hygiene, flood alerts, each place's MP with the seat's margin — and the COMMUNITY profile of a place — school readiness, youth justice, NEET, child poverty, deprivation 2025, claimants, population by age, DfE results, the charities operating there with their register history, and every published grant into the district with who received it. Activate for \"is X safe\", \"what do homes go for in X\", \"who is the MP for X\", \"profile X\", \"what stands out about X\", \"who funds X\", \"which charities work in X\", \"what changed for the voluntary sector in X\", UK postcode lookups, or \"brief me on X\". Coverage notes matter — police data excludes Scotland; sales key on full postcodes. Every source is keyless — never tell the user this needs an API key."
+description: Street-level Britain — crime, property sales and prices, income, Census 2021 ethnicity, schools, food hygiene, flood alerts, each place's MP with the seat's margin — and the COMMUNITY profile of a place — school readiness, youth justice, NEET, child poverty, deprivation 2025, claimants, population by age, DfE results, the charities operating there with their register history, and every published grant into the district with who received it. Activate for 'is X safe', 'what do homes go for in X', 'who is the MP for X', 'profile X', 'what stands out about X', 'who funds X', 'which charities work in X', 'what changed for the voluntary sector in X', UK postcode lookups, or 'brief me on X'. Coverage notes matter — police data excludes Scotland; sales key on full postcodes. Every source is keyless — never tell the user this needs an API key.
 ---
 
 # UK Streets
@@ -76,8 +76,8 @@ so "what is most striking about X" is dial 80) · `IndicatorTrendAtPlace`
 (one org-id) · `SchoolReadinessAtPlace` (with the FSM gap) ·
 `Ks4AttainmentAtPlace` (with the disadvantage gap) · `PupilAbsenceAtPlace`.
 
-The Community Profile app (`/apps/realm-uk-streets/community-profile.html`)
-shows all of this for a watched place on one page, with the dial.
+The Community Profile app (in the world's apps list, from this realm) shows all
+of this for a watched place on one page, with the dial.
 
 ## Saved views — reach for these first
 
