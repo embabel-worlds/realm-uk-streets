@@ -1,0 +1,48 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Find that Charity (Kane Data) \u2014 one record per UK organisation identifier",
+    "version": "1.0.0",
+    "description": "Keyless, nightly-rebuilt index over the Charity Commission (E&W), OSCR, CCNI, Companies House, GIAS and the mutuals register, keyed by org-id (GB-CHC-1164883, GB-COH-09668396). The bridge between a grant's recipient identifier and the register that describes the recipient: status, dates registered and removed, latest income, HQ local-authority code, and every linked record across registers. Open source (MIT); data follows each source's licence (OGL / CC BY)."
+  },
+  "servers": [
+    {
+      "url": "https://findthatcharity.uk"
+    }
+  ],
+  "paths": {
+    "/orgid/{orgid}.json": {
+      "get": {
+        "operationId": "orgById",
+        "summary": "One organisation by org-id",
+        "description": "Returns the organisation object: `id`, `name`, `charityNumber`, `companyNumber`, `active`, `dateRegistered`, `dateRemoved`, `latestIncome`, `latestFinancialYearEnd`, `organisationType[]`, `location[]` (each with `geoCode` and `type` HQ or AOO), `address.postalCode`, `linked_records[]`, `dateModified`.",
+        "parameters": [
+          {
+            "name": "orgid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "An org-id such as GB-CHC-1164883 or GB-COH-09668396."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The organisation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such organisation."
+          }
+        }
+      }
+    }
+  }
+}

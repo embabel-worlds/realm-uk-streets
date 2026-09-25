@@ -1,6 +1,6 @@
 ---
 name: uk-streets
-description: Street-level Britain — crime, property sales and prices, income, Census 2021 ethnicity, schools, food hygiene, flood alerts, and each place's MP with the seat's margin. Activate for "is X safe", "what do homes go for in X", "who is the MP for X", "air of the place" questions about UK places, UK postcode lookups, or "brief me on X". Coverage notes matter — police data excludes Scotland; sales key on full postcodes. Every source is keyless — never tell the user this needs an API key.
+description: Street-level Britain — crime, property sales and prices, income, Census 2021 ethnicity, schools, food hygiene, flood alerts, each place's MP with the seat's margin — and the COMMUNITY profile of a place: school readiness, youth justice, NEET, child poverty, deprivation 2025, claimants, population by age, DfE results, the charities operating there with their register history, and every published grant into the district with who received it. Activate for "is X safe", "what do homes go for in X", "who is the MP for X", "profile X", "what stands out about X", "who funds X", "which charities work in X", "what changed for the voluntary sector in X", UK postcode lookups, or "brief me on X". Coverage notes matter — police data excludes Scotland; sales key on full postcodes. Every source is keyless — never tell the user this needs an API key.
 ---
 
 # UK Streets
@@ -29,6 +29,47 @@ dataset:
 Two zoom levels: a FULL postcode (`SE10 9JY`) carries every key; an OUTCODE
 (`SE10`) carries the coordinate and district keys only — sales and census are
 street-level facts and stay empty there, which is correct, not missing.
+
+## The community and organisation axes
+
+| Stored on the place | Joins to | Edge |
+|---|---|---|
+| `districtCode` | OHID Fingertips, 14 indicators with the publisher's "compared to England" | `HAS_CHILD_INDICATOR` (upper-tier) / `HAS_LOCAL_INDICATOR` (lower-tier) |
+| `districtCode` | NOMIS claimant count · ONS population by age · IoD 2025 | `HAS_CLAIMANTS` `HAS_POPULATION` `HAS_DEPRIVATION_2025` |
+| `districtCode` | DfE early-years profile · pupil absence · KS4 | `HAS_SCHOOL_READINESS` `HAS_PUPIL_ABSENCE` `HAS_KS4_ATTAINMENT` |
+| `district` (name) | Charity Commission area of operation → `Charity` → `CharityEvent` | `HAS_CHARITY_LINK` → `HAS_CHARITY` → `HAS_EVENT` |
+| `district` (name) | 360Giving GrantNav, every grant into the district | `HAS_GRANT` |
+| an org-id literal | Find that Charity record | `MATCH (l:OrgLookup {orgId:'GB-CHC-…'})-[:RESOLVES_TO]->(o:OrgRecord)` |
+
+Rules that keep these honest:
+- A Fingertips indicator has MANY rows per area (every period, sex, breakdown).
+  The headline is `categoryType` empty, `sex` 'Persons' (or 'Female' for
+  under-18 conceptions and smoking at delivery; life expectancy is by sex), at
+  the greatest `periodSortable`. `comparedToEngland` is the publisher's
+  significance test — quote it, never invent a score.
+- DfE rows: pin `breakdownTopic = 'Total'` (KS4) / `breakdown = 'Total'`
+  (early years) / `absenceType` and `phase` (absence) before reading a figure.
+- Children's-services figures are published for UPPER-TIER authorities. A
+  place in a two-tier district (E07…) finds them empty — say the county holds
+  them; it is not a zero.
+- A function inside a WHERE over a producer-backed edge is NOT applied — bind
+  it first: `WITH g, left(g.awardDate,4) AS year WHERE year >= '2020'`.
+- Never fan the register hop out over a whole grant set: resolve one org-id at
+  a time through `OrgLookup`, or narrow the grants in the same MATCH's WHERE
+  to under 200 first.
+- Charity facts carry `extractDate` — quote it as the as-at date; a removed
+  charity's reason lives on its `CharityEvent`, not on the `Charity` row.
+
+Views: `PlaceProfile` (the one-page community profile) · `WhereThisPlaceStandsOut`
+(worse / better than England, by the publisher's test) · `IndicatorTrendAtPlace`
+(one indicator, every period) · `WhoLivesHere` · `IndicatorAcrossEngland`
+(rank one indicator nationally) · `MostDeprivedDistricts2025` ·
+`ClaimantsPayAndDeprivation` · `CharitiesOperatingHere` (filter on activities)
+· `CharityChangesHere` (arrivals, removals with reason, since a date) ·
+`WhoFundsThisPlace` · `GrantsIntoPlaceByYear` · `BiggestGrantsHere` ·
+`FundedOrganisationsHere` (by identifier kind) · `WhatIsThisOrganisation`
+(one org-id) · `SchoolReadinessAtPlace` (with the FSM gap) ·
+`Ks4AttainmentAtPlace` (with the disadvantage gap) · `PupilAbsenceAtPlace`.
 
 ## Saved views — reach for these first
 
@@ -98,7 +139,7 @@ wrong place.
 - **Every saved view MUST be tested with its DEFAULT parameters** against a
   world with a realistic number of watched places before it ships or changes —
   defaults are what the ask layer and the app actually run. A view that only
-  works with hand-picked parameters is broken. (`scripts/test-nl.py` covers
+  works with hand-picked parameters is broken. (`../../scripts/test-nl.py` covers
   the ask layer; run each view via `gateway.view.run({ name })` for the rest.)
 
 - **Aggregate, don't enumerate.** A city-centre place is thousands of crime

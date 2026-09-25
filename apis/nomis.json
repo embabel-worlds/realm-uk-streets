@@ -220,6 +220,147 @@
           }
         }
       }
+    },
+    "/api/v01/dataset/NM_162_1.data.json": {
+      "get": {
+        "operationId": "claimantCount",
+        "summary": "Claimant count (people claiming unemployment-related benefits) for an area, latest month",
+        "description": "`obs[]` carries `obs_value.value` \u2014 the number of people claiming Jobseeker's Allowance or Universal Credit principally for the reason of being unemployed, rounded to 5, for the latest published month. Works at district (E06/E07/E08/E09) and, with `geography=TYPE432`, for EVERY local authority in one call (374 obs). Age 0 = all ages 16+, gender 0 = total, measure 1 = the count.",
+        "parameters": [
+          {
+            "name": "geography",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "District GSS code (E06000009) or a NOMIS geography type such as TYPE432 for all local authorities."
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`latest` for the newest month."
+          },
+          {
+            "name": "gender",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`0` = total."
+          },
+          {
+            "name": "age",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`0` = all ages 16+."
+          },
+          {
+            "name": "measure",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`1` = claimant count; `2` = claimants as a proportion of residents aged 16-64."
+          },
+          {
+            "name": "measures",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`20100` = value."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Observations under obs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v01/dataset/NM_2002_1.data.json": {
+      "get": {
+        "operationId": "populationByAge",
+        "summary": "ONS mid-year population estimates for a local authority, by age band",
+        "description": "`obs[]` has one row per requested `c_age` band: `c_age.description` (the band) and `obs_value.value` (persons). Bands: 200 = all ages, 201 = aged 0 to 15, 203 = aged 16 to 64, 209 = aged 65+, 250 = aged 16 to 24. `time.description` is the estimate year.",
+        "parameters": [
+          {
+            "name": "geography",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "District GSS code, e.g. E06000009."
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`latest` for the newest mid-year estimate."
+          },
+          {
+            "name": "gender",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`0` = total."
+          },
+          {
+            "name": "c_age",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated band codes: `200,201,203,209,250`."
+          },
+          {
+            "name": "measures",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "`20100` = count."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Observations under obs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

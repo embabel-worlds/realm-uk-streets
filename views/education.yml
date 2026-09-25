@@ -1,0 +1,86 @@
+# Views over the EDUCATION axis — DfE statistics at the children's-services
+# authority, with the disadvantage gap beside every headline.
+
+- name: SchoolReadinessAtPlace
+  description: "School readiness for each watched place's authority — the share of five-year-olds reaching a good level of development at the end of Reception — for every published academic year, with the children assessed and the free-school-meals row beside the total so the disadvantage gap is visible. From the DfE early years foundation stage profile. Ask 'school readiness in Blackpool', 'how many children start school ready in Middlesbrough', 'the FSM gap in early years'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_SCHOOL_READINESS]->(r:SchoolReadiness)
+    WHERE r.sex = 'Total' AND (
+      (r.breakdownTopic = 'Total' AND r.breakdown = 'Total')
+      OR (toLower(r.breakdownTopic) CONTAINS 'free school meal' AND toLower(r.breakdown) CONTAINS 'eligible' AND NOT toLower(r.breakdown) CONTAINS 'not'))
+    WITH p, r ORDER BY r.period
+    WITH p, r.period AS period, r.la AS authority,
+         head([x IN collect(r) WHERE x.breakdownTopic = 'Total']) AS total,
+         head([x IN collect(r) WHERE x.breakdownTopic <> 'Total']) AS fsm
+    RETURN p.name AS place, authority,
+           left(period, 4) + '/' + right(period, 2) AS academicYear,
+           toInteger(toFloat(total.children)) AS childrenAssessed,
+           round(toFloat(total.gldPercent), 1) AS goodLevelOfDevelopmentPct,
+           round(toFloat(fsm.gldPercent), 1) AS fsmGoodLevelOfDevelopmentPct,
+           CASE WHEN fsm IS NOT NULL THEN round(toFloat(total.gldPercent) - toFloat(fsm.gldPercent), 1) END AS fsmGapPoints,
+           round(toFloat(total.commLangLitPercent), 1) AS communicationLanguageLiteracyPct
+    ORDER BY place, period
+
+- name: Ks4AttainmentAtPlace
+  description: "GCSE-year attainment for each watched place's authority, all state-funded schools, by academic year — Attainment 8, the share with grade 5+ and grade 4+ in English and maths, EBacc entry, and the disadvantaged pupils' Attainment 8 beside the total. From the DfE key stage 4 performance release; revised figures where published. Ask 'GCSE results in Blackpool', 'attainment 8 for Middlesbrough over time', 'the disadvantage gap at 16'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_KS4_ATTAINMENT]->(k:Ks4Attainment)
+    WHERE k.establishmentType = 'All state-funded'
+      AND (k.breakdownTopic = 'Total'
+           OR (k.breakdownTopic = 'Disadvantage status' AND k.disadvantageStatus = 'Disadvantaged'))
+    WITH p, k ORDER BY k.period, CASE k.version WHEN 'Final' THEN 0 WHEN 'Revised' THEN 1 ELSE 2 END
+    WITH p, k.period AS period, k.la AS authority,
+         head([x IN collect(k) WHERE x.breakdownTopic = 'Total']) AS total,
+         head([x IN collect(k) WHERE x.breakdownTopic <> 'Total']) AS dis
+    RETURN p.name AS place, authority,
+           left(period, 4) + '/' + right(period, 2) AS academicYear, total.version AS figures,
+           toInteger(toFloat(total.pupils)) AS pupils,
+           round(toFloat(total.attainment8Average), 1) AS attainment8,
+           round(toFloat(dis.attainment8Average), 1) AS disadvantagedAttainment8,
+           round(toFloat(total.engMathGrade5Percent), 1) AS englishMathsGrade5PlusPct,
+           round(toFloat(total.engMathGrade4Percent), 1) AS englishMathsGrade4PlusPct,
+           round(toFloat(total.ebaccEnteringPercent), 1) AS ebaccEntryPct,
+           round(toFloat(total.progress8Average), 2) AS progress8
+    ORDER BY place, period
+
+- name: PupilAbsenceAtPlace
+  description: "Persistent and severe absence for each watched place's authority by academic year and school phase — the share of enrolments missing 10%+ (persistent) and 50%+ (severe) of sessions — from the DfE pupil absence release. Ask 'absence in Blackpool schools', 'persistent absence in Middlesbrough secondaries over time'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    phase:
+      type: string
+      default: "Total"
+      description: "'Total', 'State-funded primary', 'State-funded secondary' or 'Special schools'."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_PUPIL_ABSENCE]->(a:PupilAbsence)
+    WHERE a.phase = $phase AND a.absenceType IN ['Persistent absence', 'Severe absence', 'Total pupils']
+    WITH p, a ORDER BY a.period
+    WITH p, a.period AS period, a.la AS authority,
+         head([x IN collect(a) WHERE x.absenceType = 'Total pupils']) AS everyone,
+         head([x IN collect(a) WHERE x.absenceType = 'Persistent absence']) AS persistent,
+         head([x IN collect(a) WHERE x.absenceType = 'Severe absence']) AS severe
+    RETURN p.name AS place, authority, $phase AS phase,
+           left(period, 4) + '/' + right(period, 2) AS academicYear,
+           toInteger(toFloat(everyone.enrolments)) AS enrolments,
+           round(toFloat(persistent.enrolmentPercent), 1) AS persistentAbsenteesPct,
+           round(toFloat(severe.enrolmentPercent), 1) AS severeAbsenteesPct
+    ORDER BY place, period

@@ -14,8 +14,24 @@ description: |
   PlaceDossier. The Street Lens app (`apps/street-lens.html`) puts it all on
   a map of Britain — a dossier per dot.
 
+  The COMMUNITY axis reads what a place-based data platform copies in — school
+  readiness, youth justice first-time entrants, NEET, children in low income,
+  under-18 conceptions, childhood obesity, life expectancy (OHID Fingertips,
+  with the publisher's own "compared to England" on every row), the claimant
+  count and population by age (NOMIS), the Indices of Deprivation 2025, and
+  DfE early-years, absence and KS4 results — live, dated, at the authority.
+  The ORGANISATION axis makes the unit an organisation rather than a
+  statistic: every charity declaring the place as an area of operation and
+  its daily register record and event history (Charity Commission), every
+  published grant into the district and who received it (360Giving), and the
+  register record behind any recipient identifier (Find that Charity). Views:
+  PlaceProfile, WhereThisPlaceStandsOut, IndicatorTrendAtPlace,
+  IndicatorAcrossEngland, MostDeprivedDistricts2025, CharitiesOperatingHere,
+  CharityChangesHere, WhoFundsThisPlace, FundedOrganisationsHere,
+  SchoolReadinessAtPlace, Ks4AttainmentAtPlace and more.
+
   No API keys and no accounts — the realm works the moment it is installed.
-version: 0.1.0
+version: 0.2.0
 author: rod
 url: https://github.com/embabel-worlds/realm-uk-streets
 tags:
@@ -35,6 +51,7 @@ exports:
   - contracts_finder
   - petitions
   - cqc
+  - findthatcharity
   - UkPlace
   - CrimeIncident
   - PropertySale
@@ -57,3 +74,15 @@ exports:
   - DistrictYoungAdults
   - DistrictEthnicGroup
   - DistrictDeprivation
+  - AreaIndicator
+  - ClaimantCount
+  - PopulationBand
+  - DistrictDeprivation2025
+  - CharityAreaLink
+  - Charity
+  - CharityEvent
+  - GrantIntoPlace
+  - OrgRecord
+  - SchoolReadiness
+  - PupilAbsence
+  - Ks4Attainment

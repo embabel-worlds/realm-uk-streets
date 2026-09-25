@@ -49,6 +49,8 @@
     - censusDensity
     - censusAgeStructure
     - medianPay
+    - claimantCount
+    - populationByAge
 
 # Official hygiene rating of every inspected food business. The API demands a
 # version header; pinning it HERE is what keeps the producer and skill clean.
@@ -110,3 +112,14 @@
     Ocp-Apim-Subscription-Key: "${CQC_SUBSCRIPTION_KEY}"
   operation-ids:
     - careLocations
+
+# Find that Charity — the keyless org-id bridge. A grant names its recipient by
+# org-id (GB-CHC-…, GB-COH-…); this resolves that id to the register record
+# behind it — status, dates, income, HQ district — across the Charity
+# Commission, OSCR, CCNI, Companies House and GIAS without a key for any of them.
+- url: findthatcharity.json
+  name: findthatcharity
+  type: openapi
+  auth: none
+  operation-ids:
+    - orgById

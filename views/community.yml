@@ -1,0 +1,228 @@
+# Views over the COMMUNITY axis — the questions a place-based data platform
+# answers with a library of copied statistics, answered here from the
+# publishers, live, with the period and the publisher's own comparison on
+# every figure. Every place view takes the watched place as its unit; the
+# national views rank every authority in England.
+
+# The one-page profile: what a "community profile" or "localised suitcase"
+# shows, as one query. Each figure names its period; a missing row is a
+# missing row (a two-tier district's children's indicators sit with its
+# county), never a zero.
+- name: PlaceProfile
+  description: "The community profile of each watched place's local authority in one table: residents and children (ONS mid-year estimate), claimant count (latest month), deprivation rank and the share of neighbourhoods in England's most deprived tenth (IoD 2025), school readiness, first-time entrants to the youth justice system, 16-17 NEET, children in low-income families, under-18 conceptions, Year 6 overweight, life expectancy — each with its period. Fingertips figures are the headline rows (Persons, no breakdown, latest period). A blank cell is a figure the publisher does not hold for that authority — a two-tier district's children's indicators belong to its county — not a zero. Ask 'profile Blackpool' / 'what is Middlesbrough like' / 'community profile of my places'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name to profile; empty = every watched place."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    OPTIONAL MATCH (p)-[:HAS_POPULATION]->(everyone:PopulationBand {band:'All Ages'})
+    OPTIONAL MATCH (p)-[:HAS_POPULATION]->(kids:PopulationBand {band:'Aged 0 to 15'})
+    OPTIONAL MATCH (p)-[:HAS_POPULATION]->(work:PopulationBand {band:'Aged 16 to 64'})
+    OPTIONAL MATCH (p)-[:HAS_CLAIMANTS]->(cc:ClaimantCount)
+    OPTIONAL MATCH (p)-[:HAS_DEPRIVATION_2025]->(dep:DistrictDeprivation2025)
+    OPTIONAL MATCH (p)-[:HAS_CHILD_INDICATOR]->(x:AreaIndicator)
+    WHERE coalesce(x.categoryType, '') = ''
+      AND ((x.sex = 'Persons' AND x.indicatorId IN ['90631','10401','93203','93701','20602'])
+           OR (x.sex = 'Female' AND x.indicatorId IN ['20401','90366'])
+           OR (x.sex = 'Male' AND x.indicatorId = '90366'))
+    WITH p, everyone, kids, work, cc, dep, x
+    ORDER BY toFloat(x.periodSortable) DESC
+    WITH p, everyone, kids, work, cc, dep, x.indicatorId + ':' + x.sex AS ind, head(collect(x)) AS latest
+    RETURN p.name AS place, p.district AS district,
+           toInteger(toFloat(everyone.persons)) AS residents, everyone.year AS populationYear,
+           toInteger(toFloat(kids.persons)) AS children0to15,
+           toInteger(toFloat(cc.claimants)) AS claimants, cc.month AS claimantsMonth,
+           CASE WHEN cc IS NOT NULL AND work IS NOT NULL THEN round(100.0 * toFloat(cc.claimants) / toFloat(work.persons), 1) END AS claimantsPctOfWorkingAge,
+           toInteger(toFloat(dep.rankOfAverageScore)) AS deprivationRankOf296,
+           CASE WHEN dep IS NOT NULL THEN round(100.0 * toFloat(dep.proportionMostDeprived), 0) END AS pctNeighbourhoodsMostDeprivedTenth,
+           max(CASE WHEN ind STARTS WITH '90631:' THEN round(toFloat(latest.value), 1) END) AS schoolReadinessPct,
+           max(CASE WHEN ind STARTS WITH '90631:' THEN latest.period END) AS schoolReadinessPeriod,
+           max(CASE WHEN ind STARTS WITH '90631:' THEN latest.comparedToEngland END) AS schoolReadinessVsEngland,
+           max(CASE WHEN ind STARTS WITH '10401:' THEN round(toFloat(latest.value), 1) END) AS youthJusticeFirstTimeEntrantsPer100k,
+           max(CASE WHEN ind STARTS WITH '10401:' THEN latest.period END) AS youthJusticePeriod,
+           max(CASE WHEN ind STARTS WITH '10401:' THEN latest.comparedToEngland END) AS youthJusticeVsEngland,
+           max(CASE WHEN ind STARTS WITH '93203:' THEN round(toFloat(latest.value), 1) END) AS neet16to17Pct,
+           max(CASE WHEN ind STARTS WITH '93203:' THEN latest.period END) AS neetPeriod,
+           max(CASE WHEN ind STARTS WITH '93203:' THEN latest.comparedToEngland END) AS neetVsEngland,
+           max(CASE WHEN ind STARTS WITH '93701:' THEN round(toFloat(latest.value), 1) END) AS childrenLowIncomePct,
+           max(CASE WHEN ind STARTS WITH '93701:' THEN latest.period END) AS childrenLowIncomePeriod,
+           max(CASE WHEN ind STARTS WITH '93701:' THEN latest.comparedToEngland END) AS childrenLowIncomeVsEngland,
+           max(CASE WHEN ind STARTS WITH '20401:' THEN round(toFloat(latest.value), 1) END) AS under18ConceptionsPer1000,
+           max(CASE WHEN ind STARTS WITH '20401:' THEN latest.period END) AS under18ConceptionsPeriod,
+           max(CASE WHEN ind STARTS WITH '20602:' THEN round(toFloat(latest.value), 1) END) AS year6OverweightPct,
+           max(CASE WHEN ind STARTS WITH '20602:' THEN latest.period END) AS year6OverweightPeriod,
+           max(CASE WHEN ind = '90366:Female' THEN round(toFloat(latest.value), 1) END) AS lifeExpectancyFemaleYears,
+           max(CASE WHEN ind = '90366:Male' THEN round(toFloat(latest.value), 1) END) AS lifeExpectancyMaleYears,
+           max(CASE WHEN ind STARTS WITH '90366:' THEN latest.period END) AS lifeExpectancyPeriod
+    ORDER BY place
+
+# The honest "smart insight": not an interestingness dial, the publisher's
+# own significance test. Everything the authority is significantly worse
+# than England on, then better, with the figure and the period.
+- name: WhereThisPlaceStandsOut
+  description: "Where each watched place's local authority is significantly WORSE or BETTER than England, on the publisher's own test (OHID Fingertips' 'Compared to England'), across fourteen children's, health and wellbeing indicators — the figure, England's polarity-aware judgement, the period and the recent trend. This is the honest version of a 'smart insights' feature: no score of ours, the statistical comparison the publisher made. 'Similar' rows are left out by default. Ask 'what stands out about Blackpool', 'where is my place worse than England', 'what is Middlesbrough better at than the country'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    includeSimilar:
+      type: boolean
+      default: false
+      description: "Also list indicators where the authority is statistically similar to England."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_CHILD_INDICATOR]->(x:AreaIndicator)
+    WHERE coalesce(x.categoryType, '') = ''
+      AND ((x.sex = 'Persons' AND NOT x.indicatorId IN ['20401','93085','90366','93562'])
+           OR (x.sex = 'Female' AND x.indicatorId IN ['20401','93085','90366','93562'])
+           OR (x.sex = 'Male' AND x.indicatorId IN ['90366','93562']))
+    WITH p, x ORDER BY toFloat(x.periodSortable) DESC
+    WITH p, x.indicatorId + ':' + x.sex AS indicatorId, head(collect(x)) AS latest
+    WHERE latest.comparedToEngland IN ['Worse', 'Better', 'Higher', 'Lower']
+       OR ($includeSimilar AND latest.comparedToEngland = 'Similar')
+    RETURN p.name AS place, latest.area AS authority,
+           latest.comparedToEngland AS vsEngland,
+           latest.indicator + CASE WHEN latest.sex = 'Persons' THEN '' ELSE ' (' + latest.sex + ')' END AS indicator,
+           round(toFloat(latest.value), 1) AS value,
+           latest.period AS period,
+           latest.trend AS recentTrend
+    ORDER BY place,
+             CASE latest.comparedToEngland WHEN 'Worse' THEN 0 WHEN 'Higher' THEN 0 WHEN 'Better' THEN 1 WHEN 'Lower' THEN 1 ELSE 2 END,
+             indicator
+
+# Every period of one indicator for a place — the trend line behind a chart,
+# with the confidence interval and the comparison on every point.
+- name: IndicatorTrendAtPlace
+  description: "The full published series of ONE indicator for a watched place's authority — every period, value, 95% confidence interval and the England comparison at each point — the data behind a trend chart. Indicator ids: 90631 school readiness (all), 90632 school readiness (free school meals), 10401 youth justice first-time entrants, 93203 16-17 NEET, 93701 children in absolute low income, 20401 under-18 conceptions, 20602 Year 6 overweight, 93085 smoking at delivery, 20101 low birth weight, 30309 MMR one dose at 2, 41001 suicide rate, 90366 life expectancy, 92313 employment rate, 93562 disability-free life expectancy. Ask 'how has school readiness in Blackpool changed', 'youth justice trend for Middlesbrough'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    indicatorId:
+      type: string
+      default: "90631"
+      description: "The Fingertips indicator id, as a string."
+    sex:
+      type: string
+      default: "Persons"
+      description: "'Persons' for most indicators; 'Female' for under-18 conceptions and smoking at delivery; 'Male'/'Female' to split."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_CHILD_INDICATOR]->(x:AreaIndicator)
+    WHERE x.indicatorId = $indicatorId AND coalesce(x.categoryType, '') = '' AND x.sex = $sex
+    RETURN p.name AS place, x.indicator AS indicator, x.period AS period,
+           round(toFloat(x.value), 2) AS value,
+           round(toFloat(x.lowerCi), 2) AS lower95, round(toFloat(x.upperCi), 2) AS upper95,
+           toInteger(toFloat(x.count)) AS count, toInteger(toFloat(x.denominator)) AS denominator,
+           x.comparedToEngland AS vsEngland
+    ORDER BY place, toFloat(x.periodSortable)
+
+# Population by age for each place — the denominators, and "how many
+# children live here" as a read.
+- name: WhoLivesHere
+  description: "Each watched place's local-authority population by age band from the latest ONS mid-year estimate — all ages, 0-15, 16-64, 65+, 16-24 — with each band's share of the total. Ask 'how many children live in Blackpool', 'how old is Middlesbrough', 'population of my places'."
+  params:
+    limit:
+      type: int
+      default: 100
+      description: "Maximum rows."
+  cypher: |
+    MATCH (p:UkPlace)-[:HAS_POPULATION]->(b:PopulationBand)
+    WITH p, b ORDER BY b.band
+    WITH p, collect(b) AS bands
+    WITH p, bands, head([x IN bands WHERE x.band = 'All Ages']) AS everyone
+    UNWIND bands AS b
+    RETURN p.name AS place, b.area AS authority, b.year AS year, b.band AS band,
+           toInteger(toFloat(b.persons)) AS persons,
+           round(100.0 * toFloat(b.persons) / toFloat(everyone.persons), 1) AS pctOfResidents
+    ORDER BY place, CASE b.band WHEN 'All Ages' THEN 0 WHEN 'Aged 0 to 15' THEN 1 WHEN 'Aged 16 to 24' THEN 2 WHEN 'Aged 16 to 64' THEN 3 ELSE 4 END
+    LIMIT $limit
+
+# ── National league tables ───────────────────────────────────────────────────
+
+# One indicator ranked across every upper-tier authority in England, latest
+# period, headline row only — worst first by default. The comparison column
+# says which way is bad.
+- name: IndicatorAcrossEngland
+  description: "ONE indicator for EVERY upper-tier local authority in England at its latest period, ranked — with the England comparison on each row so the reader knows which direction is bad. Indicator ids as in IndicatorTrendAtPlace (default 10401, youth justice first-time entrants). Ask 'which councils have the worst school readiness', 'rank authorities by children in low income', 'where is youth justice entry highest'. The rows are the publisher's headline figures (Persons, no breakdown); a council absent from the list has no published figure."
+  params:
+    indicatorId:
+      type: string
+      default: "10401"
+      description: "The Fingertips indicator id, as a string."
+    highestFirst:
+      type: boolean
+      default: true
+      description: "true = largest value first; false = smallest first."
+    limit:
+      type: int
+      default: 25
+      description: "How many authorities."
+  cypher: |
+    MATCH (s:IndicatorAcrossEngland {indicatorId: $indicatorId})-[:ACROSS_AREAS]->(x:AreaIndicator)
+    WHERE coalesce(x.categoryType, '') = '' AND x.sex IN ['Persons', 'Female']
+      AND x.areaCode =~ '^E(06|08|09|10).*'
+    WITH x ORDER BY toFloat(x.periodSortable) DESC
+    WITH x.areaCode AS areaCode, head(collect(x)) AS latest
+    WHERE toFloat(latest.value) IS NOT NULL
+    WITH latest, toFloat(latest.value) AS v
+    ORDER BY CASE WHEN $highestFirst THEN -v ELSE v END
+    RETURN latest.area AS authority, latest.indicator AS indicator, latest.period AS period,
+           round(v, 1) AS value, latest.comparedToEngland AS vsEngland, latest.trend AS recentTrend
+    LIMIT $limit
+
+# Deprivation 2025 across every lower-tier district — both measures, so a
+# reader can tell "poor on average" from "concentrated poverty".
+- name: MostDeprivedDistricts2025
+  description: "England's lower-tier districts ranked by the Indices of Deprivation 2025 — by average score (overall level) or by the proportion of neighbourhoods in the most deprived tenth (concentration), most deprived first, with both measures on every row. Blackpool and Middlesbrough lead on concentration. Ask 'most deprived places in England', 'where is poverty most concentrated', 'how deprived is my district compared to the rest'."
+  params:
+    by:
+      type: string
+      default: "concentration"
+      description: "'concentration' (share of neighbourhoods in the most deprived tenth) or 'average' (average score)."
+    limit:
+      type: int
+      default: 25
+      description: "How many districts."
+  cypher: |
+    MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DEPRIVATION_2025]->(d:DistrictDeprivation2025)
+    WHERE toFloat(d.averageScore) IS NOT NULL
+    WITH d, CASE WHEN $by = 'average' THEN toFloat(d.averageScore) ELSE toFloat(d.proportionMostDeprived) END AS sortKey
+    ORDER BY sortKey DESC
+    RETURN d.district AS district,
+           round(toFloat(d.averageScore), 1) AS averageScore,
+           toInteger(toFloat(d.rankOfAverageScore)) AS rankOfAverageScoreOf296,
+           round(100.0 * toFloat(d.proportionMostDeprived), 0) AS pctNeighbourhoodsMostDeprivedTenth,
+           toInteger(toFloat(d.rankOfProportionMostDeprived)) AS rankOfConcentration,
+           round(100.0 * toFloat(d.extent), 0) AS pctPopulationInDeprivedAreas
+    LIMIT $limit
+
+# Claimants as a share of working-age residents is the rate; this view ranks
+# the raw count nationally and joins pay and deprivation on the district code
+# — three registers that do not know each other, on one key.
+- name: ClaimantsPayAndDeprivation
+  description: "Every local authority's claimant count (latest month) beside its median full-time pay (ASHE) and its 2025 deprivation rank, joined on the district code — the labour-market cross-section. Counts are people, not rates: read beside pay and deprivation rather than ranking small districts against cities. Ask 'claimant count across the country', 'do low-pay districts have more claimants', 'claimants vs deprivation'."
+  params:
+    limit:
+      type: int
+      default: 300
+      description: "Maximum district rows."
+  cypher: |
+    MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_CLAIMANTS]->(c:ClaimantCount)
+    WHERE c.districtCode =~ '^[EW]0.*' AND toFloat(c.claimants) IS NOT NULL
+    OPTIONAL MATCH (u)-[:HAS_PAY]->(i:DistrictIncome)
+    WHERE i.districtCode = c.districtCode
+    OPTIONAL MATCH (u)-[:HAS_DEPRIVATION_2025]->(d:DistrictDeprivation2025)
+    WHERE d.districtCode = c.districtCode
+    RETURN c.area AS district, c.month AS month,
+           toInteger(toFloat(c.claimants)) AS claimants,
+           toFloat(i.annualPay) AS medianAnnualPay,
+           toInteger(toFloat(d.rankOfAverageScore)) AS deprivationRankOf296
+    ORDER BY claimants DESC LIMIT $limit

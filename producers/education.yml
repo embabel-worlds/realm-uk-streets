@@ -1,0 +1,114 @@
+# ── The EDUCATION axis: DfE Explore Education Statistics, at local authority ──
+# ENGINE GATE: the DfE API serves these CSVs gzip-encoded whether or not the
+# client asked, and only a reader that unpacks a gzip body (me >= 2026-09-25)
+# can read them. On an older engine the header anchor is not found in the
+# compressed bytes and the producer reports that — loud, and only this file.
+#
+# Every data set is the WHOLE published table: national, regional and local-
+# authority rows, every academic year, every breakdown. The LA is keyed on
+# `new_la_code`, the GSS code UkPlace stores for a unitary, met or London
+# borough (children's-services authorities); a two-tier district's rows sit
+# under its county, which the place does not yet store. Views must pin the
+# TOTAL breakdown rows — a data set carries sex, FSM, SEN and ethnicity cuts
+# beside them, and summing across cuts double-counts.
+#
+# The API publishes `lastPublished` per publication and a versioned data set
+# with a `/changes` endpoint — the change signal a watch reads.
+
+# Early years foundation stage profile: the share of five-year-olds reaching a
+# GOOD LEVEL OF DEVELOPMENT at the end of Reception — school readiness, the
+# indicator every place-based platform leads with. Academic years 2021/22 on.
+- name: schoolReadinessByLa
+  kind: tabular
+  url: "https://api.education.gov.uk/statistics/v1/data-sets/019ac0fb-e082-7202-871f-439d6d036893/csv"
+  format: csv
+  headerContains: "gld_children_percent"
+  keyColumn: "new_la_code"
+  keyMatch: ci
+  keyAs: key
+  rowIdAs: id
+  userAgent: browser
+  maxRows: 100000
+  maxRowsPerKey: 400
+  project:
+    period: "time_period"
+    level: "geographic_level"
+    laCode: "new_la_code"
+    la: "la_name"
+    regionCode: "region_code"
+    region: "region_name"
+    breakdownTopic: "breakdown_topic"
+    breakdown: "breakdown"
+    sex: "sex"
+    children: "children_count"
+    gldChildren: "gld_children_count"
+    gldPercent: "gld_children_percent"
+    allElgsPercent: "all_elgs_expected_children_percent"
+    commLangLitPercent: "comm_lang_lit_expected_children_percent"
+    elgsExpectedAverage: "elgs_expected_average"
+  fileCacheSeconds: 86400
+  cache: { kind: ttl, seconds: 86400 }
+
+# Pupil absence: persistent (10%+ of sessions missed) and severe (50%+)
+# absentees by local authority and school phase, 2011/12 on.
+- name: pupilAbsenceByLa
+  kind: tabular
+  url: "https://api.education.gov.uk/statistics/v1/data-sets/019d209c-08dc-74b6-9edb-52d521406fcf/csv"
+  format: csv
+  headerContains: "enrolment_percent"
+  keyColumn: "new_la_code"
+  keyMatch: ci
+  keyAs: key
+  rowIdAs: id
+  userAgent: browser
+  maxRows: 200000
+  maxRowsPerKey: 600
+  project:
+    period: "time_period"
+    level: "geographic_level"
+    laCode: "new_la_code"
+    la: "la_name"
+    phase: "phase_type_grouping"
+    absenceType: "absence_type"
+    enrolments: "enrolment_count"
+    enrolmentPercent: "enrolment_percent"
+  fileCacheSeconds: 86400
+  cache: { kind: ttl, seconds: 86400 }
+
+# Key stage 4: Attainment 8, the share achieving grade 5+ and 4+ in English
+# and maths, EBacc entry — by local authority, all state-funded schools,
+# with the disadvantage, FSM, SEN and sex cuts beside the totals.
+- name: ks4AttainmentByLa
+  kind: tabular
+  url: "https://api.education.gov.uk/statistics/v1/data-sets/b3e19901-5d2b-b676-bb4c-e60937d74725/csv"
+  format: csv
+  headerContains: "attainment8_average"
+  keyColumn: "new_la_code"
+  keyMatch: ci
+  keyAs: key
+  rowIdAs: id
+  userAgent: browser
+  maxRows: 400000
+  maxRowsPerKey: 3000
+  project:
+    period: "time_period"
+    level: "geographic_level"
+    laCode: "new_la_code"
+    la: "la_name"
+    version: "version"
+    establishmentType: "establishment_type_group"
+    breakdownTopic: "breakdown_topic"
+    sex: "sex"
+    fsmStatus: "fsm_status"
+    disadvantageStatus: "disadvantage_status"
+    senStatus: "sen_status"
+    ethnicityMajor: "ethnicity_major"
+    schools: "school_count"
+    pupils: "pupil_count"
+    attainment8Average: "attainment8_average"
+    engMathGrade5Percent: "engmath_95_percent"
+    engMathGrade4Percent: "engmath_94_percent"
+    ebaccEnteringPercent: "ebacc_entering_percent"
+    progress8Average: "progress8_average"
+  fileCacheSeconds: 86400
+  cache: { kind: ttl, seconds: 86400 }

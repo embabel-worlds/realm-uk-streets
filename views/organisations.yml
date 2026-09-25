@@ -1,0 +1,233 @@
+# Views over the ORGANISATION axis — the questions no statistic-about-a-place
+# can answer: who operates here, who funds them, who arrived, who left, and
+# what the register says about each.
+
+# The charity population of a place, from the Commission's own area-of-
+# operation declarations, joined to each charity's record.
+- name: CharitiesOperatingHere
+  description: "Registered charities declaring each watched place's local authority as an area of operation — name, legal form, registration status, registered date, latest income, town and postcode, company number where it is a company, and the trustees' activities text — from the Charity Commission's daily register. Removed charities included and marked. Largest income first. Ask 'which charities operate in Blackpool', 'who works with young people in Middlesbrough' (filter on activities), 'biggest charities here'. A place whose district name finds no rows may be a spelling mismatch with the Commission's name for the authority, not a charity-free district."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    activityContains:
+      type: string
+      default: ""
+      description: "Keep only charities whose activities text contains this word or phrase (case-insensitive), e.g. 'young people', 'food', 'housing'."
+    includeRemoved:
+      type: boolean
+      default: false
+      description: "Also list charities removed from the register."
+    limit:
+      type: int
+      default: 100
+      description: "Maximum rows."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_CHARITY_LINK]->(l:CharityAreaLink {areaType:'Local Authority'})-[:HAS_CHARITY]->(c:Charity)
+    WHERE c.linkedCharityNumber = '0'
+      AND ($includeRemoved OR c.registrationStatus = 'Registered')
+      AND ($activityContains = '' OR toLower(coalesce(c.activities, '')) CONTAINS toLower($activityContains))
+    RETURN p.name AS place, c.registeredCharityNumber AS charityNumber, c.name AS charity,
+           c.charityType AS legalForm, c.registrationStatus AS status,
+           left(c.dateOfRegistration, 10) AS registered, left(c.dateOfRemoval, 10) AS removed,
+           toInteger(toFloat(c.latestIncome)) AS latestIncome, left(c.latestPeriodEnd, 10) AS incomeYearEnd,
+           c.town AS town, c.postcode AS postcode, c.companyNumber AS companyNumber,
+           left(c.activities, 240) AS activities,
+           left(c.extractDate, 10) AS registerAsAt
+    ORDER BY toFloat(c.latestIncome) DESC NULLS LAST, charity
+    LIMIT $limit
+
+# The register as a time series: what changed for the place's charities in a
+# window — registrations, removals with the Commission's reason, mergers.
+- name: CharityChangesHere
+  description: "Charity Commission events for charities operating in each watched place's authority since a date — new registrations ('arrived'), removals with the Commission's reason ('left': ceased to exist, does not operate, merged), CIO registrations, asset transfers naming the other charity. Newest first. This is 'who came and who went', dated, from the register's own event log — the change feed a subscription reads. Ask 'which charities in Blackpool closed this year', 'new charities in Middlesbrough since March', 'what changed for the voluntary sector here'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    since:
+      type: string
+      default: "2025-01-01"
+      description: "ISO date; events on or after it."
+    eventType:
+      type: string
+      default: ""
+      description: "Keep only one event type, e.g. 'Removed' or 'Standard registration'; empty = all."
+    limit:
+      type: int
+      default: 100
+      description: "Maximum rows."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_CHARITY_LINK]->(l:CharityAreaLink {areaType:'Local Authority'})-[:HAS_CHARITY]->(c:Charity)-[:HAS_EVENT]->(e:CharityEvent)
+    WHERE c.linkedCharityNumber = '0' AND left(e.dateOfEvent, 10) >= $since
+      AND ($eventType = '' OR e.eventType = $eventType)
+    RETURN p.name AS place, left(e.dateOfEvent, 10) AS date, e.eventType AS event, e.reason AS reason,
+           c.registeredCharityNumber AS charityNumber, c.name AS charity,
+           toInteger(toFloat(c.latestIncome)) AS latestIncome,
+           e.associatedCharityName AS otherCharity,
+           left(e.extractDate, 10) AS registerAsAt
+    ORDER BY date DESC, charity
+    LIMIT $limit
+
+# Grant money into the place, by funder — the funding map a community
+# organisation assembles by hand.
+- name: WhoFundsThisPlace
+  description: "Grant funding into each watched place's district by FUNDER, from every publisher on the 360Giving standard (National Lottery distributors, community foundations, government departments, trusts): grants, total awarded, first and latest award dates, and how many distinct recipients — in a window of award years. Ask 'who funds Blackpool', 'how much lottery money has Middlesbrough had', 'biggest funders here since 2020'. Amounts are as awarded; a grant with a beneficiary in the district may go to a recipient based elsewhere."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    fromYear:
+      type: string
+      default: "2020"
+      description: "Earliest award year to count, as a four-digit string."
+    limit:
+      type: int
+      default: 30
+      description: "How many funders per place, largest total first."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_GRANT]->(g:GrantIntoPlace)
+    // A function inside WHERE over a producer-backed edge is not applied; bind the year first.
+    WITH p, g, left(g.awardDate, 4) AS year, toFloat(g.amountAwarded) AS amount
+    WHERE year >= $fromYear AND amount IS NOT NULL
+    WITH p, g.funder AS funder, count(g) AS grants, sum(amount) AS totalAwarded,
+         min(left(g.awardDate, 10)) AS firstAward, max(left(g.awardDate, 10)) AS latestAward,
+         count(DISTINCT g.recipientOrgId) AS recipients
+    RETURN p.name AS place, funder, grants, toInteger(totalAwarded) AS totalAwarded,
+           recipients, firstAward, latestAward
+    ORDER BY place, totalAwarded DESC
+    LIMIT $limit
+
+# The recipients — who the money went to, with what kind of body each is,
+# read off the identifier scheme; the register record for any one of them
+# is one call away in WhatIsThisOrganisation.
+- name: FundedOrganisationsHere
+  description: "Organisations that received published grants into each watched place's district since a year — total received, grants, distinct funders, first and latest award — with what KIND of body each identifier says it is (registered charity GB-CHC, company GB-COH, education provider GB-UKPRN/GB-EDU, local authority GB-LAE, NHS, or a publisher-local id for an unregistered group or an individual). Most funded first. To see the register record behind one — still active or removed, registered when, latest income — run WhatIsThisOrganisation with its orgId. Ask 'who gets the grant money in Blackpool', 'most funded charities in Middlesbrough', 'which companies were funded here'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    fromYear:
+      type: string
+      default: "2020"
+      description: "Earliest award year to count, as a four-digit string."
+    kind:
+      type: string
+      default: ""
+      description: "Keep one identifier scheme: 'GB-CHC' (charities), 'GB-COH' (companies), 'GB-UKPRN' (education), 'GB-LAE' (councils); empty = all registered bodies."
+    limit:
+      type: int
+      default: 40
+      description: "How many recipients per place, most funded first."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_GRANT]->(g:GrantIntoPlace)
+    WITH p, g, left(g.awardDate, 4) AS year, toFloat(g.amountAwarded) AS amount
+    WHERE year >= $fromYear AND amount IS NOT NULL
+      AND g.recipientOrgId IS NOT NULL AND g.recipientOrgId <> '' AND NOT g.recipientOrgId STARTS WITH '360G-'
+      AND ($kind = '' OR g.recipientOrgId STARTS WITH $kind)
+    WITH p, g.recipientOrgId AS orgId, g.recipient AS recipient,
+         count(g) AS grants, sum(amount) AS totalReceived,
+         count(DISTINCT g.funder) AS funders,
+         min(left(g.awardDate, 10)) AS firstAward, max(left(g.awardDate, 10)) AS latestAward,
+         max(g.recipientCharityNumber) AS charityNumber, max(g.recipientCompanyNumber) AS companyNumber
+    RETURN p.name AS place, recipient, orgId,
+           CASE WHEN orgId STARTS WITH 'GB-CHC-' THEN 'registered charity'
+                WHEN orgId STARTS WITH 'GB-COH-' THEN 'company'
+                WHEN orgId STARTS WITH 'GB-UKPRN-' OR orgId STARTS WITH 'GB-EDU-' THEN 'education provider'
+                WHEN orgId STARTS WITH 'GB-LAE-' THEN 'local authority'
+                WHEN orgId STARTS WITH 'GB-NHS' THEN 'NHS body'
+                ELSE 'other registered body' END AS kind,
+           charityNumber, companyNumber,
+           grants, toInteger(totalReceived) AS totalReceived, funders, firstAward, latestAward
+    ORDER BY place, totalReceived DESC
+    LIMIT $limit
+
+# One organisation, resolved across the registers by its identifier.
+- name: WhatIsThisOrganisation
+  description: "The register record behind one organisation identifier — GB-CHC-1164883 (a charity number), GB-COH-09668396 (a Companies House number), GB-UKPRN-…, GB-LAE-… — from Find that Charity's nightly index over the Charity Commission, OSCR, CCNI, Companies House, GIAS and the mutuals register: name, whether it is still active, dates registered and removed, latest income, organisation types, postcode and HQ local authority. Use it on an orgId from FundedOrganisationsHere or on 'GB-CHC-' + a charity number from CharitiesOperatingHere. Charities resolve reliably; a company id resolves only when the index holds that company (it indexes companies linked to the voluntary sector, not every company on the register), and an empty answer for a GB-COH id means 'not indexed', not 'does not exist'. Ask 'what is GB-COH-13812519', 'is this recipient still active', 'who is charity 1164883'."
+  params:
+    orgId:
+      type: string
+      default: "GB-CHC-1164883"
+      description: "The org-id to resolve."
+  cypher: |
+    MATCH (l:OrgLookup {orgId: $orgId})-[:RESOLVES_TO]->(o:OrgRecord)
+    RETURN o.orgId AS orgId, o.name AS name,
+           CASE WHEN toString(o.active) = 'true' THEN 'active' ELSE 'no longer active' END AS status,
+           o.organisationType AS organisationType,
+           o.charityNumber AS charityNumber, o.companyNumber AS companyNumber,
+           o.dateRegistered AS registered, o.dateRemoved AS removed,
+           toInteger(toFloat(o.latestIncome)) AS latestIncome, o.latestFinancialYearEnd AS latestYearEnd,
+           o.postcode AS postcode, o.hqArea AS headquartersArea, o.hqAreaCode AS headquartersAreaCode,
+           o.dateModified AS indexedAt
+
+# Grants by year: is money into the place growing or shrinking, and from how
+# many funders.
+- name: GrantsIntoPlaceByYear
+  description: "Published grant funding into each watched place's district by award YEAR — grants, total awarded, distinct funders and recipients — so 'is funding here growing or shrinking' is a read. Later years are incomplete until funders publish, and a funder joining the 360Giving standard adds history it did not publish before; say both when presenting a trend. Ask 'grant funding into Blackpool over time', 'how much came into Middlesbrough each year'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    fromYear:
+      type: string
+      default: "2015"
+      description: "Earliest award year, as a four-digit string."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_GRANT]->(g:GrantIntoPlace)
+    WITH p, g, left(g.awardDate, 4) AS year, toFloat(g.amountAwarded) AS amount
+    WHERE amount IS NOT NULL AND year >= $fromYear
+    WITH p, year, count(g) AS grants,
+         sum(amount) AS totalAwarded,
+         count(DISTINCT g.funder) AS funders, count(DISTINCT g.recipientOrgId) AS recipients
+    RETURN p.name AS place, year, grants, toInteger(totalAwarded) AS totalAwarded, funders, recipients
+    ORDER BY place, year
+
+# The largest grants themselves, opened to their rows.
+- name: BiggestGrantsHere
+  description: "The largest published grants into each watched place's district since a year — amount, date, funder, programme, recipient (with charity or company number) and the funder's description — the rows behind any total in WhoFundsThisPlace. Ask 'biggest grants into Blackpool', 'what did the Lottery fund in Middlesbrough'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    fromYear:
+      type: string
+      default: "2020"
+      description: "Earliest award year, as a four-digit string."
+    funderContains:
+      type: string
+      default: ""
+      description: "Keep only grants whose funder name contains this text, e.g. 'Lottery'."
+    limit:
+      type: int
+      default: 25
+      description: "How many grants, largest first."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_GRANT]->(g:GrantIntoPlace)
+    WITH p, g, left(g.awardDate, 4) AS year, toFloat(g.amountAwarded) AS amount
+    WHERE amount IS NOT NULL AND year >= $fromYear
+      AND ($funderContains = '' OR toLower(g.funder) CONTAINS toLower($funderContains))
+    RETURN p.name AS place, toInteger(amount) AS amount, left(g.awardDate, 10) AS awarded,
+           g.funder AS funder, g.programme AS programme,
+           g.recipient AS recipient, g.recipientCharityNumber AS charityNumber, g.recipientCompanyNumber AS companyNumber,
+           g.title AS title, left(g.description, 200) AS description
+    ORDER BY amount DESC
+    LIMIT $limit

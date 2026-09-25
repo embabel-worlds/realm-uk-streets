@@ -74,3 +74,35 @@
   # cannot apply — the floor is a non-empty model, and the adversarial pass holds the
   # same question to the fabrication invariants across repeated runs.
   expect: { nonEmpty: true }
+
+# ── The community and organisation axes (2026-09-25) ────────────────────────
+- question: "how many children live in Blackpool"
+  expect:
+    matchesView: { name: PlaceProfile, column: children0to15, args: { place: Blackpool } }
+- question: "profile Blackpool"
+  expect: { nonEmpty: true }
+- question: "what stands out about Blackpool compared to England"
+  expect: { minRows: 5 }
+- question: "how has school readiness in Blackpool changed"
+  expect:
+    matchesView: { name: SchoolReadinessAtPlace, column: goodLevelOfDevelopmentPct, args: { place: Blackpool } }
+- question: "which councils have the highest share of children in low income families"
+  expect:
+    matchesView: { name: IndicatorAcrossEngland, column: value, args: { indicatorId: "93701" } }
+- question: "which are the most deprived districts in England on the 2025 index"
+  expect:
+    matchesView: { name: MostDeprivedDistricts2025, column: averageScore, args: { by: average } }
+- question: "who funds Blackpool"
+  expect:
+    matchesView: { name: WhoFundsThisPlace, column: totalAwarded, args: { place: Blackpool } }
+- question: "how much grant money came into Blackpool each year since 2019"
+  expect:
+    matchesView: { name: GrantsIntoPlaceByYear, column: totalAwarded, args: { place: Blackpool, fromYear: "2019" } }
+- question: "which charities operate in Middlesbrough"
+  expect: { minRows: 10 }
+- question: "which charities in Blackpool have been removed from the register since 2025"
+  expect: { nonEmpty: true }
+- question: "what is the claimant count in Middlesbrough"
+  expect:
+    matchesView: { name: PlaceProfile, column: claimants, args: { place: Middlesbrough } }
+

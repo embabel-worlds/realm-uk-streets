@@ -1,0 +1,217 @@
+# The ORGANISATION axis — the register records behind "who operates here, who
+# funds them, who arrived and who left". All virtual; the Charity Commission
+# rows are stamped with the register's own extract date.
+
+# A charity's declaration that it operates in a local authority.
+- name: CharityAreaLink
+  description: "One line of the Charity Commission's area-of-operation table: a registered charity (by number) declaring it operates in a geographic area. Reached from a watched place via HAS_CHARITY_LINK, keyed on the place's district NAME as the Commission spells it — the common case matches; a place whose district finds nothing may be a spelling mismatch ('Kingston upon Hull, City of'), so say 'no rows for this name' rather than 'no charities'. Insist on areaType = 'Local Authority' — the same description can appear as a region or county row. Removed charities are included; follow HAS_CHARITY to read status and dates. England and Wales only."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_CHARITY_LINK
+      keyField: district
+      recordKeyField: key
+      producer: charitiesOperatingIn
+      maxAnchors: 10
+      description: "Every charity declaring the place's local authority as an area of operation — hundreds for a town, thousands for a city. Follow HAS_CHARITY for the charity itself; never list raw links."
+  properties:
+    id:
+      description: "Synthesized per-row id, deterministic per extract. Identity."
+      metadata:
+        identity: "true"
+    key: "The district name the row was found under — the join link."
+    extractDate: "The Commission's date_of_extract — the as-at date of this fact."
+    organisationNumber: "The Commission's internal organisation number (distinct from the registered number for linked charities)."
+    registeredCharityNumber:
+      description: "The registered charity number — the key HAS_CHARITY and HAS_EVENT follow, and the number a GB-CHC- org-id carries."
+      metadata:
+        joinKey: "charity-number"
+    linkedCharityNumber: "0 for the main charity; a subsidiary's link number otherwise."
+    areaType: "'Local Authority', 'Region', 'Country' or 'Continent'. Filter to 'Local Authority' for a place question."
+    area: "The area as the Commission spells it, e.g. 'Blackpool'."
+    parentAreaType: "The enclosing area's type, when given."
+    parentArea: "The enclosing area, when given."
+
+# The charity record.
+- name: Charity
+  description: "A charity registered with the Charity Commission for England and Wales, from the daily bulk register: name, type, registration status, dates registered and REMOVED, latest reported income and spending, contact town and postcode, company number where it is also a company, and the trustees' own description of its activities. Reached from a CharityAreaLink via HAS_CHARITY (keyed on the registered number). A row with linkedCharityNumber other than 0 is a subsidiary sharing the main number. registrationStatus 'Removed' plus dateOfRemoval is 'left'; dateOfRegistration in the last year is 'arrived'. latestIncome is the last filed year's figure, in pounds, and can be absent for a new or non-reporting charity. companyNumber joins to realm-gov-uk's Companies House types when that realm is installed. Facts are as at extractDate."
+  virtualJoins:
+    - anchorLabel: CharityAreaLink
+      relationship: HAS_CHARITY
+      keyField: registeredCharityNumber
+      recordKeyField: key
+      producer: charityByNumber
+      maxAnchors: 800
+      description: "The charity behind an area link — one main row, plus subsidiary rows for linked charities. Bounded so a city's thousands of links are answered in batches; a town's hundreds in one."
+  properties:
+    id:
+      description: "Synthesized per-row id, deterministic per extract. Identity."
+      metadata:
+        identity: "true"
+    key: "The registered charity number the row was found by — the join link."
+    extractDate: "The Commission's date_of_extract — the as-at date."
+    organisationNumber: "The Commission's internal organisation number."
+    registeredCharityNumber:
+      description: "The registered charity number."
+      metadata:
+        joinKey: "charity-number"
+    linkedCharityNumber: "0 for the main charity; the subsidiary's link number otherwise."
+    name: "The charity's registered name, upper case as the register holds it."
+    charityType: "'CIO', 'Charitable company', 'Trust', 'Other' — the Commission's legal-form class."
+    registrationStatus:
+      description: "'Registered' or 'Removed'."
+      values: ["Registered", "Removed"]
+    dateOfRegistration: "When the charity was registered (ISO date-time string)."
+    dateOfRemoval: "When it was removed from the register, if it was — absent while registered."
+    reportingStatus: "The Commission's filing status: 'Submission Received', 'Submission Overdue', 'Reporting Not Required'…"
+    latestPeriodEnd: "End date of the latest financial period reported."
+    latestIncome:
+      type: number
+      description: "Latest reported annual income, pounds."
+    latestExpenditure:
+      type: number
+      description: "Latest reported annual expenditure, pounds."
+    town: "The contact address's town line."
+    postcode: "The contact address postcode."
+    website: "The charity's website, when given."
+    companyNumber:
+      description: "Companies House number where the charity is a company — the bridge to realm-gov-uk's UkCompanyProfile. Populated for about one registered charity in six."
+      metadata:
+        joinKey: "companies-house-number"
+    isCio: "'True' when the charity is a Charitable Incorporated Organisation."
+    insolvent: "'True' when the Commission records the charity as insolvent."
+    inAdministration: "'True' when in administration."
+    activities: "The trustees' own description of what the charity does — free text, often long."
+
+# The register's event log for one charity.
+- name: CharityEvent
+  description: "One dated event in the Charity Commission's history for a charity — 'Standard registration', 'Removed' (with the Commission's reason: ceased to exist, does not operate, merged…), 'CIO registration', 'Asset transfer in' / 'Asset transfer out' (naming the associated charity), 'Re-registered', 'Previously excepted registration'. Reached from a Charity via HAS_EVENT (keyed on the registered number). This is the register as a TIME SERIES: 'what changed for charities here since March' is a filter on dateOfEvent, and the removal reason is here, not on the Charity row."
+  virtualJoins:
+    - anchorLabel: Charity
+      relationship: HAS_EVENT
+      keyField: registeredCharityNumber
+      recordKeyField: key
+      producer: charityEventsByNumber
+      maxAnchors: 800
+      description: "Every recorded event for the charity, in the Commission's order."
+  properties:
+    id:
+      description: "Synthesized per-row id, deterministic per extract. Identity."
+      metadata:
+        identity: "true"
+    key: "The registered charity number — the join link."
+    extractDate: "The Commission's date_of_extract."
+    registeredCharityNumber:
+      description: "The registered charity number."
+      metadata:
+        joinKey: "charity-number"
+    linkedCharityNumber: "0 for the main charity."
+    charityName: "The charity's name at the time of the extract."
+    eventOrder:
+      type: number
+      description: "The Commission's ordinal for the event within the charity's history."
+    eventType: "'Standard registration', 'Removed', 'CIO registration', 'Asset transfer in', 'Asset transfer out', 'Re-registered', 'Previously excepted registration'…"
+    dateOfEvent: "When the event took effect (ISO date-time string)."
+    reason: "The Commission's reason, for removals and transfers — e.g. 'Ceased to exist', 'Does not operate', 'Funds transferred (incor)'."
+    associatedCharityNumber: "The other charity in a transfer, when any."
+    associatedCharityName: "That charity's name."
+
+# A grant that landed in the district.
+- name: GrantIntoPlace
+  description: "One grant whose recipient or beneficiary location is a watched place's local authority district, from 360Giving's GrantNav — every publisher on the 360Giving standard (National Lottery distributors, community foundations, government departments, trusts). Reached via HAS_GRANT, keyed on the place's district NAME. Carries the funder, the programme, the amount and award date, and the recipient's org-id with its charity and company numbers as plain columns — the join to Charity (on recipientCharityNumber) and to realm-gov-uk's Companies House types (on recipientCompanyNumber). A recipientOrgId starting '360G-' is a publisher-local id — an unregistered group or an individual — and resolves to no register. Amounts are as awarded, not disbursed; a grant with a beneficiary in the district may have a recipient headquartered elsewhere, so 'money into the place' and 'organisations based in the place' are different questions."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_GRANT
+      keyField: district
+      recordKeyField: key
+      producer: grantsIntoDistrict
+      maxAnchors: 6
+      description: "Every published grant into the district — thousands for a town. Aggregate by funder, programme, year or recipient; never list raw grants beyond a bounded LIMIT."
+  properties:
+    id:
+      description: "Synthesized per-row id, deterministic per file. Identity."
+      metadata:
+        identity: "true"
+    key: "The district name the file was fetched for — the join link."
+    grantId: "The 360Giving grant identifier."
+    title: "The grant's title."
+    description: "The funder's description of the grant."
+    amountAwarded:
+      type: number
+      description: "Amount awarded, GBP."
+    awardDate: "Award date, ISO."
+    plannedStart: "Planned start date, when published."
+    plannedEnd: "Planned end date, when published."
+    recipientOrgId:
+      description: "The recipient's org-id: GB-CHC-nnn, GB-COH-nnn, GB-UKPRN-nnn, GB-LAE-nnn, or a publisher-local 360G-… id. The key RECIPIENT_RECORD follows."
+      metadata:
+        joinKey: "org-id"
+    recipient: "The recipient's name as the funder recorded it."
+    recipientCharityNumber:
+      description: "The recipient's charity number, when the funder recorded one — joins to Charity.registeredCharityNumber."
+      metadata:
+        joinKey: "charity-number"
+    recipientCompanyNumber:
+      description: "The recipient's Companies House number, when recorded."
+      metadata:
+        joinKey: "companies-house-number"
+    recipientPostcode: "The recipient's postcode."
+    recipientAreaCodeType: "The type of the recipient's first location code, e.g. 'LAD' or 'WD'."
+    recipientAreaCode: "The recipient's first location GSS code."
+    recipientArea: "That location's name."
+    recipientIndividual: "Set when the recipient is an individual rather than an organisation."
+    funderOrgId: "The funder's org-id."
+    funder: "The funder's name, e.g. 'The National Lottery Community Fund'."
+    programme: "The grant programme's title."
+    grantType: "The funder's grant type, when published."
+    beneficiaryArea: "The first beneficiary location's name, when published."
+    beneficiaryAreaCode: "That location's GSS code."
+
+# The register record behind a recipient's org-id.
+- name: OrgRecord
+  description: "The register record behind an organisation identifier, from Find that Charity's nightly index over the Charity Commission, OSCR, CCNI, Companies House, GIAS and the mutuals register: whether the organisation is still active, when it was registered and removed, latest income, organisation types, HQ postcode and local-authority code. Reached by id via MATCH (l:OrgLookup {orgId:'GB-CHC-…'})-[:RESOLVES_TO]->(o), or from a NARROW grant set via RECIPIENT_RECORD (keyed on recipientOrgId). Answers 'which organisations funded here no longer exist' and 'is this recipient a charity, a company, a school or a council' without a key for any register. A 360G- local id resolves to nothing — that is an unregistered group or an individual, not a missing record."
+  virtualJoins:
+    - anchorLabel: OrgLookup
+      relationship: RESOLVES_TO
+      keyField: orgId
+      recordKeyField: key
+      producer: orgByOrgId
+      maxAnchors: 25
+      description: "Resolve ONE org-id, literal-seeded: MATCH (l:OrgLookup {orgId:'GB-CHC-1164883'})-[:RESOLVES_TO]->(o:OrgRecord). The id comes from a GrantIntoPlace.recipientOrgId or a Charity's number as 'GB-CHC-' + number. One call per id."
+    - anchorLabel: GrantIntoPlace
+      relationship: RECIPIENT_RECORD
+      keyField: recipientOrgId
+      recordKeyField: key
+      producer: orgByOrgId
+      maxAnchors: 200
+      description: "The record behind each grant's recipient — ONLY over a grant set already narrowed in the same MATCH's WHERE to under 200 grants (one funder, one programme, one year), because the engine counts every bound grant as an anchor and a LIMIT does not narrow before the fetch. For 'who is this recipient' use OrgLookup."
+  properties:
+    orgId:
+      description: "The org-id. Identity."
+      metadata:
+        identity: "true"
+        joinKey: "org-id"
+    key: "The org-id the record was fetched by — the join link."
+    name: "The organisation's name in its register."
+    charityNumber:
+      description: "Its charity number, when it is a charity."
+      metadata:
+        joinKey: "charity-number"
+    companyNumber:
+      description: "Its Companies House number, when it is a company."
+      metadata:
+        joinKey: "companies-house-number"
+    active: "true while the organisation is on its register; false once removed or dissolved."
+    dateRegistered: "Registration or incorporation date."
+    dateRemoved: "Removal or dissolution date, when any."
+    latestIncome:
+      type: number
+      description: "Latest reported income, pounds, where the register carries one."
+    latestFinancialYearEnd: "End of the latest financial year reported."
+    organisationType: "The organisation's types as a list — 'registered-charity', 'registered-company', 'community-interest-company', 'education'…"
+    postcode: "The organisation's postcode."
+    hqAreaCode:
+      description: "GSS code of the organisation's HQ local authority."
+      metadata:
+        joinKey: "gss-lad"
+    hqArea: "That local authority's name."
+    dateModified: "When Find that Charity last rebuilt the record."

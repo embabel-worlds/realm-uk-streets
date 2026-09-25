@@ -1,0 +1,270 @@
+# ── The COMMUNITY axis: what a place-based data platform charts, read live ──
+# The indicators community-data products curate and copy in — school readiness,
+# youth justice, child poverty, NEET, teenage conceptions, childhood obesity,
+# life expectancy, claimants, deprivation, population by age — every one is a
+# keyless official release keyed on the GSS code UkPlace already stores. Nothing
+# here is copied: each figure arrives with its publisher's own period, its
+# "compared to England" judgement where the publisher makes one, and the fetch
+# time as its as-at date.
+
+# ── OHID Fingertips — the public-health indicator service ────────────────────
+# One CSV per AREA TYPE for a fixed indicator set, keyed on the area's GSS code.
+# 502 = upper-tier local authorities (unitaries, mets, London boroughs, counties)
+# — where the children's-services indicators (school readiness, youth justice
+# first-time entrants, NEET, children in low income) are published. 501 = lower-
+# tier districts, where the health indicators also appear for two-tier districts.
+# A unitary sits in BOTH files, so the two joins are not unioned — a view reads
+# one edge or the other and says which.
+#
+# Data honesty, from the file itself:
+# - One indicator carries MANY rows per area: every period, each sex, and
+#   breakdowns (deprivation deciles, SEN) under `Category Type`. The headline
+#   figure is the row with an EMPTY Category Type and Sex 'Persons' (or
+#   'Female' for female-only indicators such as under-18 conceptions), latest
+#   `Time period Sortable`. Views must filter that way or they double-count.
+# - `Compared to England` is the PUBLISHER'S significance test ('Better',
+#   'Worse', 'Similar', 'Not compared') — an honest "where this place stands
+#   out", never a score of ours.
+# - Polarity differs by indicator (a high school-readiness figure is good, a
+#   high NEET figure is bad); the comparison column already encodes it.
+- name: healthIndicatorsUpperTier
+  kind: tabular
+  url: "https://fingertips.phe.org.uk/api/all_data/csv/by_indicator_id?indicator_ids=90631,90632,10401,93203,93701,20401,20602,93085,20101,30309,41001,90366,92313,93562&child_area_type_id=502&parent_area_type_id=6"
+  format: csv
+  headerContains: "Indicator ID"
+  keyColumn: "Area Code"
+  keyMatch: ci
+  keyAs: key
+  rowIdAs: id
+  userAgent: browser
+  maxRows: 400000
+  maxRowsPerKey: 3000
+  project:
+    indicatorId: "Indicator ID"
+    indicator: "Indicator Name"
+    areaCode: "Area Code"
+    area: "Area Name"
+    areaType: "Area Type"
+    sex: "Sex"
+    age: "Age"
+    categoryType: "Category Type"
+    category: "Category"
+    period: "Time period"
+    periodSortable: "Time period Sortable"
+    value: "Value"
+    lowerCi: "Lower CI 95.0 limit"
+    upperCi: "Upper CI 95.0 limit"
+    count: "Count"
+    denominator: "Denominator"
+    valueNote: "Value note"
+    trend: "Recent Trend"
+    comparedToEngland: "Compared to England value or percentiles"
+    newData: "New data"
+  # Indicators update on their own calendars, monthly at the fastest; a day.
+  fileCacheSeconds: 86400
+  cache: { kind: ttl, seconds: 86400 }
+
+- name: healthIndicatorsLowerTier
+  kind: tabular
+  url: "https://fingertips.phe.org.uk/api/all_data/csv/by_indicator_id?indicator_ids=90631,90632,10401,93203,93701,20401,20602,93085,20101,30309,41001,90366,92313,93562&child_area_type_id=501&parent_area_type_id=6"
+  format: csv
+  headerContains: "Indicator ID"
+  keyColumn: "Area Code"
+  keyMatch: ci
+  keyAs: key
+  rowIdAs: id
+  userAgent: browser
+  maxRows: 400000
+  maxRowsPerKey: 3000
+  project:
+    indicatorId: "Indicator ID"
+    indicator: "Indicator Name"
+    areaCode: "Area Code"
+    area: "Area Name"
+    areaType: "Area Type"
+    sex: "Sex"
+    age: "Age"
+    categoryType: "Category Type"
+    category: "Category"
+    period: "Time period"
+    periodSortable: "Time period Sortable"
+    value: "Value"
+    lowerCi: "Lower CI 95.0 limit"
+    upperCi: "Upper CI 95.0 limit"
+    count: "Count"
+    denominator: "Denominator"
+    valueNote: "Value note"
+    trend: "Recent Trend"
+    comparedToEngland: "Compared to England value or percentiles"
+    newData: "New data"
+  fileCacheSeconds: 86400
+  cache: { kind: ttl, seconds: 86400 }
+
+# The SAME upper-tier file keyed by INDICATOR, so one indicator can be ranked
+# across every upper-tier authority in England — the league-table axis. The
+# anchor is literal-seeded: MATCH (s:IndicatorAcrossEngland {indicatorId:'10401'}).
+# Every period and breakdown for the indicator comes back (~10k rows for a long
+# series); the view keeps the headline row per area at the latest period.
+- name: indicatorAcrossUpperTier
+  kind: tabular
+  url: "https://fingertips.phe.org.uk/api/all_data/csv/by_indicator_id?indicator_ids=90631,90632,10401,93203,93701,20401,20602,93085,20101,30309,41001,90366,92313,93562&child_area_type_id=502&parent_area_type_id=6"
+  format: csv
+  headerContains: "Indicator ID"
+  keyColumn: "Indicator ID"
+  keyMatch: digits
+  keyAs: key
+  rowIdAs: id
+  userAgent: browser
+  maxRows: 400000
+  maxRowsPerKey: 40000
+  project:
+    indicatorId: "Indicator ID"
+    indicator: "Indicator Name"
+    areaCode: "Area Code"
+    area: "Area Name"
+    areaType: "Area Type"
+    sex: "Sex"
+    age: "Age"
+    categoryType: "Category Type"
+    period: "Time period"
+    periodSortable: "Time period Sortable"
+    value: "Value"
+    count: "Count"
+    denominator: "Denominator"
+    trend: "Recent Trend"
+    comparedToEngland: "Compared to England value or percentiles"
+  fileCacheSeconds: 86400
+  cache: { kind: ttl, seconds: 86400 }
+
+# ── NOMIS claimant count — the monthly labour-market pulse ───────────────────
+# People claiming unemployment-related benefits, latest month, rounded to 5.
+# Per place, keyed on the district code…
+- name: claimantCount
+  kind: remote
+  operation: claimantCount
+  records: "$.obs[*]"
+  keyArg: geography
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    date: latest
+    gender: "0"
+    age: "0"
+    measure: "1"
+    measures: "20100"
+  project:
+    id: urn
+    districtCode: geography.geogcode
+    area: geography.description
+    claimants: obs_value.value
+    month: time.description
+  # Monthly release; a day of cache.
+  cache: { kind: ttl, seconds: 86400 }
+
+# …and for EVERY local authority in ONE call (TYPE432 — the district/unitary set
+# the claimant count is published on, 374 obs), the medianPayAllDistricts
+# pattern: the key is not sent, the geography is a fixed arg, the anchor literal
+# names the batch. Join to DistrictIncome/DistrictCrime on districtCode.
+- name: claimantCountAllDistricts
+  kind: remote
+  operation: claimantCount
+  records: "$.obs[*]"
+  keyTemplate: "{key}"
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    geography: "TYPE432"
+    date: latest
+    gender: "0"
+    age: "0"
+    measure: "1"
+    measures: "20100"
+  project:
+    id: urn
+    districtCode: geography.geogcode
+    area: geography.description
+    claimants: obs_value.value
+    month: time.description
+  cache: { kind: ttl, seconds: 86400 }
+
+# ── ONS mid-year population by age band ──────────────────────────────────────
+# Five rows per place — all ages, 0-15, 16-64, 65+, 16-24 — so "how many
+# children live here" and "what share is working age" are reads, and every
+# per-head rate in the realm has a denominator with a year on it.
+- name: populationByAge
+  kind: remote
+  operation: populationByAge
+  records: "$.obs[*]"
+  keyArg: geography
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  args:
+    date: latest
+    gender: "0"
+    c_age: "200,201,203,209,250"
+    measures: "20100"
+  project:
+    id: urn
+    districtCode: geography.geogcode
+    area: geography.description
+    band: c_age.description
+    persons: obs_value.value
+    year: time.description
+  # Annual estimate; a week.
+  cache: { kind: ttl, seconds: 604800 }
+
+# ── English Indices of Deprivation 2025 (MHCLG, published 30 Oct 2025) ───────
+# File 10 v2: lower-tier district summaries on 2024 boundaries and LSOA 2021 —
+# the CURRENT deprivation index. The 2019 edition stays in producers/
+# deprivation.yml because the fitted crime model and its test fixtures are on
+# it; this is the one to READ for a place today. Same polarity warning: higher
+# score = more deprived, rank 1 = most deprived of 296 lower-tier districts.
+# Header cells end in a trailing space in the sheet; the reader trims.
+- name: imd2025DistrictSummary
+  kind: tabular
+  url: "https://assets.publishing.service.gov.uk/media/6917412ebc34c86ce4e6e7fc/File_10_-_IoD2025_Local_Authority_District_Summaries__lower-tier__v2.xlsx"
+  format: xlsx
+  sheet: "IMD"
+  headerContains: "Local Authority District code"
+  keyColumn: "Local Authority District code (2024)"
+  keyMatch: ci
+  keyAs: key
+  rowIdAs: id
+  userAgent: browser
+  project:
+    districtCode: "Local Authority District code (2024)"
+    district: "Local Authority District name (2024)"
+    averageScore: "IMD - Average score"
+    rankOfAverageScore: "IMD - Rank of average score"
+    averageRank: "IMD - Average rank"
+    rankOfAverageRank: "IMD - Rank of average rank"
+    proportionMostDeprived: "IMD - Proportion of LSOAs in most deprived 10% nationally"
+    rankOfProportionMostDeprived: "IMD - Rank of proportion of LSOAs in most deprived 10% nationally"
+    extent: "IMD25 - Extent"
+    rankOfExtent: "IMD25 - Rank of extent"
+    localConcentration: "IMD25 - Local concentration"
+    rankOfLocalConcentration: "IMD25 - Rank of local concentration"
+  fileCacheSeconds: 604800
+  cache: { kind: ttl, seconds: 604800 }
+
+# The whole 2025 table under the UkDistricts anchor — the deprivation axis on
+# CURRENT boundaries, joinable to claimants, pay and crime on districtCode.
+- name: imd2025DistrictSummaries
+  kind: tabular
+  url: "https://assets.publishing.service.gov.uk/media/6917412ebc34c86ce4e6e7fc/File_10_-_IoD2025_Local_Authority_District_Summaries__lower-tier__v2.xlsx"
+  format: xlsx
+  sheet: "IMD"
+  headerContains: "Local Authority District code"
+  rowIdAs: id
+  userAgent: browser
+  project:
+    districtCode: "Local Authority District code (2024)"
+    district: "Local Authority District name (2024)"
+    averageScore: "IMD - Average score"
+    rankOfAverageScore: "IMD - Rank of average score"
+    proportionMostDeprived: "IMD - Proportion of LSOAs in most deprived 10% nationally"
+    rankOfProportionMostDeprived: "IMD - Rank of proportion of LSOAs in most deprived 10% nationally"
+    extent: "IMD25 - Extent"
+    localConcentration: "IMD25 - Local concentration"
+  fileCacheSeconds: 604800
+  cache: { kind: ttl, seconds: 604800 }

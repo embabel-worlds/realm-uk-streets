@@ -1,0 +1,135 @@
+# The EDUCATION axis — DfE Explore Education Statistics at local-authority
+# level. Virtual, keyed on the children's-services authority code UkPlace
+# stores for a unitary, met or London borough.
+
+- name: SchoolReadiness
+  description: "One row of the DfE early years foundation stage profile for a local authority: the share of children reaching a GOOD LEVEL OF DEVELOPMENT at the end of Reception (age 5) — school readiness — with the count behind it, plus 'at expected level in all early learning goals' and 'in communication, language and literacy'. Reached from a watched place via HAS_SCHOOL_READINESS. Many rows per authority: every academic year (period '202425' = 2024/25) and every breakdown; the HEADLINE is breakdownTopic 'Total', breakdown 'Total', sex 'Total' at the greatest period. Other breakdownTopic values cut by free school meals, SEN, ethnicity and first language — compare the FSM row with the Total row for the disadvantage gap. Values are strings; toFloat(). A two-tier district's place finds no rows (its county holds them)."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_SCHOOL_READINESS
+      keyField: districtCode
+      recordKeyField: key
+      producer: schoolReadinessByLa
+      maxAnchors: 15
+      description: "The authority's EYFSP rows, every year and breakdown — pin the Total rows and the latest period."
+  properties:
+    id:
+      description: "Synthesized per-row id, deterministic per release. Identity."
+      metadata:
+        identity: "true"
+    key: "The authority code the row was found by — the join link."
+    period: "Academic year as six digits, e.g. '202425' for 2024/25 — sortable as a string."
+    level: "'Local authority' for every row this join returns."
+    laCode:
+      description: "The authority's GSS code — equals UkPlace.districtCode."
+      metadata:
+        joinKey: "gss-lad"
+    la: "The authority's name."
+    regionCode: "The region's GSS code."
+    region: "The region's name."
+    breakdownTopic: "'Total', or the cut: 'Free school meals', 'Special educational needs', 'Ethnicity', 'First language'…"
+    breakdown: "The value within the topic ('Total', 'Eligible for free school meals'…)."
+    sex: "'Total', 'Boys' or 'Girls'."
+    children:
+      type: number
+      description: "Children assessed."
+    gldChildren:
+      type: number
+      description: "Children with a good level of development."
+    gldPercent:
+      type: number
+      description: "Percent with a good level of development — the school-readiness figure."
+    allElgsPercent:
+      type: number
+      description: "Percent at the expected level in ALL early learning goals."
+    commLangLitPercent:
+      type: number
+      description: "Percent at the expected level in communication, language and literacy."
+    elgsExpectedAverage:
+      type: number
+      description: "Average number of early learning goals (of 17) at the expected level."
+
+- name: PupilAbsence
+  description: "One row of DfE pupil absence for a local authority: the share of enrolments that were PERSISTENT absentees (missed 10%+ of sessions) or SEVERE absentees (50%+), by school phase, from 2011/12. Reached from a watched place via HAS_PUPIL_ABSENCE. Rows are (period × phase × absenceType); the headline is phase 'Total' and absenceType 'Persistent absence' at the latest period, read enrolmentPercent. 'z' in a value means not applicable; toFloat() reads it as null."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_PUPIL_ABSENCE
+      keyField: districtCode
+      recordKeyField: key
+      producer: pupilAbsenceByLa
+      maxAnchors: 15
+      description: "The authority's absence rows — pin the phase, the absence type and the latest period."
+  properties:
+    id:
+      description: "Synthesized per-row id. Identity."
+      metadata:
+        identity: "true"
+    key: "The authority code — the join link."
+    period: "Academic year as six digits, e.g. '202425'."
+    level: "'Local authority'."
+    laCode:
+      description: "The authority's GSS code — equals UkPlace.districtCode."
+      metadata:
+        joinKey: "gss-lad"
+    la: "The authority's name."
+    phase: "'Total', 'State-funded primary', 'State-funded secondary', 'Special schools'."
+    absenceType: "'Total pupils', 'Persistent absence', 'Severe absence'."
+    enrolments:
+      type: number
+      description: "Enrolments in the category."
+    enrolmentPercent:
+      type: number
+      description: "The category as a percent of all enrolments — the rate to read for absentee rows."
+
+- name: Ks4Attainment
+  description: "One row of DfE key stage 4 performance for a local authority, all state-funded schools: Attainment 8 average, percent achieving grade 5+ and grade 4+ in English and maths, EBacc entry, Progress 8 where published. Reached from a watched place via HAS_KS4_ATTAINMENT. Many rows per authority per year — the HEADLINE is breakdownTopic 'Total' (every cut column 'Total') at the latest period; the disadvantage gap is the disadvantageStatus rows beside it. 'z' = not applicable. Revised figures supersede provisional ones for the same year (version)."
+  virtualJoins:
+    - anchorLabel: UkPlace
+      relationship: HAS_KS4_ATTAINMENT
+      keyField: districtCode
+      recordKeyField: key
+      producer: ks4AttainmentByLa
+      maxAnchors: 15
+      description: "The authority's KS4 rows, every year and cut — pin breakdownTopic 'Total' and the latest period."
+  properties:
+    id:
+      description: "Synthesized per-row id. Identity."
+      metadata:
+        identity: "true"
+    key: "The authority code — the join link."
+    period: "Academic year as six digits."
+    level: "'Local authority'."
+    laCode:
+      description: "The authority's GSS code."
+      metadata:
+        joinKey: "gss-lad"
+    la: "The authority's name."
+    version: "'Provisional' or 'Revised'."
+    establishmentType: "'All state-funded' for the headline rows."
+    breakdownTopic: "'Total', or the cut this row is: 'Disadvantage status', 'FSM status', 'Sex'…"
+    sex: "'Total', 'Boys', 'Girls'."
+    fsmStatus: "'Total' or the FSM cut."
+    disadvantageStatus: "'Total', 'Disadvantaged', 'All other pupils'."
+    senStatus: "'Total' or the SEN cut."
+    ethnicityMajor: "'Total' or the ethnicity cut."
+    schools:
+      type: number
+      description: "Schools in the row."
+    pupils:
+      type: number
+      description: "Pupils at the end of KS4 in the row."
+    attainment8Average:
+      type: number
+      description: "Average Attainment 8 score."
+    engMathGrade5Percent:
+      type: number
+      description: "Percent achieving grade 5 or above in English and maths."
+    engMathGrade4Percent:
+      type: number
+      description: "Percent achieving grade 4 or above in English and maths."
+    ebaccEnteringPercent:
+      type: number
+      description: "Percent entered for the English Baccalaureate."
+    progress8Average:
+      type: number
+      description: "Progress 8 score where published ('z' when not)."

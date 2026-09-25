@@ -1,6 +1,6 @@
 # realm-uk-streets
 
-**Street-level Britain, joined at a place.** Ten keyless official sources —
+**Street-level Britain, joined at a place.** Keyless official sources —
 police-recorded crime, every registered property sale since 1995, the House
 Price Index, ONS median pay, Census 2021 ethnicity, schools, food-hygiene
 ratings, live flood alerts, and each place's MP with the seat's latest margin —
@@ -44,6 +44,43 @@ further virtual join: the graph chains across API calls.
 `SE10` for the district view (crime and prices around the outcode centroid) —
 the same dossier, different focal length.
 
+## The community and organisation axes
+
+The place a community-data platform charts is a statistic; here it is a set of
+keys into the publishers themselves, and an organisation register beside them.
+
+| Key on the place | Dataset | Edge → type |
+|---|---|---|
+| district code | OHID Fingertips — 14 indicators: school readiness (all, FSM), youth-justice first-time entrants, 16-17 NEET, children in low income, under-18 conceptions, Year 6 overweight, smoking at delivery, low birth weight, MMR, suicide, life expectancy, employment, disability-free life expectancy — with the publisher's own *compared to England* | `HAS_CHILD_INDICATOR` (upper-tier) / `HAS_LOCAL_INDICATOR` (lower-tier) → `AreaIndicator` |
+| district code | NOMIS claimant count, latest month | `HAS_CLAIMANTS → ClaimantCount` |
+| district code | ONS mid-year population, five age bands | `HAS_POPULATION → PopulationBand` |
+| district code | Indices of Deprivation **2025** (lower-tier summaries) | `HAS_DEPRIVATION_2025 → DistrictDeprivation2025` |
+| district code | DfE early-years profile (good level of development, with the FSM gap) · pupil absence · key stage 4 | `HAS_SCHOOL_READINESS → SchoolReadiness` · `HAS_PUPIL_ABSENCE → PupilAbsence` · `HAS_KS4_ATTAINMENT → Ks4Attainment` |
+| district name | Charity Commission area-of-operation → the charity's daily register row → its event history (registrations, removals with reason, transfers) | `HAS_CHARITY_LINK → CharityAreaLink -[:HAS_CHARITY]-> Charity -[:HAS_EVENT]-> CharityEvent` |
+| district name | 360Giving GrantNav — every published grant into the district, with recipient charity / company numbers | `HAS_GRANT → GrantIntoPlace` |
+| an org-id | Find that Charity — the register record behind GB-CHC-… / GB-COH-… | `(:OrgLookup {orgId})-[:RESOLVES_TO]-> OrgRecord` |
+
+National anchors: `IndicatorAcrossEngland {indicatorId}` ranks one indicator
+across every upper-tier authority; `UkDistricts {set:'england-and-wales'}` now
+also carries `HAS_CLAIMANTS` and `HAS_DEPRIVATION_2025`.
+
+Views: `PlaceProfile` (the one-page community profile, each figure with its
+period), `WhereThisPlaceStandsOut` (everything the authority is significantly
+worse or better than England on — the publisher's test, not a score),
+`IndicatorTrendAtPlace`, `WhoLivesHere`, `IndicatorAcrossEngland`,
+`MostDeprivedDistricts2025`, `ClaimantsPayAndDeprivation`,
+`CharitiesOperatingHere`, `CharityChangesHere` (arrivals and removals since a
+date, with the Commission's reason), `WhoFundsThisPlace`,
+`GrantsIntoPlaceByYear`, `BiggestGrantsHere`, `FundedOrganisationsHere`,
+`WhatIsThisOrganisation`, `SchoolReadinessAtPlace`, `Ks4AttainmentAtPlace`,
+`PupilAbsenceAtPlace`.
+
+Three of the sources needed the engine to grow (me ≥ 2026-09-25): the Charity
+Commission publishes a zip of tab-delimited parts with literal quotes inside
+free text, and the DfE API serves gzip whether or not you asked. Both are now
+sniffed from the bytes and handled once, in the tabular file cache and reader,
+so no realm declares anything about them.
+
 ## What ships
 
 - **`apps/street-lens.html`** — the map. Britain (vendored Natural Earth 50m
@@ -69,8 +106,17 @@ the same dossier, different focal length.
   addresses by the police, by design.
 - Sales key on full postcodes; commercial postcodes are legitimately empty.
 - School coverage tracks Wikidata, not reality.
-- Deprivation (IMD) is absent because opendatacommunities.org refuses
-  non-browser clients; Ofsted and EPC publish downloads, not keyless APIs.
+- Deprivation: the 2025 index is read from the gov.uk summaries (the 2019
+  edition stays for the fitted crime model); LSOA-level IMD via
+  opendatacommunities.org still refuses non-browser clients. Ofsted and EPC
+  publish downloads, not keyless APIs.
+- Children's-services indicators (school readiness, youth justice, NEET, DfE
+  results) are published for upper-tier authorities. A place in a two-tier
+  district finds them empty because the place does not yet store its county
+  code — an honest gap, not a zero.
+- The Charity Commission keys areas of operation on its own spelling of an
+  authority's name; a district whose postcodes.io name differs finds no rows.
+- GrantNav rate-limits scripted fetches: one district file a day, cached.
 
 No API keys, no accounts, nothing to configure — the realm works the moment it
 is installed.

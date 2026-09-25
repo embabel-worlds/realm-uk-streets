@@ -1,0 +1,207 @@
+# ── The ORGANISATION axis: who operates here, who funds them, who came and went ──
+# A community-data platform's unit is a statistic about a place. These
+# producers make the unit an ORGANISATION: the charities registered as
+# operating in the place, the grants that landed there and who received them,
+# and a keyless bridge from any recipient identifier to the register record
+# behind it. Three official/open sources, no key for any of them.
+
+# ── Charity Commission for England and Wales — the daily bulk register ──────
+# ENGINE GATE: these three read a ZIP OF TAB-DELIMITED TEXT, which needs the
+# tabular reader that treats a non-xlsx zip as a container of delimited parts
+# (me >= 2026-09-25). On an older engine POI rejects the zip and the join
+# reports a producer error — loud, and only these three.
+#
+# The register is republished DAILY at 00:00 UTC with `date_of_extract` on
+# every row — that stamp is the as-at date of every charity fact here. Removed
+# charities stay in the files with a date_of_removal, which is what makes
+# "who left" answerable at all.
+
+# Which charities declare a local authority as an area of operation. Keyed on
+# the LA NAME as the Commission spells it ("Blackpool", "Middlesbrough",
+# "Kingston upon Hull, City of") — UkPlace.district as postcodes.io spells it
+# matches in the common case and not always; a place whose district finds no
+# rows may be a naming mismatch, not a charity-free district. The file also
+# carries regions, countries and "Throughout England and Wales" rows under other
+# geographic_area_type values; the type is projected so a view can insist on
+# 'Local Authority'. 4.4MB zip, 540k rows; Blackpool 410, Middlesbrough 800,
+# Birmingham a few thousand — maxRowsPerKey bounds the largest city.
+- name: charitiesOperatingIn
+  kind: tabular
+  url: "https://ccewuksprdoneregsadata1.blob.core.windows.net/data/txt/publicextract.charity_area_of_operation.zip"
+  format: tsv
+  headerContains: "registered_charity_number"
+  keyColumn: "geographic_area_description"
+  keyMatch: ci
+  keyAs: key
+  rowIdAs: id
+  maxRows: 1000000
+  maxRowsPerKey: 6000
+  project:
+    extractDate: "date_of_extract"
+    organisationNumber: "organisation_number"
+    registeredCharityNumber: "registered_charity_number"
+    linkedCharityNumber: "linked_charity_number"
+    areaType: "geographic_area_type"
+    area: "geographic_area_description"
+    parentAreaType: "parent_geographic_area_type"
+    parentArea: "parent_geographic_area_description"
+  fileCacheSeconds: 86400
+  cache: { kind: ttl, seconds: 86400 }
+
+# The charity itself, keyed on its registered number: name, status, dates
+# registered and removed, latest income and spending, contact postcode, the
+# Companies House number where the charity is a company, and the activities
+# text the trustees wrote. 44MB zip / 160MB text, 400k rows; scanned per
+# uncached key batch, so this is a join for the few hundred numbers a place
+# produces, not a per-row hot path. A `linked_charity_number` other than 0 is a
+# subsidiary sharing the main number, hence more than one row per key.
+- name: charityByNumber
+  kind: tabular
+  url: "https://ccewuksprdoneregsadata1.blob.core.windows.net/data/txt/publicextract.charity.zip"
+  format: tsv
+  headerContains: "registered_charity_number"
+  keyColumn: "registered_charity_number"
+  keyMatch: digits
+  keyAs: key
+  rowIdAs: id
+  maxRows: 1000000
+  maxRowsPerKey: 40
+  project:
+    extractDate: "date_of_extract"
+    organisationNumber: "organisation_number"
+    registeredCharityNumber: "registered_charity_number"
+    linkedCharityNumber: "linked_charity_number"
+    name: "charity_name"
+    charityType: "charity_type"
+    registrationStatus: "charity_registration_status"
+    dateOfRegistration: "date_of_registration"
+    dateOfRemoval: "date_of_removal"
+    reportingStatus: "charity_reporting_status"
+    latestPeriodEnd: "latest_acc_fin_period_end_date"
+    latestIncome: "latest_income"
+    latestExpenditure: "latest_expenditure"
+    town: "charity_contact_address2"
+    postcode: "charity_contact_postcode"
+    website: "charity_contact_web"
+    companyNumber: "charity_company_registration_number"
+    isCio: "charity_is_cio"
+    insolvent: "charity_insolvent"
+    inAdministration: "charity_in_administration"
+    activities: "charity_activities"
+  fileCacheSeconds: 86400
+  cache: { kind: ttl, seconds: 86400 }
+
+# The register's own EVENT LOG, keyed on the charity number: registration,
+# removal (with the Commission's reason), CIO registration, asset transfers in
+# and out (with the associated charity), re-registration. Dated events are
+# what a watch diffs — filter date_of_event past a watermark, no row
+# comparison needed. 14MB zip, 700k rows.
+- name: charityEventsByNumber
+  kind: tabular
+  url: "https://ccewuksprdoneregsadata1.blob.core.windows.net/data/txt/publicextract.charity_event_history.zip"
+  format: tsv
+  headerContains: "charity_event_order"
+  keyColumn: "registered_charity_number"
+  keyMatch: digits
+  keyAs: key
+  rowIdAs: id
+  maxRows: 1000000
+  maxRowsPerKey: 60
+  project:
+    extractDate: "date_of_extract"
+    registeredCharityNumber: "registered_charity_number"
+    linkedCharityNumber: "linked_charity_number"
+    charityName: "charity_name"
+    eventOrder: "charity_event_order"
+    eventType: "event_type"
+    dateOfEvent: "date_of_event"
+    reason: "reason"
+    associatedCharityNumber: "assoc_registered_charity_number"
+    associatedCharityName: "assoc_charity_name"
+  fileCacheSeconds: 86400
+  cache: { kind: ttl, seconds: 86400 }
+
+# ── 360Giving GrantNav — every published grant into a district ───────────────
+# GrantNav's per-district CSV, one file per DISTRICT NAME ({key} is URL-encoded
+# by the engine): every grant whose recipient or beneficiary location resolves
+# to the district, from ~300 publishers — the National Lottery distributors,
+# community foundations, government departments, trusts. The whole file IS the
+# answer for the key (no keyColumn): Blackpool ~2,900 rows, Middlesbrough
+# ~4,700, a large city tens of thousands — maxRowsPerKey says where honesty
+# stops and the outcome reports TRUNCATED rather than a quiet subset.
+#
+# Recipient identifiers are org-ids: GB-CHC-nnn (charity number), GB-COH-nnn
+# (company number), GB-UKPRN/GB-EDU (education), GB-LAE (a council), and
+# publisher-local 360G-… ids for unregistered groups and individuals. The
+# charity and company numbers are ALSO projected as plain columns, which is
+# the join to Charity and to realm-gov-uk's Companies House types.
+#
+# GrantNav rate-limits scripted fetches; one file per district per day.
+- name: grantsIntoDistrict
+  kind: tabular
+  url: "https://grantnav.threesixtygiving.org/district/{key}.csv"
+  format: csv
+  headerContains: "Identifier"
+  keyAs: key
+  rowIdAs: id
+  userAgent: browser
+  maxRows: 400000
+  maxRowsPerKey: 25000
+  project:
+    grantId: "Identifier"
+    title: "Title"
+    description: "Description"
+    amountAwarded: "Amount Awarded"
+    awardDate: "Award Date"
+    plannedStart: "Planned Dates:Start Date"
+    plannedEnd: "Planned Dates:End Date"
+    recipientOrgId: "Recipient Org:Identifier"
+    recipient: "Recipient Org:Name"
+    recipientCharityNumber: "Recipient Org:Charity Number"
+    recipientCompanyNumber: "Recipient Org:Company Number"
+    recipientPostcode: "Recipient Org:Postal Code"
+    recipientAreaCodeType: "Recipient Org:Location:0:Geographic Code Type"
+    recipientAreaCode: "Recipient Org:Location:0:Geographic Code"
+    recipientArea: "Recipient Org:Location:0:Name"
+    recipientIndividual: "Recipient Individual Id"
+    funderOrgId: "Funding Org:Identifier"
+    funder: "Funding Org:Name"
+    programme: "Grant Programme:Title"
+    grantType: "Grant Type"
+    beneficiaryArea: "Beneficiary Location:0:Name"
+    beneficiaryAreaCode: "Beneficiary Location:0:Geographic Code"
+  fileCacheSeconds: 86400
+  cache: { kind: ttl, seconds: 86400 }
+
+# ── Find that Charity — the org-id bridge ────────────────────────────────────
+# One call per org-id, resolving a grant recipient's identifier to the register
+# record behind it: whether it is still active, when it was registered and
+# removed, its latest income, its HQ local authority, and every linked record
+# (a charity's company number, a company's charity number). Keyless; the
+# index is rebuilt nightly from the registers. The join key is the recipient
+# org-id a grant carries, so "which of the organisations funded here no longer
+# exist" is a two-hop read.
+- name: orgByOrgId
+  kind: remote
+  operation: orgById
+  records: "$"
+  keyArgs: [orgid]
+  echoKeyAs: key
+  maxKeysPerCall: 1
+  cost: { rate: "2/second" }
+  project:
+    orgId: id
+    name: name
+    charityNumber: charityNumber
+    companyNumber: companyNumber
+    active: active
+    dateRegistered: dateRegistered
+    dateRemoved: dateRemoved
+    latestIncome: latestIncome
+    latestFinancialYearEnd: latestFinancialYearEnd
+    organisationType: organisationType
+    postcode: address.postalCode
+    hqAreaCode: location.0.geoCode
+    hqArea: location.0.name
+    dateModified: dateModified
+  cache: { kind: ttl, seconds: 86400, negativeTtlSeconds: 86400 }
