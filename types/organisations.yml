@@ -93,6 +93,20 @@
       producer: charityEventsByNumber
       maxAnchors: 8000
       description: "Every recorded event for the charity, in the Commission's order. Same ceiling and the same one-pass reason as HAS_CHARITY."
+  examples:
+    # STEERING — pinned defect: "which charities in Blackpool have been removed from the
+    # register since 2025" produced an invented (:PostcodeArea)-[:HAS_CHARITY]->(:CharityAtPostcode)
+    # and a refusal. Removals are EVENTS on the charities that declare the place's upper-tier
+    # authority: three hops from the place, filtered on the event's date and type.
+    - q: "which charities in Blackpool have been removed from the register since 2025"
+      cypher: |
+        MATCH (p:UkPlace)
+        WHERE toLower(p.name) CONTAINS 'blackpool'
+        MATCH (p)-[:HAS_CHARITY_LINK]->(l:CharityAreaLink {areaType:'Local Authority'})-[:HAS_CHARITY]->(c:Charity)-[:HAS_EVENT]->(e:CharityEvent)
+        WHERE c.linkedCharityNumber = '0' AND e.eventType = 'Removed' AND left(e.dateOfEvent, 10) >= '2025-01-01'
+        RETURN left(e.dateOfEvent, 10) AS date, e.reason AS reason, c.registeredCharityNumber AS charityNumber, c.name AS charity,
+               toInteger(toFloat(c.latestIncome)) AS latestIncome
+        ORDER BY date DESC LIMIT 50
   properties:
     id:
       description: "Synthesized per-row id, deterministic per extract. Identity."
@@ -126,6 +140,30 @@
       producer: grantsIntoDistrict
       maxAnchors: 6
       description: "Every published grant into the district — thousands for a town. Aggregate by funder, programme, year or recipient; never list raw grants beyond a bounded LIMIT."
+  examples:
+    # STEERING — pinned defect: "who funds Blackpool" ran extract() over every grant TITLE —
+    # 35 model calls for a fact that is a COLUMN. The funder is g.funder; aggregate by it. The
+    # year is left(g.awardDate, 4) bound in a WITH, because a function inside the WHERE over
+    # this edge is not applied.
+    - q: "who funds Blackpool"
+      cypher: |
+        MATCH (p:UkPlace)
+        WHERE toLower(p.name) CONTAINS 'blackpool'
+        MATCH (p)-[:HAS_GRANT]->(g:GrantIntoPlace)
+        WITH p, g, left(g.awardDate, 4) AS year, toFloat(g.amountAwarded) AS amount
+        WHERE year >= '2020' AND amount IS NOT NULL
+        WITH p, g.funder AS funder, count(g) AS grants, sum(amount) AS totalAwarded, count(DISTINCT g.recipientOrgId) AS recipients
+        RETURN p.name AS place, funder, grants, toInteger(totalAwarded) AS totalAwarded, recipients
+        ORDER BY totalAwarded DESC LIMIT 20
+    - q: "how much grant money came into Blackpool each year"
+      cypher: |
+        MATCH (p:UkPlace)
+        WHERE toLower(p.name) CONTAINS 'blackpool'
+        MATCH (p)-[:HAS_GRANT]->(g:GrantIntoPlace)
+        WITH p, g, left(g.awardDate, 4) AS year, toFloat(g.amountAwarded) AS amount
+        WHERE amount IS NOT NULL AND year >= '2015'
+        RETURN p.name AS place, year, count(g) AS grants, toInteger(sum(amount)) AS totalAwarded, count(DISTINCT g.funder) AS funders
+        ORDER BY year
   properties:
     id:
       description: "Synthesized per-row id, deterministic per file. Identity."

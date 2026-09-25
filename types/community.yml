@@ -30,6 +30,35 @@
       producer: indicatorAcrossUpperTier
       maxAnchors: 3
       description: "EVERY upper-tier authority's rows for ONE indicator, under a literal-seeded anchor: MATCH (s:IndicatorAcrossEngland {indicatorId:'10401'})-[:ACROSS_AREAS]->(x). The id is a Fingertips indicator id as a string. Keep the headline row per area at its latest period before ranking."
+  examples:
+    # STEERING — pinned defect: "what stands out about Blackpool compared to England" returned
+    # 200 rows — every period and breakdown of every indicator — because the generator read
+    # comparedToEngland without pinning the HEADLINE row. One indicator is MANY rows; the
+    # answer is the latest headline per indicator, which is what the view does.
+    - q: "what stands out about Blackpool compared to England"
+      cypher: |
+        MATCH (p:UkPlace)
+        WHERE toLower(p.name) CONTAINS 'blackpool'
+        MATCH (p)-[:HAS_CHILD_INDICATOR]->(x:AreaIndicator)
+        WHERE coalesce(x.categoryType, '') = ''
+          AND ((x.sex = 'Persons' AND NOT x.indicatorId IN ['20401','93085','90366','93562'])
+               OR (x.sex = 'Female' AND x.indicatorId IN ['20401','93085','90366','93562'])
+               OR (x.sex = 'Male' AND x.indicatorId IN ['90366','93562']))
+        WITH p, x ORDER BY toFloat(x.periodSortable) DESC
+        WITH p, x.indicatorId + ':' + x.sex AS indicatorId, head(collect(x)) AS latest
+        WHERE latest.comparedToEngland IN ['Worse', 'Better', 'Higher', 'Lower']
+        RETURN p.name AS place, latest.comparedToEngland AS vsEngland,
+               latest.indicator + CASE WHEN latest.sex = 'Persons' THEN '' ELSE ' (' + latest.sex + ')' END AS indicator,
+               round(toFloat(latest.value), 1) AS value, latest.period AS period, latest.trend AS recentTrend
+        ORDER BY vsEngland DESC, indicator
+    - q: "how has school readiness in Blackpool changed"
+      cypher: |
+        MATCH (p:UkPlace)
+        WHERE toLower(p.name) CONTAINS 'blackpool'
+        MATCH (p)-[:HAS_CHILD_INDICATOR]->(x:AreaIndicator)
+        WHERE x.indicatorId = '90631' AND coalesce(x.categoryType, '') = '' AND x.sex = 'Persons'
+        RETURN p.name AS place, x.period AS period, round(toFloat(x.value), 1) AS value, x.comparedToEngland AS vsEngland
+        ORDER BY toFloat(x.periodSortable)
   properties:
     id:
       description: "Synthesized per-row id, deterministic per file edition. Identity."
