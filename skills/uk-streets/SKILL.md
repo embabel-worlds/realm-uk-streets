@@ -54,6 +54,8 @@ Rules that keep these honest:
   them; it is not a zero.
 - A function inside a WHERE over a producer-backed edge is NOT applied — bind
   it first: `WITH g, left(g.awardDate,4) AS year WHERE year >= '2020'`.
+- `NULLS LAST` is not in the dialect and silently disables the ORDER BY and
+  LIMIT around it; `coalesce(x, -1.0)` instead. `all` is a reserved word.
 - Never fan the register hop out over a whole grant set: resolve one org-id at
   a time through `OrgLookup`, or narrow the grants in the same MATCH's WHERE
   to under 200 first.

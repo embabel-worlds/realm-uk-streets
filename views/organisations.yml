@@ -37,7 +37,9 @@
            c.town AS town, c.postcode AS postcode, c.companyNumber AS companyNumber,
            left(c.activities, 240) AS activities,
            left(c.extractDate, 10) AS registerAsAt
-    ORDER BY toFloat(c.latestIncome) DESC NULLS LAST, charity
+    // NULLS LAST is not in the dialect and silently disables the ORDER BY and LIMIT;
+    // coalesce an unreported income below zero instead.
+    ORDER BY coalesce(toFloat(c.latestIncome), -1.0) DESC, charity
     LIMIT $limit
 
 # The register as a time series: what changed for the place's charities in a
