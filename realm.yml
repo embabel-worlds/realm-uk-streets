@@ -29,11 +29,14 @@ description: |
   authority in England, with a dial), IndicatorTrendAtPlace,
   IndicatorAcrossEngland, MostDeprivedDistricts2025, CharitiesOperatingHere,
   CharityChangesHere, WhoFundsThisPlace, FundedOrganisationsHere,
-  SchoolReadinessAtPlace, Ks4AttainmentAtPlace and more. The Community Profile
+  SchoolReadinessAtPlace, Ks4AttainmentAtPlace and more. Three DERIVE rule
+  sets conclude what no query can: charity succession and lineage from the
+  Commission's event log, and money regranted through a publishing
+  intermediary from 360Giving. The Community Profile
   app (`apps/community-profile.html`) puts a place's profile on one page.
 
   No API keys and no accounts — the realm works the moment it is installed.
-version: 0.3.0
+version: 0.4.0
 author: rod
 url: https://github.com/embabel-worlds/realm-uk-streets
 tags:

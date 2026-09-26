@@ -79,6 +79,19 @@ so "what is most striking about X" is dial 80) · `IndicatorTrendAtPlace`
 The Community Profile app (in the world's apps list, from this realm) shows all
 of this for a watched place on one page, with the dial.
 
+Derived (rules/): `CharitySuccessionHere` (recorded transfers between charities
+here, with the Commission's reason) · `CharityLineageHere` (the consolidators,
+`predecessors` = depth of the transfer chain) · `RegrantedMoneyHere` and
+`RegrantingByIntermediary` (published grants regranted through a publishing
+intermediary in the same year — empty where the council does not publish, which
+is a fact about publication, not money). A derived count is a LOWER BOUND
+whenever the envelope carries PARTIAL_RESULT; say so.
+
+Rule-body facts learned here: a body reaches a virtual label through its door
+(`(:UkPlace)-[:HAS_GRANT]->(g)`), binds every comparison after a `WITH`, and
+must not rely on another rule set's derived kind (embabel/me#1625) — repeat the
+join instead.
+
 ## Saved views — reach for these first
 
 `PlaceDossier` (everything, one row per place) · `CrimeAroundMyPlaces` ·

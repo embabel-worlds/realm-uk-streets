@@ -1,0 +1,115 @@
+# Views over the DERIVED labels and relationships (rules/). Each MATCH on a derived kind
+# evaluates its rule set on the params given; a membership or count over it is a lower
+# bound whenever the envelope carries PARTIAL_RESULT, and these descriptions say so.
+
+# One hop of succession: every recorded transfer between two charities operating in the
+# place, with the Commission's date and reason.
+- name: CharitySuccessionHere
+  description: "Recorded asset transfers between charities operating in each watched place's authority — predecessor, successor, the Charity Commission's date and its reason (Amalgamated, Funds transferred, Ceased to exist…), with each party's status and latest income. Concluded by the charity-succession rule set from the register's event log: an event names the other party by number, and the edge is the join no register line draws. A transfer to a charity outside every watched authority is not shown — the successor is a number on the event, not a node here. Ask 'which charities in Blackpool merged', 'where did X's assets go', 'charity mergers in Middlesbrough since 2020'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    since:
+      type: string
+      default: "2000-01-01"
+      description: "ISO date; transfers on or after it."
+    limit:
+      type: int
+      default: 60
+      description: "Maximum rows, newest first."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_CHARITY_LINK]->(l:CharityAreaLink {areaType:'Local Authority'})-[:HAS_CHARITY]->(a:Charity)-[s:SUCCEEDED_BY]->(b:Charity)
+    WHERE s.on >= $since
+    RETURN p.name AS place, s.on AS date, s.reason AS reason,
+           a.registeredCharityNumber AS fromCharityNumber, a.name AS fromCharity, a.registrationStatus AS fromStatus,
+           b.registeredCharityNumber AS toCharityNumber, b.name AS toCharity, b.registrationStatus AS toStatus,
+           toInteger(toFloat(b.latestIncome)) AS successorLatestIncome
+    ORDER BY date DESC, fromCharity
+    LIMIT $limit
+
+# The recursion: charities that gathered others over time, with the depth of the chain.
+- name: CharityLineageHere
+  description: "Charities in each watched place's authority that stand at the end of a chain of recorded asset transfers — the consolidators — with `predecessors`, the length of the deepest chain of transfers ending at them (1 = one transfer in; 2 and up = a chain, such as a chapel into a district into a circuit), the charities that transferred in directly, their status and income. From the charity-lineage rule set over SUCCEEDED_BY, evaluated to a fixpoint, so depth is unbounded. A count of recorded transfers, never a judgement. Ask 'which charities in Middlesbrough absorbed others', 'the consolidators in Essex', 'longest merger chain here'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    minPredecessors:
+      type: int
+      default: 1
+      description: "Keep chains at least this deep; 2 shows only consolidation over more than one step."
+    limit:
+      type: int
+      default: 40
+      description: "Maximum rows, deepest first."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_CHARITY_LINK]->(l:CharityAreaLink {areaType:'Local Authority'})-[:HAS_CHARITY]->(c:Charity)
+    WHERE c:CharityLineage AND c.predecessors >= $minPredecessors
+    OPTIONAL MATCH (a:Charity)-[s:SUCCEEDED_BY]->(c)
+    WITH p, c, collect(DISTINCT a.name + ' (' + s.on + ')') AS transferredIn
+    RETURN p.name AS place, c.registeredCharityNumber AS charityNumber, c.name AS charity,
+           c.predecessors AS predecessors, c.registrationStatus AS status,
+           toInteger(toFloat(c.latestIncome)) AS latestIncome,
+           transferredIn
+    ORDER BY predecessors DESC, latestIncome DESC
+    LIMIT $limit
+
+# Money that reached an organisation through a publishing intermediary.
+- name: RegrantedMoneyHere
+  description: "Published grants into each watched place's district that were regranted: the origin funder and grant, the final recipient and grant, and the number of grants in the chain (2 = one intermediary), from the regranting rule set over 360Giving — each recipient the next funder, in date order, all awarded in the same year. A chain exists only where the intermediary PUBLISHES its own grants: Birmingham City Council does, Blackpool and Middlesbrough councils do not, so an empty answer in a district is a fact about publication, not about money. The edge asserts the sequence of publications, never that the same pounds moved or that the origin intended the final recipient. Ask 'what did government money in Birmingham become', 'grants regranted through the council', 'which local groups got Lottery money via an intermediary'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    originContains:
+      type: string
+      default: ""
+      description: "Keep chains whose origin funder's name contains this text, e.g. 'Education' or 'Lottery'."
+    limit:
+      type: int
+      default: 40
+      description: "Maximum rows, longest chain and largest final grant first."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_GRANT]->(g1:GrantIntoPlace)-[r:REGRANTED_AS]->(g3:GrantIntoPlace)
+    WHERE $originContains = '' OR toLower(g1.funder) CONTAINS toLower($originContains)
+    RETURN p.name AS place, r.hops AS grantsInChain, r.year AS year,
+           g1.funder AS originFunder, toInteger(toFloat(g1.amountAwarded)) AS originAmount, left(g1.awardDate, 10) AS originAwarded, g1.recipient AS intermediary,
+           g3.funder AS finalFunder, g3.recipient AS finalRecipient, toInteger(toFloat(g3.amountAwarded)) AS finalAmount, left(g3.awardDate, 10) AS finalAwarded,
+           g3.programme AS finalProgramme
+    ORDER BY grantsInChain DESC, finalAmount DESC
+    LIMIT $limit
+
+# The regranting picture summed: origin funders and how much of their money into the
+# district went on to be regranted, by intermediary.
+- name: RegrantingByIntermediary
+  description: "For each watched place's district, the intermediaries through which published grants were regranted — the intermediary, how many published grants it received (origins), and the count and total of the downstream grants it published — from the regranting rule set. Only intermediaries that publish to 360Giving appear. Ask 'how much did the council regrant', 'who are the regranting intermediaries in Birmingham'."
+  params:
+    place:
+      type: string
+      default: ""
+      description: "A watched place's name; empty = every watched place."
+    limit:
+      type: int
+      default: 20
+      description: "Maximum rows."
+  cypher: |
+    MATCH (p:UkPlace)
+    WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+    MATCH (p)-[:HAS_GRANT]->(g1:GrantIntoPlace)-[r:REGRANTED_AS {hops: 2}]->(g2:GrantIntoPlace)
+    WITH p, g1.recipient AS intermediary, collect(DISTINCT g1) AS origins, collect(DISTINCT g2) AS downstream
+    UNWIND downstream AS g
+    WITH p, intermediary, origins, count(g) AS downstreamGrants, sum(toFloat(g.amountAwarded)) AS downstreamTotal
+    RETURN p.name AS place, intermediary, size(origins) AS originGrants, downstreamGrants,
+           toInteger(downstreamTotal) AS downstreamTotal
+    ORDER BY downstreamGrants DESC
+    LIMIT $limit

@@ -1,0 +1,89 @@
+# DERIVE rule set: money REGRANTED — a published grant whose recipient is the funder of a
+# later published grant into the same district. One rule set per file (realm-spec
+# VIRTUAL_CYPHER §13); the shape is realm-au-donations' FUNDED_THROUGH.
+#
+# THE CLAIM, STATED EXACTLY. `(g1)-[:REGRANTED_AS {hops}]->(g3)` says: there is a sequence of
+# PUBLISHED grants into the district, beginning with g1 and ending with g3, in which each
+# grant's recipient organisation is the next grant's funder and each award date is no earlier
+# than the one before. `hops` is the number of grants in the longest such chain reaching g3
+# (2 = one intermediary). It does NOT say the same pounds moved, that g1's funder intended g3,
+# or that the intermediary regranted g1 rather than its own income — grant money is fungible
+# and a chain of publications is not a trace of funds. Say so wherever it is shown.
+#
+# WHAT THE DATA MUST BE: 360Giving carries a chain only where the intermediary itself
+# PUBLISHES its grants. A council or community foundation that receives from government and
+# the Lottery but does not publish is the end of every chain — Blackpool and Middlesbrough
+# councils do not publish, Birmingham City Council does. An empty result in a district is a
+# fact about who publishes, and the view says that.
+#
+# The facts are one fetch per place (the district file), so the demand is one hop.
+
+name: uk-streets/regranting
+derives: REGRANTED_AS
+description: >-
+  Grant g1 was regranted as grant g3 when a chain of PUBLISHED grants into the same district,
+  all awarded in the same year, leads from g1 to g3 with each recipient the next funder, in
+  date order. `hops` counts the
+  grants in the longest such chain (2 = one intermediary). The edge asserts the sequence of
+  publications, never that the same money moved or that the origin funder intended the final
+  recipient; a chain exists only where the intermediary publishes its own grants.
+properties:
+  hops:
+    type: int
+    description: "Grants in the longest published chain from origin to this grant; 2 means one intermediary."
+  year:
+    type: string
+    description: "The award year every grant in the chain was published in, as a four-digit string."
+params:
+  place:
+    type: string
+    default: ""
+    description: "Restrict the facts to one watched place's district; empty = every watched place."
+requires:
+  - materialize: |
+      MATCH (p:UkPlace)
+      WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+      MATCH (p)-[:HAS_GRANT]->(g:GrantIntoPlace)
+      RETURN 1
+    description: "Every published grant into the watched districts has to be in the graph; a chain is a join over that whole set."
+# A council that publishes regrants to hundreds of bodies a year from a dozen government
+# grants: per year that is thousands of pairs, and a handful of watched cities is tens of
+# thousands. Past this the facts were anchored on far more than a few districts.
+maxPairs: 100000
+rules:
+  # Two published grants into the same district in the same award year, the first's recipient
+  # being the second's funder, in date order. The body reaches grants through the place (a
+  # virtual label's door) and binds every comparison after a WITH, because a comparison in the
+  # MATCH-level WHERE over a producer edge is dropped rather than applied (embabel/me#1616).
+  # The intermediaries are collected first — a district has a few dozen funders — so the join
+  # is origins × downstream within a year, never grants × grants.
+  - derive: "(g1)-[:REGRANTED_AS {hops: 2, year: y}]->(g2)"
+    from: |
+      MATCH (p:UkPlace)-[:HAS_GRANT]->(x:GrantIntoPlace)
+      WITH p, collect(DISTINCT x.funderOrgId) AS funders
+      MATCH (p)-[:HAS_GRANT]->(g1:GrantIntoPlace)
+      WITH p, funders, g1
+      WHERE g1.recipientOrgId IS NOT NULL AND g1.recipientOrgId <> '' AND g1.recipientOrgId IN funders
+      MATCH (p)-[:HAS_GRANT]->(g2:GrantIntoPlace)
+      WITH g1, g2, left(g1.awardDate, 4) AS y
+      WHERE g2.funderOrgId = g1.recipientOrgId
+        AND left(g2.awardDate, 4) = y
+        AND g2.awardDate >= g1.awardDate
+        AND g1.grantId <> g2.grantId
+        AND g1.funderOrgId <> g2.recipientOrgId
+  # A chain already concluded, followed by one more published grant in the same year whose
+  # funder is the chain's last recipient. `hops` is 1 + the longest chain reaching the
+  # intermediary — monotone as membership grows, which the fragment requires.
+  - derive: "(g1)-[:REGRANTED_AS {hops: h, year: y}]->(g3)"
+    from: |
+      MATCH (p:UkPlace)-[:HAS_GRANT]->(g1:GrantIntoPlace)-[r:REGRANTED_AS]->(g2:GrantIntoPlace)
+      WITH p, g1, r, g2
+      WHERE g2.recipientOrgId IS NOT NULL AND g2.recipientOrgId <> ''
+      MATCH (p)-[:HAS_GRANT]->(g3:GrantIntoPlace)
+      WITH g1, r, g2, g3
+      WHERE g3.funderOrgId = g2.recipientOrgId
+        AND left(g3.awardDate, 4) = r.year
+        AND g3.awardDate >= g2.awardDate
+        AND g3.grantId <> g1.grantId AND g3.grantId <> g2.grantId
+        AND g1.funderOrgId <> g3.recipientOrgId
+      WITH g1, g3, r.year AS y, max(r.hops + 1) AS h

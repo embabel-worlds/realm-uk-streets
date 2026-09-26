@@ -40,8 +40,8 @@
       keyField: registeredCharityNumber
       recordKeyField: key
       producer: charityByNumber
-      maxAnchors: 8000
-      description: "The charity behind an area link — one main row, plus subsidiary rows for linked charities. The ceiling covers the largest upper-tier authority (Essex declares ~7,000): the register file is scanned once per key batch, so a county's links cost one pass of the 160MB file, not one call each."
+      maxAnchors: 25000
+      description: "The charity behind an area link — one main row, plus subsidiary rows for linked charities. The ceiling covers a handful of watched authorities at once (Essex alone declares ~7,000, and a rule set's demand walks EVERY watched place on its defaults): the register file is scanned once per key batch, so the links cost one pass of the 160MB file, not one call each."
   properties:
     id:
       description: "Synthesized per-row id, deterministic per extract. Identity."
@@ -91,7 +91,7 @@
       keyField: registeredCharityNumber
       recordKeyField: key
       producer: charityEventsByNumber
-      maxAnchors: 8000
+      maxAnchors: 25000
       description: "Every recorded event for the charity, in the Commission's order. Same ceiling and the same one-pass reason as HAS_CHARITY."
   examples:
     # STEERING — pinned defect: "which charities in Blackpool have been removed from the

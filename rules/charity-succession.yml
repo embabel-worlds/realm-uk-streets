@@ -1,0 +1,62 @@
+# DERIVE rule set: a charity SUCCEEDED BY another, concluded from the Charity Commission's
+# own event log. One rule set per file (realm-spec VIRTUAL_CYPHER §13).
+#
+# THE CLAIM, STATED EXACTLY. `(a)-[:SUCCEEDED_BY]->(b)` says: the Commission recorded an
+# 'Asset transfer out' event on charity a naming charity b as the associated charity, and b is
+# itself a charity operating in a watched place. Both parties are register rows; the edge is
+# the join no register line draws — an event names the other party by NUMBER, never by an
+# edge, so "where did this charity's assets go" is a conclusion the graph does not otherwise
+# hold. It does NOT say b continues a's work, that the transfer was the whole of a's assets,
+# or anything about why: the Commission's `reason` is carried on the edge verbatim and is the
+# only reading offered.
+#
+# WHAT THE DATA MUST BE (§13.6): the events are gathered by WALKING — place → area link →
+# charity → event, three fetches deep — so the rule set declares the walk as a demand and
+# concludes only over charities of the watched places (or of ONE place, via $place). A
+# successor outside every watched authority is a number on the event and no edge; the
+# lineage view says so rather than implying the chain ended.
+#
+# The register disciplines this inherits: `linkedCharityNumber` other than 0 is a
+# subsidiary sharing the main number and never a party here; a removed charity stays in the
+# register, which is what makes a predecessor findable at all.
+
+name: uk-streets/charity-succession
+derives: SUCCEEDED_BY
+description: >-
+  Charity a was succeeded by charity b when the Charity Commission recorded an asset transfer
+  out of a naming b, and both operate in a watched place. `on` is the Commission's date for
+  the event and `reason` its own wording (Amalgamated, Funds transferred, Ceased to exist…).
+  The edge asserts the recorded transfer, never that b continues a's work or that the
+  transfer was the whole of a's assets.
+properties:
+  on:
+    type: string
+    description: "The Commission's date for the transfer event, ISO date."
+  reason:
+    type: string
+    description: "The Commission's own reason on the event, verbatim; empty when it recorded none."
+params:
+  place:
+    type: string
+    default: ""
+    description: "Restrict the facts to one watched place's authority; empty = every watched place."
+requires:
+  - materialize: |
+      MATCH (p:UkPlace)
+      WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+      MATCH (p)-[:HAS_CHARITY_LINK]->(l:CharityAreaLink {areaType:'Local Authority'})-[:HAS_CHARITY]->(c:Charity)-[:HAS_EVENT]->(e:CharityEvent)
+      RETURN 1
+    description: "The charities of the watched places and their event histories have to be in the graph before a transfer can name a successor that is also here."
+# A town's charities are hundreds and its transfers dozens; a county's are thousands and
+# hundreds. A pair count past this means the facts were anchored on the whole country.
+maxPairs: 20000
+rules:
+  - derive: "(a)-[:SUCCEEDED_BY {on: d, reason: why}]->(b)"
+    from: |
+      MATCH (a:Charity)-[:HAS_EVENT]->(e:CharityEvent), (b:Charity)
+      WHERE e.eventType = 'Asset transfer out'
+        AND e.associatedCharityNumber IS NOT NULL AND e.associatedCharityNumber <> ''
+        AND b.registeredCharityNumber = e.associatedCharityNumber
+        AND a.linkedCharityNumber = '0' AND b.linkedCharityNumber = '0'
+        AND a.registeredCharityNumber <> b.registeredCharityNumber
+      WITH a, b, left(e.dateOfEvent, 10) AS d, coalesce(e.reason, '') AS why

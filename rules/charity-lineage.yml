@@ -1,0 +1,61 @@
+# DERIVE rule set: charity LINEAGE — the recursion over SUCCEEDED_BY that a fixed-depth query
+# cannot state. One rule set per file (realm-spec VIRTUAL_CYPHER §13).
+#
+# Where charity-succession.yml concludes ONE hop from ONE event, this labels every charity
+# that stands at the end of a chain of recorded transfers and counts how many predecessors
+# feed it: a Methodist circuit absorbing districts that absorbed chapels, a community
+# foundation gathering dormant trusts one at a time. `predecessors` is 1 + the deepest
+# predecessor's own count, so the label is monotone as the fixpoint grows, and the value
+# reads as "how many recorded transfers lead here", never as a judgement of the charity.
+#
+# The two rules are membership and depth, kept separate because `predecessors` must have
+# exactly ONE writer (the phoenix rule set's lesson): a membership rule that also wrote a
+# depth would reset every deeper chain each round.
+
+name: uk-streets/charity-lineage
+derives: CharityLineage
+description: >-
+  A charity that the Charity Commission's event log records as the recipient of at least one
+  asset transfer from another charity operating in a watched place (via SUCCEEDED_BY).
+  Recursive: a predecessor that was itself a successor is counted, so `predecessors` is the
+  length of the deepest chain of recorded transfers ending here — 1 is one transfer in, 2 and
+  up is consolidation over time. A count of recorded transfers, not of merged organisations
+  and not a measure of anything about the charity today.
+properties:
+  predecessors:
+    type: int
+    description: "Length of the deepest chain of recorded asset transfers ending at this charity; 1 is one transfer in."
+params:
+  place:
+    type: string
+    default: ""
+    description: "Restrict the facts to one watched place's authority; empty = every watched place."
+requires:
+  - materialize: |
+      MATCH (p:UkPlace)
+      WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
+      MATCH (p)-[:HAS_CHARITY_LINK]->(l:CharityAreaLink {areaType:'Local Authority'})-[:HAS_CHARITY]->(c:Charity)-[:HAS_EVENT]->(e:CharityEvent)
+      RETURN 1
+    description: "The same walk charity-succession.yml demands: the events have to be in the graph before a transfer can name a successor that is also here."
+rules:
+  # Membership: the recipient of a recorded transfer from another charity in the graph. The
+  # body repeats the succession join rather than matching SUCCEEDED_BY, so this set stands on
+  # the register rows alone and never on another rule set's evaluation.
+  - derive: "(b:CharityLineage)"
+    from: |
+      MATCH (a:Charity)-[:HAS_EVENT]->(e:CharityEvent), (b:Charity)
+      WHERE e.eventType = 'Asset transfer out'
+        AND e.associatedCharityNumber IS NOT NULL AND e.associatedCharityNumber <> ''
+        AND b.registeredCharityNumber = e.associatedCharityNumber
+        AND a.linkedCharityNumber = '0' AND b.linkedCharityNumber = '0'
+        AND a.registeredCharityNumber <> b.registeredCharityNumber
+  # Depth: 1 + the deepest predecessor that is itself in the lineage — the recursion. One
+  # writer for `predecessors`, so chains settle rather than reset each round.
+  - derive: "(c:CharityLineage {predecessors: d})"
+    from: |
+      MATCH (c:CharityLineage)
+      OPTIONAL MATCH (a:CharityLineage)-[:HAS_EVENT]->(e:CharityEvent)
+      WHERE e.eventType = 'Asset transfer out'
+        AND e.associatedCharityNumber = c.registeredCharityNumber
+        AND a.registeredCharityNumber <> c.registeredCharityNumber
+      WITH c, 1 + max(coalesce(a.predecessors, 0)) AS d

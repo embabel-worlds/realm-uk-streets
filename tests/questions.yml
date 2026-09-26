@@ -108,4 +108,9 @@
 - question: "what is most striking about Blackpool compared to the rest of England"
   expect:
     matchesView: { name: SmartInsights, column: value, args: { place: Blackpool, dial: 80 } }
+- question: "which charities in Middlesbrough absorbed other charities"
+  expect:
+    matchesView: { name: CharityLineageHere, column: predecessors, args: { place: Middlesbrough } }
+- question: "which charities in Blackpool merged into others"
+  expect: { nonEmpty: true }
 

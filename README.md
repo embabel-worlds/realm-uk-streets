@@ -94,6 +94,26 @@ period, the footer stating when each publisher was read, and a How-it-works
 section that reads the views' Cypher back from the server. Driven in a real
 browser by `tests/community-profile.spec.mjs` against captured envelopes.
 
+**Three DERIVE rule sets** (`rules/`), where the recursion does work no query can:
+
+- `charity-succession` concludes `(a)-[:SUCCEEDED_BY {on, reason}]->(b)` from the
+  Commission's own event log — an asset transfer out of a naming b, both operating
+  in a watched place. An event names the other party by number; the edge is the
+  join no register line draws.
+- `charity-lineage` labels the consolidators: `CharityLineage {predecessors}` is
+  the length of the deepest chain of recorded transfers ending at a charity,
+  evaluated to a fixpoint. Home-Start Essex sits at 3; Teesside Mind gathered
+  three Minds. Views: `CharitySuccessionHere`, `CharityLineageHere`.
+- `regranting` concludes `(g1)-[:REGRANTED_AS {hops, year}]->(g3)` over
+  360Giving: published grants into the same district, in the same award year,
+  each recipient the next funder. A chain exists only where the intermediary
+  publishes — Birmingham City Council does (34 government and Lottery grants in,
+  1,356 out, £30M), Blackpool and Middlesbrough councils do not. Views:
+  `RegrantedMoneyHere`, `RegrantingByIntermediary`.
+
+Each rule set declares a `requires:` demand that walks the facts in first, and
+each edge's description says exactly what it asserts and what it does not.
+
 Three of the sources needed the engine to grow (me ≥ 2026-09-25): the Charity
 Commission publishes a zip of tab-delimited parts with literal quotes inside
 free text, and the DfE API serves gzip whether or not you asked. Both are now

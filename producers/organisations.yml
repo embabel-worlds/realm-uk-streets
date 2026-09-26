@@ -147,7 +147,9 @@
   rowIdAs: id
   userAgent: browser
   maxRows: 400000
-  maxRowsPerKey: 25000
+  # Birmingham is ~31k grants; the ceiling is above the largest district so a city
+  # is never a quiet subset. Past it the outcome is TRUNCATED, and says so.
+  maxRowsPerKey: 60000
   project:
     grantId: "Identifier"
     title: "Title"
