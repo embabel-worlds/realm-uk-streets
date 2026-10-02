@@ -10,12 +10,21 @@
 <script src="/api/v1/apps-runtime/gateway.js"></script>
 <script type="application/embabel-app+json">
 {
-  "v": 1,
+  "version": 1,
   "name": "crime-predictors",
-  "title": "What Predicts Crime",
-  "realms": ["realm-uk-streets"],
-  "views": ["CrimeModelWithPredictors", "CrimePredictorsOneByOne", "DistrictsRanked"],
-  "gateway": ["view"]
+  "requires": {
+    "views": [
+      "CrimeModelWithPredictors",
+      "CrimePredictorsOneByOne",
+      "DistrictsRanked"
+    ],
+    "realms": [
+      "realm-uk-streets"
+    ],
+    "namespaces": [
+      "view"
+    ]
+  }
 }
 </script>
 <style>
