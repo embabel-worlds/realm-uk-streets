@@ -9,8 +9,10 @@
 # Data honesty, learned from the file itself:
 # - Rates are per 1,000 RESIDENTS at source — the population correction is the
 #   publisher's, so these rank directly (unlike raw street-crime counts).
-# - Suppressed cells arrive as shorthand ('[u1]' — City of London is one), which
-#   toFloat() reads as null: an honest gap, never a zero.
+# - Cells the publisher does not fill arrive as bracketed shorthand ('[x]'/'[X]'
+#   on the force and combined-CSP rows, '[u1]' for City of London's rates). The
+#   producers map it to null: an honest gap, never a zero, never a string among
+#   numbers.
 # - Some CSPs publish only COMBINED districts (Devon, Kent, Worcestershire…);
 #   the combined rows carry no LA code, so those member districts have no
 #   individual row and a place there gets nothing from the keyed join.
@@ -55,6 +57,31 @@
     drugRate: "Drug offences"
     weaponsRate: "Possession of weapons offences"
     publicOrderRate: "Public order offences"
+  # ONS marks a cell it does not publish with bracketed shorthand — '[x]'/'[X]'
+  # unavailable (the force and combined-CSP rows carry it in population,
+  # households and every rate), '[u1]' for City of London's rates, whose resident
+  # population is too small to divide by — and the reader keeps it as text.
+  # Text in a numeric column is counted by count(), sorts ahead of every number,
+  # and reads as a value; the shorthand means "no figure", so it lands as null.
+  compute:
+    population: "CASE WHEN toString(r.population) STARTS WITH '[' THEN null ELSE r.population END"
+    households: "CASE WHEN toString(r.households) STARTS WITH '[' THEN null ELSE r.households END"
+    totalRate: "CASE WHEN toString(r.totalRate) STARTS WITH '[' THEN null ELSE r.totalRate END"
+    violenceRate: "CASE WHEN toString(r.violenceRate) STARTS WITH '[' THEN null ELSE r.violenceRate END"
+    violenceInjuryRate: "CASE WHEN toString(r.violenceInjuryRate) STARTS WITH '[' THEN null ELSE r.violenceInjuryRate END"
+    stalkingRate: "CASE WHEN toString(r.stalkingRate) STARTS WITH '[' THEN null ELSE r.stalkingRate END"
+    sexualRate: "CASE WHEN toString(r.sexualRate) STARTS WITH '[' THEN null ELSE r.sexualRate END"
+    robberyRate: "CASE WHEN toString(r.robberyRate) STARTS WITH '[' THEN null ELSE r.robberyRate END"
+    theftRate: "CASE WHEN toString(r.theftRate) STARTS WITH '[' THEN null ELSE r.theftRate END"
+    burglaryRate: "CASE WHEN toString(r.burglaryRate) STARTS WITH '[' THEN null ELSE r.burglaryRate END"
+    vehicleRate: "CASE WHEN toString(r.vehicleRate) STARTS WITH '[' THEN null ELSE r.vehicleRate END"
+    theftFromPersonRate: "CASE WHEN toString(r.theftFromPersonRate) STARTS WITH '[' THEN null ELSE r.theftFromPersonRate END"
+    bikeTheftRate: "CASE WHEN toString(r.bikeTheftRate) STARTS WITH '[' THEN null ELSE r.bikeTheftRate END"
+    shopliftingRate: "CASE WHEN toString(r.shopliftingRate) STARTS WITH '[' THEN null ELSE r.shopliftingRate END"
+    criminalDamageRate: "CASE WHEN toString(r.criminalDamageRate) STARTS WITH '[' THEN null ELSE r.criminalDamageRate END"
+    drugRate: "CASE WHEN toString(r.drugRate) STARTS WITH '[' THEN null ELSE r.drugRate END"
+    weaponsRate: "CASE WHEN toString(r.weaponsRate) STARTS WITH '[' THEN null ELSE r.weaponsRate END"
+    publicOrderRate: "CASE WHEN toString(r.publicOrderRate) STARTS WITH '[' THEN null ELSE r.publicOrderRate END"
   # A national statistical release: new twice a year. A week of politeness.
   fileCacheSeconds: 604800
   cache: { kind: ttl, seconds: 604800 }
@@ -94,6 +121,26 @@
     drugRate: "Drug offences"
     weaponsRate: "Possession of weapons offences"
     publicOrderRate: "Public order offences"
+  # Bracketed ONS shorthand ('[x]', '[X]', '[u1]') is "no figure": null, as above.
+  compute:
+    population: "CASE WHEN toString(r.population) STARTS WITH '[' THEN null ELSE r.population END"
+    households: "CASE WHEN toString(r.households) STARTS WITH '[' THEN null ELSE r.households END"
+    totalRate: "CASE WHEN toString(r.totalRate) STARTS WITH '[' THEN null ELSE r.totalRate END"
+    violenceRate: "CASE WHEN toString(r.violenceRate) STARTS WITH '[' THEN null ELSE r.violenceRate END"
+    violenceInjuryRate: "CASE WHEN toString(r.violenceInjuryRate) STARTS WITH '[' THEN null ELSE r.violenceInjuryRate END"
+    stalkingRate: "CASE WHEN toString(r.stalkingRate) STARTS WITH '[' THEN null ELSE r.stalkingRate END"
+    sexualRate: "CASE WHEN toString(r.sexualRate) STARTS WITH '[' THEN null ELSE r.sexualRate END"
+    robberyRate: "CASE WHEN toString(r.robberyRate) STARTS WITH '[' THEN null ELSE r.robberyRate END"
+    theftRate: "CASE WHEN toString(r.theftRate) STARTS WITH '[' THEN null ELSE r.theftRate END"
+    burglaryRate: "CASE WHEN toString(r.burglaryRate) STARTS WITH '[' THEN null ELSE r.burglaryRate END"
+    vehicleRate: "CASE WHEN toString(r.vehicleRate) STARTS WITH '[' THEN null ELSE r.vehicleRate END"
+    theftFromPersonRate: "CASE WHEN toString(r.theftFromPersonRate) STARTS WITH '[' THEN null ELSE r.theftFromPersonRate END"
+    bikeTheftRate: "CASE WHEN toString(r.bikeTheftRate) STARTS WITH '[' THEN null ELSE r.bikeTheftRate END"
+    shopliftingRate: "CASE WHEN toString(r.shopliftingRate) STARTS WITH '[' THEN null ELSE r.shopliftingRate END"
+    criminalDamageRate: "CASE WHEN toString(r.criminalDamageRate) STARTS WITH '[' THEN null ELSE r.criminalDamageRate END"
+    drugRate: "CASE WHEN toString(r.drugRate) STARTS WITH '[' THEN null ELSE r.drugRate END"
+    weaponsRate: "CASE WHEN toString(r.weaponsRate) STARTS WITH '[' THEN null ELSE r.weaponsRate END"
+    publicOrderRate: "CASE WHEN toString(r.publicOrderRate) STARTS WITH '[' THEN null ELSE r.publicOrderRate END"
   fileCacheSeconds: 604800
   cache: { kind: ttl, seconds: 604800 }
 
@@ -101,10 +148,17 @@
 # set code for all local authorities — 371 obs), so crime-vs-income never fans
 # out 300 keyed calls. The key itself is not sent: the geography is a fixed arg
 # and the anchor literal just names the batch.
+#
+# The set still lists the 28 districts abolished in the 2020-23 reorganisations
+# (Aylesbury Vale, Harrogate, Mendip…) with an empty value and status 'Q',
+# "these figures are missing". They are not places any more, so they are not
+# rows. Status 'B' — suppressed as statistically unreliable, City of London and
+# the Isles of Scilly — is a real district with no published figure, and stays,
+# its annualPay absent.
 - name: medianPayAllDistricts
   kind: remote
   operation: medianPay
-  records: "$.obs[*]"
+  records: "$.obs[?(@.obs_status.value != 'Q')]"
   keyTemplate: "{key}"
   echoKeyAs: key
   maxKeysPerCall: 1

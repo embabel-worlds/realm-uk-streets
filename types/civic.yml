@@ -19,7 +19,7 @@
     feedState: "The feed state that listed it — the join link."
     action: "The petition's demand, verbatim."
     signatures:
-      type: number
+      type: int
       description: "Nationwide signature count."
     petitionState:
       description: "open | closed | rejected. These three are the whole domain."
@@ -53,7 +53,7 @@
     constituency: "The seat's name."
     mp: "The sitting MP as the petition site styles them."
     signatures:
-      type: number
+      type: int
       description: "Signatures from this seat."
 
 # ── Contract awards: where public money lands ────────────────────────────────

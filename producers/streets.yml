@@ -128,7 +128,14 @@
   cache: { kind: ttl, seconds: 604800 }
 
 # ── The coordinate axis (beside streetCrimes above) ──────────────────────────
-# Official hygiene rating of every inspected food business within a mile.
+# Official hygiene rating of the inspected food businesses within a mile,
+# NEAREST FIRST. The order is the producer's to set: left to itself the FSA
+# service sorts by rating, best first, and a capped page of that is the
+# best-rated businesses in the radius — all '5's, where a "where shouldn't I
+# eat" filter can never match. Distance order makes any cap a radius cap.
+# A mile holds ~270 businesses in a seaside town and ~4,500 in central London;
+# five pages of 100 cover the town whole and the city centre's nearest 500,
+# and a walk the cap cuts says so rather than passing for the whole mile.
 - name: foodHygiene
   kind: remote
   operation: foodPlaces
@@ -138,7 +145,16 @@
   maxKeysPerCall: 1
   args:
     maxDistanceLimit: "1"
-    pageSize: "35"
+    sortOptionKey: "Distance"
+  paging: { style: page, param: pageNumber, sizeParam: pageSize, size: 100, maxPages: 5, total: meta.totalCount }
+  # One predicate pushes: rating EQUALITY, as the service's ratingKey, which
+  # takes exactly the values `rating` holds ('0'-'5', 'AwaitingInspection',
+  # 'Exempt'; verified to narrow — 268 in a mile becomes 2 for '0'). The cap
+  # then counts only that rating, so "every zero-rated kitchen near X" is the
+  # whole mile even in a city centre. A set (rating IN ['0','1','2']) has no
+  # single-parameter form and stays a graph filter over the nearest-first walk.
+  pushdown:
+    - { property: rating, op: EQUALS, argPath: ratingKey, clause: "{value}" }
   project:
     fhrsId: FHRSID
     name: BusinessName

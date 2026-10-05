@@ -31,10 +31,10 @@
     breakdown: "The value within the topic ('Total', 'Eligible for free school meals'…)."
     sex: "'Total', 'Boys' or 'Girls'."
     children:
-      type: number
+      type: int
       description: "Children assessed."
     gldChildren:
-      type: number
+      type: int
       description: "Children with a good level of development."
     gldPercent:
       type: number
@@ -75,7 +75,7 @@
     phase: "'Total', 'State-funded primary', 'State-funded secondary', 'Special schools'."
     absenceType: "'Total pupils', 'Persistent absence', 'Severe absence'."
     enrolments:
-      type: number
+      type: int
       description: "Enrolments in the category."
     enrolmentPercent:
       type: number
@@ -113,10 +113,10 @@
     senStatus: "'Total' or the SEN cut."
     ethnicityMajor: "'Total' or the ethnicity cut."
     schools:
-      type: number
+      type: int
       description: "Schools in the row."
     pupils:
-      type: number
+      type: int
       description: "Pupils at the end of KS4 in the row."
     attainment8Average:
       type: number

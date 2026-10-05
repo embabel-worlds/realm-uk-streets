@@ -11,12 +11,15 @@
       "get": {
         "operationId": "foodPlaces",
         "summary": "Inspected food businesses near a coordinate pair, nearest first",
-        "description": "`establishments[]` carries `BusinessName`, `BusinessType`, `RatingValue` ('0'-'5', or 'AwaitingInspection'/'Exempt' — not numbers, guard before toFloat), `RatingDate`, `Distance` (miles) and `FHRSID`.",
+        "description": "`establishments[]` carries `BusinessName`, `BusinessType`, `RatingValue` ('0'-'5', or 'AwaitingInspection'/'Exempt' — not numbers, guard before toFloat), `RatingDate`, `Distance` (miles) and `FHRSID`. `meta.totalCount` counts every business the filter matches, across all pages.",
         "parameters": [
           { "name": "latitude", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Latitude, decimal degrees." },
           { "name": "longitude", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Longitude, decimal degrees." },
           { "name": "maxDistanceLimit", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Radius in MILES, e.g. 1." },
-          { "name": "pageSize", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Maximum businesses to return." }
+          { "name": "pageSize", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Records per page." },
+          { "name": "pageNumber", "in": "query", "required": false, "schema": { "type": "string" }, "description": "One-based page number." },
+          { "name": "ratingKey", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Only businesses with this rating: '0'-'5', 'AwaitingInspection' or 'Exempt' — the RatingValue strings themselves. An unrecognised value is ignored, not rejected." },
+          { "name": "sortOptionKey", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Result order. 'Distance' is nearest first; WITHOUT it the service orders by rating, best first, so a capped page holds the best-rated businesses in the radius rather than the nearest. Others: 'rating', 'desc_rating' (lowest first), 'alpha', 'desc_alpha', 'Relevance'." }
         ],
         "responses": { "200": { "description": "Businesses under establishments.", "content": { "application/json": { "schema": { "type": "object" } } } } }
       }

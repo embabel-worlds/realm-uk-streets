@@ -81,7 +81,7 @@
     category: "The breakdown value when categoryType is set."
     period: "The publisher's period label, e.g. '2024/25' or '2025'."
     periodSortable:
-      type: number
+      type: int
       description: "The period as a sortable integer (20240000) — take the max per indicator for 'latest'."
     periodRange: "'1y' or '3y' — an indicator published as BOTH a single-year and a three-year series (life expectancy) carries both under one id; pin one series before taking 'latest', or a 1y point and a 3y point of the same year will compete."
     value:
@@ -137,7 +137,7 @@
         joinKey: "gss-lad"
     area: "The area's name as NOMIS styles it."
     claimants:
-      type: number
+      type: int
       description: "Claimant count, persons, rounded to 5."
     month: "The month the count is for, e.g. 'August 2026'."
 
@@ -167,7 +167,7 @@
       description: "The age band. These five are the whole domain; use one verbatim."
       values: ["All Ages", "Aged 0 to 15", "Aged 16 to 64", "Aged 65+", "Aged 16 to 24"]
     persons:
-      type: number
+      type: int
       description: "Estimated residents in the band."
     year: "The estimate year, e.g. '2025'."
 
@@ -204,29 +204,29 @@
       type: number
       description: "Average IMD 2025 score across the district's LSOAs. Higher = more deprived."
     rankOfAverageScore:
-      type: number
+      type: int
       description: "Rank of average score among 296 lower-tier districts; 1 = most deprived."
     averageRank:
       type: number
       description: "Average LSOA rank."
     rankOfAverageRank:
-      type: number
+      type: int
       description: "Rank of the average rank; 1 = most deprived."
     proportionMostDeprived:
       type: number
       description: "Share of the district's LSOAs in England's most deprived decile (0-1)."
     rankOfProportionMostDeprived:
-      type: number
+      type: int
       description: "Rank of that share; 1 = the most concentrated deprivation in England."
     extent:
       type: number
       description: "Share of the population living in the most deprived areas, weighted toward the very most deprived (0-1)."
     rankOfExtent:
-      type: number
+      type: int
       description: "Rank of extent; 1 = most deprived."
     localConcentration:
       type: number
       description: "The deprivation of the district's worst 10% of LSOAs — hot-spot severity."
     rankOfLocalConcentration:
-      type: number
+      type: int
       description: "Rank of local concentration; 1 = the most severe hot spots."

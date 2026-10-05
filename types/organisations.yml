@@ -121,7 +121,7 @@
     linkedCharityNumber: "0 for the main charity."
     charityName: "The charity's name at the time of the extract."
     eventOrder:
-      type: number
+      type: int
       description: "The Commission's ordinal for the event within the charity's history."
     eventType: "'Standard registration', 'Removed', 'CIO registration', 'Asset transfer in', 'Asset transfer out', 'Re-registered', 'Previously excepted registration'…"
     dateOfEvent: "When the event took effect (ISO date-time string)."
