@@ -234,7 +234,7 @@
 
 # ── The coordinate axis ──────────────────────────────────────────────────────
 - name: FoodPlace
-  description: "An inspected food business within a mile of a watched place, with its official hygiene rating. Reached via HAS_FOOD. RatingValue is a STRING — '0'-'5' but also 'AwaitingInspection'/'Exempt' — guard before toFloat()."
+  description: "An inspected food business near a watched place, with its official hygiene rating — the NEAREST businesses within a mile, up to 500 per place. Reached via HAS_FOOD. rating is a STRING — '0'-'5' but also 'AwaitingInspection'/'Exempt' — guard before toFloat()."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_FOOD
@@ -242,7 +242,7 @@
       recordKeyField: key
       producer: foodHygiene
       maxAnchors: 15
-      description: "The 30 nearest inspected food businesses — for 'anywhere I shouldn't eat near X', filter rating IN ['0','1','2']."
+      description: "The inspected food businesses within one mile, nearest first, up to the 500 nearest. A town's whole mile fits (Clacton: 268); a city centre's does not (central London holds ~4,500), and then the result is the nearest 500 — a radius of a few hundred metres — with a truncation warning. ONE rating asked by equality (f.rating = '0') is filtered by the source, so the 500 are 500 of THAT rating — every low-rated kitchen in the whole mile, even in a city centre; a set (rating IN ['0','1','2']) is filtered over the nearest 500, so for 'anywhere I shouldn't eat near X' in a city either ask each low rating by equality or report the distance covered — where the warning says the walk was cut, the set answer is about the nearest 500, not the whole mile."
   properties:
     fhrsId:
       description: "FSA establishment id. Identity — the same restaurant near two places is one node."
@@ -255,7 +255,7 @@
     ratedOn: "When it was last inspected."
     distanceMiles:
       type: number
-      description: "Distance from the place, miles."
+      description: "Distance from the place, miles. The largest value in a place's rows is the radius actually covered."
 
 - name: FloodAlert
   description: "A LIVE Environment Agency flood alert within 15 km of a watched place (England only). Reached via HAS_FLOOD_ALERT; empty is the normal, good answer. severityLevel: LOWER is WORSE (1 severe, 2 warning, 3 alert)."
@@ -315,17 +315,17 @@
         identity: "true"
     result: "'Lab Hold', 'Con Gain'…"
     majority:
-      type: number
+      type: int
       description: "Votes between first and second place."
     electorate:
-      type: number
+      type: int
       description: "Registered electors."
     turnout:
-      type: number
+      type: int
       description: "Votes cast."
     winningParty: "The winning party's name."
 
-# A school near a watched place, from OpenStreetMap — names and positions, not
+# A school near a watched place, from Wikidata — names and positions, not
 # ratings: Ofsted publishes judgements as downloads, not an API, so this realm
 # reports what is THERE and never grades it.
 - name: School
@@ -337,7 +337,7 @@
       recordKeyField: key
       producer: schoolsNear
       maxAnchors: 15
-      description: "Schools within 1.5 km — for 'how many schools are near X', count; unnamed OSM entries are real but anonymous, so count all and name the named."
+      description: "Schools within 1.5 km — for 'how many schools are near X', count; an entity with no English label is still a school, so count all and name the named."
   properties:
     id:
       description: "Wikidata entity id (Q…). Identity."
@@ -405,7 +405,7 @@
 # so the WHOLE country's crime table (and every district's median pay) hangs
 # off one anchor for cross-district analysis.
 - name: DistrictCrime
-  description: "One area's official police-recorded crime RATES per 1,000 population for headline offence groups, year ending March 2024 (ONS Community Safety Partnership tables). Reached two ways: (p:UkPlace)-[:HAS_DISTRICT_CRIME]->(c) for a watched place's district, or nationally via MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c) for all ~300 districts at once. National rows include force-area subtotals and combined-CSP rows with no real code — filter districtCode =~ '^[EW]0.*' before ranking. Rates are the publisher's own population correction, so they rank directly; a suppressed cell ('[u1]', e.g. City of London) reads as null through toFloat(). Westminster's rate is inflated by its daytime population — crimes are counted where they happen, residents where they live."
+  description: "One area's official police-recorded crime RATES per 1,000 population for headline offence groups, year ending March 2024 (ONS Community Safety Partnership tables). Reached two ways: (p:UkPlace)-[:HAS_DISTRICT_CRIME]->(c) for a watched place's district, or nationally via MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c) for all ~300 districts at once. National rows include force-area subtotals and combined-CSP rows with no real code — filter districtCode =~ '^[EW]0.*' before ranking. Rates are the publisher's own population correction, so they rank directly; a cell ONS does not publish ('[x]' on the force and combined-CSP rows, '[u1]' for City of London's rates) arrives as null, never as text, so count() skips it and ORDER BY puts it last. Westminster's rate is inflated by its daytime population — crimes are counted where they happen, residents where they live."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_DISTRICT_CRIME
@@ -447,10 +447,10 @@
     csp: "Community Safety Partnership name — the police-side area; distinct from the LA name where authorities merged."
     force: "Police force area name."
     population:
-      type: number
+      type: int
       description: "Mid-2022 population, rounded to 100 — the denominator behind the rates."
     households:
-      type: number
+      type: int
       description: "Mid-2021 households, rounded to 100."
     totalRate:
       type: number
@@ -624,7 +624,7 @@
 
 # cross-district views, so crime-vs-income never costs 300 keyed calls.
 - name: DistrictIncome
-  description: "Median gross annual pay (ASHE, full-time) for one local authority, from the all-districts NOMIS batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_PAY]->(i) — one call returns every district; join to DistrictCrime rows on matching districtCode. The NOMIS geography set is a 2021 vintage: post-2023 unitaries (Buckinghamshire, North Yorkshire, Somerset) are absent, and their crime rows simply find no pay row."
+  description: "Median gross annual pay (ASHE, full-time) for one local authority, from the all-districts NOMIS batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_PAY]->(i) — one call returns every district; join to DistrictCrime rows on matching districtCode. The NOMIS geography set is a 2021 vintage: post-2023 unitaries (Buckinghamshire, North Yorkshire, Somerset) are absent, and their crime rows simply find no pay row. The 28 districts those unitaries replaced are listed by NOMIS with no figure and are dropped, so every row is a district that exists. City of London and the Isles of Scilly are rows with annualPay ABSENT — ONS suppresses their estimate as statistically unreliable; never read that as zero."
   virtualJoins:
     - anchorLabel: UkDistricts
       relationship: HAS_PAY
@@ -677,7 +677,7 @@
       type: number
       description: "Average IMD 2019 score across the district's LSOAs — the overall deprivation level. Higher = more deprived."
     imdRank:
-      type: number
+      type: int
       description: "Rank of average score among the 317 English districts. 1 = MOST deprived."
     proportionMostDeprived:
       type: number

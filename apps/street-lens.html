@@ -379,15 +379,19 @@ async function select(p) {
     } catch (e) { $('schools').innerHTML = ''; }
   })();
 
-  // Food hygiene: the worst-rated within a mile.
+  // Food hygiene: the worst-rated within a mile. The service sorts by rating,
+  // BEST first, unless told otherwise; 'desc_rating' is lowest first, so the
+  // first page holds the worst in the whole mile however many businesses it has.
   (async () => {
     try {
-      const es = (await gateway.fsa.foodPlaces({ latitude: lat, longitude: lon, maxDistanceLimit: '1', pageSize: '40' })).establishments || [];
+      const res = await gateway.fsa.foodPlaces({ latitude: lat, longitude: lon, maxDistanceLimit: '1', pageSize: '40', sortOptionKey: 'desc_rating' });
+      const es = res.establishments || [];
+      const total = (res.meta || {}).totalCount;
       const rated = es.filter((e) => /^\d$/.test(e.RatingValue));
       const bad = rated.filter((e) => +e.RatingValue <= 2);
       const body = bad.length
         ? '<table>' + bad.slice(0, 6).map((e) => `<tr><td><b>${e.RatingValue}★</b></td><td>${e.BusinessName}</td><td>${e.BusinessType.split('/')[0]}</td></tr>`).join('') + '</table>'
-        : `<p class="quiet">${rated.length} rated businesses nearby, none below 3★</p>`;
+        : `<p class="quiet">${total ?? rated.length} businesses within a mile, none below 3★</p>`;
       $('food').innerHTML = section('food hygiene · 1 mile', body);
     } catch (e) { $('food').innerHTML = ''; }
   })();

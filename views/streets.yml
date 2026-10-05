@@ -217,7 +217,7 @@
     ORDER BY annualChangePct DESC
 
 - name: WhereNotToEat
-  description: Food businesses within a mile of watched places rated 2 or worse at their last official hygiene inspection — with the district's median pay beside them, because a low rating in a wealthy postcode is a story.
+  description: Food businesses near watched places rated 2 or worse at their last official hygiene inspection — the whole mile in a town, the nearest 500 businesses in a dense city centre — with the district's median pay beside them, because a low rating in a wealthy postcode is a story.
   params:
     limit:
       type: int
@@ -240,7 +240,7 @@
     ORDER BY toInteger(f.severityLevel) ASC
 
 - name: SchoolsNearMyPlaces
-  description: Schools within 1.5 km of each watched place, from OpenStreetMap — counts plus the named ones. Where schools are, not how they are rated.
+  description: Schools within 1.5 km of each watched place, from Wikidata — counts plus the named ones. Where schools are, not how they are rated.
   cypher: |
     MATCH (p:UkPlace)-[:HAS_SCHOOL]->(s:School)
     RETURN p.name AS place, count(s) AS schools, collect(s.name)[0..8] AS sample

@@ -107,6 +107,9 @@
 # anchor is literal-seeded: MATCH (s:IndicatorAcrossEngland {indicatorId:'10401'}).
 # Every period and breakdown for the indicator comes back (~10k rows for a long
 # series); the view keeps the headline row per area at the latest period.
+# The projection is the per-place producers' column for column: one type, three
+# doors, and a column dropped here is a property that is silently empty on every
+# league-table row while the same query through a place finds it.
 - name: indicatorAcrossUpperTier
   kind: tabular
   url: "https://fingertips.phe.org.uk/api/all_data/csv/by_indicator_id?indicator_ids=90631,90632,10401,93203,93701,20401,20602,93085,20101,30309,41001,90366,92313,93562&child_area_type_id=502&parent_area_type_id=6"
@@ -132,6 +135,7 @@
     sex: "Sex"
     age: "Age"
     categoryType: "Category Type"
+    category: "Category"
     period: "Time period"
     periodSortable: "Time period Sortable"
     periodRange: "Time period range"
@@ -140,8 +144,10 @@
     upperCi: "Upper CI 95.0 limit"
     count: "Count"
     denominator: "Denominator"
+    valueNote: "Value note"
     trend: "Recent Trend"
     comparedToEngland: "Compared to England value or percentiles"
+    newData: "New data"
   fileCacheSeconds: 86400
   cache: { kind: ttl, seconds: 86400 }
 
@@ -258,6 +264,8 @@
 
 # The whole 2025 table under the UkDistricts anchor — the deprivation axis on
 # CURRENT boundaries, joinable to claimants, pay and crime on districtCode.
+# Projects every column the per-place producer does, so a ranking by rankOfExtent
+# or rankOfLocalConcentration reads the same through either door.
 - name: imd2025DistrictSummaries
   kind: tabular
   url: "https://assets.publishing.service.gov.uk/media/6917412ebc34c86ce4e6e7fc/File_10_-_IoD2025_Local_Authority_District_Summaries__lower-tier__v2.xlsx"
@@ -271,9 +279,13 @@
     district: "Local Authority District name (2024)"
     averageScore: "IMD - Average score"
     rankOfAverageScore: "IMD - Rank of average score"
+    averageRank: "IMD - Average rank"
+    rankOfAverageRank: "IMD - Rank of average rank"
     proportionMostDeprived: "IMD - Proportion of LSOAs in most deprived 10% nationally"
     rankOfProportionMostDeprived: "IMD - Rank of proportion of LSOAs in most deprived 10% nationally"
     extent: "IMD25 - Extent"
+    rankOfExtent: "IMD25 - Rank of extent"
     localConcentration: "IMD25 - Local concentration"
+    rankOfLocalConcentration: "IMD25 - Rank of local concentration"
   fileCacheSeconds: 604800
   cache: { kind: ttl, seconds: 604800 }
