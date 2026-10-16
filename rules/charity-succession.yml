@@ -31,10 +31,10 @@ description: >-
 properties:
   on:
     type: string
-    description: "The Commission's date for the transfer event, ISO date."
+    description: "The Commission's date for the FIRST recorded transfer from a to b, ISO date."
   reason:
     type: string
-    description: "The Commission's own reason on the event, verbatim; empty when it recorded none."
+    description: "The Commission's own reason, verbatim; several transfers with different reasons are joined with '; '. Empty when it recorded none."
 params:
   place:
     type: string
@@ -50,6 +50,11 @@ requires:
 # A town's charities are hundreds and its transfers dozens; a county's are thousands and
 # hundreds. A pair count past this means the facts were anchored on the whole country.
 maxPairs: 20000
+# ONE CONCLUSION PER PAIR. The Commission can record more than one transfer from a to b
+# (1076707 → 1155897: 2017-03-23 and again later), and a body that yields a row per event gives
+# the same edge two `on` values, which the engine rightly refuses to choose between. The edge is
+# the relationship, so the body aggregates per pair: the FIRST transfer's date, and every
+# distinct reason the Commission gave, in its words.
 rules:
   - derive: "(a)-[:SUCCEEDED_BY {on: d, reason: why}]->(b)"
     from: |
@@ -60,3 +65,5 @@ rules:
         AND a.linkedCharityNumber = '0' AND b.linkedCharityNumber = '0'
         AND a.registeredCharityNumber <> b.registeredCharityNumber
       WITH a, b, left(e.dateOfEvent, 10) AS d, coalesce(e.reason, '') AS why
+      WITH a, b, min(d) AS d, [w IN collect(DISTINCT why) WHERE w <> ''] AS whys
+      WITH a, b, d, reduce(s = '', w IN whys | CASE WHEN s = '' THEN w ELSE s + '; ' + w END) AS why

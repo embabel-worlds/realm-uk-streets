@@ -12,6 +12,10 @@
       recordKeyField: key
       producer: charitiesOperatingIn
       maxAnchors: 10
+      # Links, not places, are what fan out: Essex alone declares ~7,000. Sized to
+      # the 25,000 charities HAS_CHARITY is ceilinged for, so the links feeding it
+      # are never cut short of what the next hop can take.
+      maxFanoutTotal: 25000
       description: "Every charity declaring the place's UPPER-TIER authority as an area of operation — the Commission records operation by county or unitary, never by shire district, so a Tendring place reads Essex's ~7,000. Hundreds for a unitary town, thousands for a city or county. Follow HAS_CHARITY for the charity itself; never list raw links."
   properties:
     id:
@@ -41,6 +45,9 @@
       recordKeyField: key
       producer: charityByNumber
       maxAnchors: 25000
+      # One main row per charity plus its subsidiaries' rows; headroom over the
+      # anchor ceiling for those.
+      maxFanoutTotal: 30000
       description: "The charity behind an area link — one main row, plus subsidiary rows for linked charities. The ceiling covers a handful of watched authorities at once (Essex alone declares ~7,000, and a rule set's demand walks EVERY watched place on its defaults): the register file is scanned once per key batch, so the links cost one pass of the 160MB file, not one call each."
   properties:
     id:
@@ -92,6 +99,9 @@
       recordKeyField: key
       producer: charityEventsByNumber
       maxAnchors: 25000
+      # Several events per charity (registration, removal, asset transfers), so the
+      # rows run to a few times the anchors.
+      maxFanoutTotal: 100000
       description: "Every recorded event for the charity, in the Commission's order. Same ceiling and the same one-pass reason as HAS_CHARITY."
   examples:
     # STEERING — pinned defect: "which charities in Blackpool have been removed from the

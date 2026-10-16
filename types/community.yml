@@ -29,6 +29,12 @@
       recordKeyField: key
       producer: indicatorAcrossUpperTier
       maxAnchors: 16
+      # Every period and breakdown for every authority: ~110k rows for the
+      # fourteen indicators, filtered to headline rows by the query, not the source.
+      # Sized to the whole file (~150k, as maxRows in producers/community.yml) so a
+      # ranking over it is complete rather than refused at the default 5,000.
+      # ~5s per call measured; pushing the headline filter down would shrink it.
+      maxFanoutTotal: 150000
       description: "EVERY upper-tier authority's rows for ONE indicator, under a literal-seeded anchor: MATCH (s:IndicatorAcrossEngland {indicatorId:'10401'})-[:ACROSS_AREAS]->(x), or all fourteen at once with WHERE s.indicatorId IN [...] — the ceiling covers the whole set because they are one cached file read keyed fourteen ways. Keep the headline row per area at its latest period before ranking."
   examples:
     # STEERING — pinned defect: "what stands out about Blackpool compared to England" returned

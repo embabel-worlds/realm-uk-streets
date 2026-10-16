@@ -43,6 +43,10 @@
       # view's downstream LIMIT — so the cap declares the page: 25 calls,
       # ~16k transient rows, one hour of cache. The real cost, stated.
       maxAnchors: 25
+      # 25 petitions × 650 seats. Under the engine's default of 5,000 the fetch is
+      # cut at the cap and every ranking over it is refused as incomplete, which
+      # is right: a top-N over a third of the seats is not the top-N.
+      maxFanoutTotal: 16250
       description: "The petition's 650-seat signature split — one call per petition, 650 rows each; the whole feed page is the unit of cost."
   properties:
     petitionId: "The petition it belongs to — the join link."
