@@ -34,26 +34,45 @@
     ORDER BY seat, seatSignatures DESC
 
 - name: AwardsNearMyPlaces
-  description: Contract awards from the last 28 days whose winning supplier is REGISTERED in one of your places' outward postcode areas — where public money lands on your streets. Registered address, not delivery location; the window is fetched completely, day by day.
+  description: Contract awards from the last week (or the last `days`) whose winning supplier is REGISTERED in one of your places' outward postcode areas — where public money lands on your streets. Registered address, not delivery location; the window is fetched completely, day by day. With no places set up it answers empty without fetching anything.
+  params:
+    days:
+      type: int
+      default: 7
+      description: "How many days back to read. Each day costs one or two calls to a source that allows twelve every two minutes, so a cold week takes about a minute and a cold month several."
+  # `size(codes) > 0` is the guard that keeps an empty world off the feed: with no places the
+  # collect still yields one row, and the window would be fetched only for every award to be
+  # filtered out.
   cypher: |
     MATCH (p:UkPlace) WHERE p.outcode IS NOT NULL
-    WITH collect(DISTINCT p.outcode) AS codes,
-         toString(datetime.truncate('day', datetime()) - duration('P28D')) + '/' + toString(datetime.truncate('day', datetime())) AS win
+    WITH collect(DISTINCT p.outcode) AS codes
+    WHERE size(codes) > 0
+    WITH codes,
+         toString(datetime.truncate('day', datetime()) - duration({days: $days})) + '/' + toString(datetime.truncate('day', datetime())) AS win
     MATCH (w:AwardWindow {window: win})-[:PUBLISHED]->(c:ContractAward)
     WHERE any(oc IN codes WHERE c.supplierAddress CONTAINS (oc + ' '))
     RETURN c.supplier AS supplier, c.title AS contract, c.buyer AS buyer,
            toFloat(c.amount) AS amount, c.awardDate AS awarded, c.supplierAddress AS registeredAt
     ORDER BY amount DESC
 
-- name: BiggestAwardsThisMonth
-  description: The largest UK contract awards published in the last 28 days, feed-wide — the week's public spending headlines, fetched completely day by day.
+# A WEEK BY DEFAULT, because the feed cannot sort by value: the largest awards are found only by
+# reading every award in the window, one or two calls a day, against a source that allows twelve
+# calls every two minutes. A week is about eleven calls — inside that allowance, so it answers in
+# about a minute cold and from cache for six hours after. A month is forty-odd calls, meets the
+# limit a third of the way in and takes several minutes; `days` asks for it deliberately.
+- name: BiggestRecentAwards
+  description: The largest UK contract awards published in the last week (or the last `days`), feed-wide — the recent public-spending headlines, fetched completely day by day.
   params:
+    days:
+      type: int
+      default: 7
+      description: "How many days back to read. A cold week takes about a minute; a cold month several, because the source allows twelve calls every two minutes."
     limit:
       type: int
       default: 15
       description: "How many awards, largest first."
   cypher: |
-    WITH toString(datetime.truncate('day', datetime()) - duration('P28D')) + '/' + toString(datetime.truncate('day', datetime())) AS win
+    WITH toString(datetime.truncate('day', datetime()) - duration({days: $days})) + '/' + toString(datetime.truncate('day', datetime())) AS win
     MATCH (w:AwardWindow {window: win})-[:PUBLISHED]->(c:ContractAward)
     RETURN c.title AS contract, c.buyer AS buyer, c.supplier AS supplier,
            toFloat(c.amount) AS amount, c.awardDate AS awarded
