@@ -42,8 +42,11 @@
 - name: awardsInWindow
   kind: remote
   operation: searchAwards
-  # Contracts Finder 429s bursts — a 28-day daily-partitioned walk is exactly
-  # that. One call a second; the backend retries a limited day after the pause.
+  # Contracts Finder allows twelve calls every two minutes ("Rate limit of 12
+  # exceeded. Please retry after 120 seconds."). At this pacing a window of up
+  # to twelve calls — a week, the views' default — runs straight through in
+  # about a minute; a longer one meets the limit and each further day waits out
+  # a back-off. Pacing at the limit itself would make every week take two.
   cost: { rate: "10/minute" }
   records: "$.releases[*]"
   keyArgs: [publishedFrom, publishedTo]

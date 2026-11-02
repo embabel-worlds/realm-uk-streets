@@ -204,8 +204,10 @@ realm is that every claim traces to an official register.
 - **Contract awards**: `MATCH (w:AwardWindow {window:'from/to'})-[:PUBLISHED]->
   (c:ContractAward)` — ISO instants, daily-partitioned, fetched completely.
   The feed filters NOTHING server-side; narrow after. A supplier's address is
-  its REGISTERED office (say so). Views: `BiggestAwardsThisMonth`,
-  `AwardsNearMyPlaces`.
+  its REGISTERED office (say so). The source allows twelve calls every two
+  minutes, so a week (about eleven calls) is the window to ask for; a month
+  takes several minutes cold. Views: `BiggestRecentAwards` and
+  `AwardsNearMyPlaces`, both a week by default with a `days` param.
 - **Care quality (CQC)**: `HAS_CARE` gives every registered care location in a
   place's outward code with its OFFICIAL rating — but only once the free
   `CQC_SUBSCRIPTION_KEY` is set (api-portal.service.cqc.org.uk). Until then
