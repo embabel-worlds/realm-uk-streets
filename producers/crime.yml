@@ -142,7 +142,11 @@
     weaponsRate: "CASE WHEN toString(r.weaponsRate) STARTS WITH '[' THEN null ELSE r.weaponsRate END"
     publicOrderRate: "CASE WHEN toString(r.publicOrderRate) STARTS WITH '[' THEN null ELSE r.publicOrderRate END"
   fileCacheSeconds: 604800
-  cache: { kind: ttl, seconds: 604800 }
+  # negativeTtlSeconds: an empty from these published registers is durable — a
+  # suppressed cell ('[u1]', City of London) is the publisher's real answer, not a
+  # value that arrives later. Without it the records are kept but every empty key
+  # is re-asked for ever, which is what EMPTY_NOT_KEPT reports.
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 604800 }
 
 # Median pay for EVERY district in ONE NOMIS call (geography=TYPE434, the NOMIS
 # set code for all local authorities — 371 obs), so crime-vs-income never fans
@@ -175,4 +179,8 @@
     area: geography.description
     annualPay: obs_value.value
     year: time.description
-  cache: { kind: ttl, seconds: 604800 }
+  # negativeTtlSeconds: an empty from these published registers is durable — a
+  # suppressed cell ('[u1]', City of London) is the publisher's real answer, not a
+  # value that arrives later. Without it the records are kept but every empty key
+  # is re-asked for ever, which is what EMPTY_NOT_KEPT reports.
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 604800 }

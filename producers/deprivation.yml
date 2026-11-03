@@ -40,4 +40,8 @@
     extent: "IMD 2019 - Extent"
   # A once-per-parliament publication; a week of cache is already generous.
   fileCacheSeconds: 604800
-  cache: { kind: ttl, seconds: 604800 }
+  # negativeTtlSeconds: an empty from these published registers is durable — a
+  # suppressed cell ('[u1]', City of London) is the publisher's real answer, not a
+  # value that arrives later. Without it the records are kept but every empty key
+  # is re-asked for ever, which is what EMPTY_NOT_KEPT reports.
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 604800 }

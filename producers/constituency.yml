@@ -62,7 +62,11 @@
     density: obs_value.value
   # A decennial census behind a weekly cache — see the note above; `remote`
   # producers cache with TTL alone.
-  cache: { kind: ttl, seconds: 604800 }
+  # negativeTtlSeconds: an empty from these published registers is durable — a
+  # suppressed cell ('[u1]', City of London) is the publisher's real answer, not a
+  # value that arrives later. Without it the records are kept but every empty key
+  # is re-asked for ever, which is what EMPTY_NOT_KEPT reports.
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 604800 }
 
 # The young-adult share of every district in ONE census call — the DEMOGRAPHIC
 # axis of the national crime model. Criminology's most durable finding is the
@@ -86,7 +90,11 @@
     districtCode: geography.geogcode
     area: geography.description
     youngAdultPct: obs_value.value
-  cache: { kind: ttl, seconds: 604800 }
+  # negativeTtlSeconds: an empty from these published registers is durable — a
+  # suppressed cell ('[u1]', City of London) is the publisher's real answer, not a
+  # value that arrives later. Without it the records are kept but every empty key
+  # is re-asked for ever, which is what EMPTY_NOT_KEPT reports.
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 604800 }
 
 # Every district's ethnic composition — all five top-level Census 2021 groups
 # as percentages, 1,655 rows in ONE call. Five rows per district rather than
@@ -110,4 +118,8 @@
     area: geography.description
     group: c2021_eth_20.description
     percent: obs_value.value
-  cache: { kind: ttl, seconds: 604800 }
+  # negativeTtlSeconds: an empty from these published registers is durable — a
+  # suppressed cell ('[u1]', City of London) is the publisher's real answer, not a
+  # value that arrives later. Without it the records are kept but every empty key
+  # is re-asked for ever, which is what EMPTY_NOT_KEPT reports.
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 604800 }
