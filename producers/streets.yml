@@ -26,7 +26,12 @@
     outcome: outcome_status.category
     crimeLat: location.latitude
     crimeLon: location.longitude
-  cache: { kind: ttl, seconds: 21600 }
+  # Measured 2026-11-25: police.uk's `date` (yyyy-MM) returns that month instead of the latest
+  # (Leicester centre: 1,695 crimes for 2026-09 by default, 1,739 for date=2025-06), so a month
+  # in the WHERE is asked of the source rather than filtered out of the wrong month.
+  pushdown:
+    - { property: month, op: EQUALS, argPath: date, clause: "{value}", valuePattern: '^(\d{4}-\d{2})$' }
+  cache: { kind: ttl, seconds: 21600, negativeTtlSeconds: 3600 }
 
 # ── The postcode axis ────────────────────────────────────────────────────────
 # Every registered sale at the place's FULL postcode since 1995, newest first.
@@ -57,7 +62,9 @@
     estate: estateType.prefLabel.0._value
     newBuild: newBuild
     id: hasTransaction
-  cache: { kind: ttl, seconds: 86400 }
+  # Sales by postcode, newest 30: the Land Registry API's other filters are not declared (untested here).
+  pushdown: []
+  cache: { kind: ttl, seconds: 86400, negativeTtlSeconds: 3600 }
 
 # ── The district axis ────────────────────────────────────────────────────────
 # The official House Price Index for the place's local authority: monthly
@@ -82,7 +89,9 @@
     terraced: averagePriceTerraced
     flat: averagePriceFlatMaisonette
     index: housePriceIndex
-  cache: { kind: ttl, seconds: 86400 }
+  # One region's latest 13 months: nothing left to filter at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 86400, negativeTtlSeconds: 3600 }
 
 # Median gross ANNUAL pay for full-time workers in the district (ONS ASHE).
 # Annual statistic — cache a week.
@@ -104,7 +113,10 @@
     annualPay: obs_value.value
     area: geography.description
     year: time.description
-  cache: { kind: ttl, seconds: 604800 }
+  # The NOMIS dataset's dimensions are fixed by the args above; that is what this door is. Nothing a
+  # query says narrows it further at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 3600 }
 
 # ── The neighbourhood (LSOA) axis ────────────────────────────────────────────
 # Census 2021 ethnic composition of the place's IMMEDIATE neighbourhood —
@@ -125,7 +137,10 @@
     group: c2021_eth_20.description
     percent: obs_value.value
     area: geography.description
-  cache: { kind: ttl, seconds: 604800 }
+  # The NOMIS dataset's dimensions are fixed by the args above; that is what this door is. Nothing a
+  # query says narrows it further at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 3600 }
 
 # ── The coordinate axis (beside streetCrimes above) ──────────────────────────
 # Official hygiene rating of the inspected food businesses within a mile,
@@ -153,6 +168,11 @@
   # then counts only that rating, so "every zero-rated kitchen near X" is the
   # whole mile even in a city centre. A set (rating IN ['0','1','2']) has no
   # single-parameter form and stays a graph filter over the nearest-first walk.
+  # "How many food places near X" is in every page's meta.totalCount: one call, not a page walk.
+  aggregates:
+    - measure: count
+      valueField: meta.totalCount
+      records: "$"
   pushdown:
     - { property: rating, op: EQUALS, argPath: ratingKey, clause: "{value}" }
   project:
@@ -162,7 +182,7 @@
     rating: RatingValue
     ratedOn: RatingDate
     distanceMiles: Distance
-  cache: { kind: ttl, seconds: 86400 }
+  cache: { kind: ttl, seconds: 86400, negativeTtlSeconds: 3600 }
 
 # Live flood alerts near the place. LIVE means live — ten minutes, not a day.
 - name: floodWarnings
@@ -179,7 +199,12 @@
     severityLevel: severityLevel
     area: description
     raisedAt: timeRaised
-  cache: { kind: ttl, seconds: 600 }
+  # Measured 2026-11-25: `min-severity=N` returns only warnings at level N or worse (lower is
+  # worse): nationally 29 warnings (levels 3-4) became 0 with min-severity=2. So
+  # `severityLevel <= N` is asked of the source.
+  pushdown:
+    - { property: severityLevel, op: LESS_THAN_OR_EQUAL, argPath: min-severity, clause: "{value}", valuePattern: '^([1-4])$' }
+  cache: { kind: ttl, seconds: 600, negativeTtlSeconds: 600 }
 
 # ── The constituency axis ────────────────────────────────────────────────────
 # The seat: current MP, party (with the party's brand colour). Keyed on the
@@ -200,7 +225,9 @@
     party: value.currentRepresentation.member.value.latestParty.name
     partyAbbrev: value.currentRepresentation.member.value.latestParty.abbreviation
     partyColour: value.currentRepresentation.member.value.latestParty.backgroundColour
-  cache: { kind: ttl, seconds: 604800 }
+  # A seat search by name, the best match only: nothing left to filter at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 3600 }
 
 # The seat's latest general-election result, keyed on the seatId the Seat node
 # carries — a virtual node anchoring ANOTHER virtual join, which is what turns
@@ -220,7 +247,9 @@
     electorate: electorate
     turnout: turnout
     winningParty: winningParty.name
-  cache: { kind: ttl, seconds: 604800 }
+  # One constituency's result by id: nothing left to filter at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 3600 }
 
 # Schools within 1.5 km, from Wikidata — CC0, keyless, and an endpoint run to
 # be queried (the OSM Overpass instances shed load with 406/500s midway through
@@ -253,6 +282,8 @@
     maxKeysPerCall: 1
     timeoutSeconds: 60
     userAgent: "EmbabelRealmUkStreets/0.1 (https://github.com/embabel-worlds/realm-uk-streets)"
+  # The query is authored with the point and radius as its only parameters; it has no {{filter:}} slot yet.
+  pushdown: []
   cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 86400 }
 
 # Census 2021 population density at the place's LSOA — the DENOMINATOR that
@@ -271,4 +302,7 @@
     id: urn
     density: obs_value.value
     area: geography.description
-  cache: { kind: ttl, seconds: 604800 }
+  # The NOMIS dataset's dimensions are fixed by the args above; that is what this door is. Nothing a
+  # query says narrows it further at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 3600 }

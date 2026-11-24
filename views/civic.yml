@@ -2,7 +2,7 @@
 # petition — every view narrows the petitions BEFORE taking it.
 
 - name: WhatBritainSigns
-  description: The most-signed open petitions to Parliament right now — what the country is asking for, top of the list first.
+  description: "The most-signed open petitions to Parliament right now. What the country is asking for, top of the list first."
   params:
     limit:
       type: int
@@ -14,7 +14,7 @@
     ORDER BY signatures DESC LIMIT $limit
 
 - name: WhatMySeatsCareAbout
-  description: The top open petitions' signature counts in YOUR constituencies — with a per-10,000-signature share so a small seat's passion reads beside a big one's. What each of your places' seats is asking Parliament for.
+  description: "The top open petitions' signature counts in YOUR constituencies. With a per-10,000-signature share so a small seat's passion reads beside a big one's. What each of your places' seats is asking Parliament for."
   params:
     petitions:
       type: int
@@ -34,7 +34,7 @@
     ORDER BY seat, seatSignatures DESC
 
 - name: AwardsNearMyPlaces
-  description: Contract awards from the last week (or the last `days`) whose winning supplier is REGISTERED in one of your places' outward postcode areas — where public money lands on your streets. Registered address, not delivery location; the window is fetched completely, day by day. With no places set up it answers empty without fetching anything.
+  description: "Recent contract awards won by suppliers based in your places' postcodes. Contract awards from the last week (or the last `days`) whose winning supplier is REGISTERED in one of your places' outward postcode areas — where public money lands on your streets. Registered address, not delivery location; the window is fetched completely, day by day. With no places set up it answers empty without fetching anything."
   params:
     days:
       type: int
@@ -61,7 +61,7 @@
 # about a minute cold and from cache for six hours after. A month is forty-odd calls, meets the
 # limit a third of the way in and takes several minutes; `days` asks for it deliberately.
 - name: BiggestRecentAwards
-  description: The largest UK contract awards published in the last week (or the last `days`), feed-wide — the recent public-spending headlines, fetched completely day by day.
+  description: "The largest UK contract awards published in the last week (or the last `days`). Feed-wide — the recent public-spending headlines, fetched completely day by day. Awards published in the window only, not every live contract."
   params:
     days:
       type: int
@@ -79,19 +79,19 @@
     ORDER BY amount DESC LIMIT $limit
 
 - name: CareNearMyPlaces
-  description: CQC-registered care locations in your places' outward postcode areas with their official ratings, worst first — needs the free CQC_SUBSCRIPTION_KEY; without it the warning names the missing credential.
+  description: "CQC care locations near your places with their ratings, worst first. CQC-registered care locations in your places' outward postcode areas with their official ratings, worst first — needs the free CQC_SUBSCRIPTION_KEY; without it the warning names the missing credential."
   cypher: |
     MATCH (p:UkPlace)-[:HAS_CARE]->(c:CareLocation)
     RETURN p.name AS place, c.name AS location, c.rating AS rating, c.postcode AS postcode
     ORDER BY CASE c.rating WHEN 'Inadequate' THEN 0 WHEN 'Requires improvement' THEN 1 WHEN 'Good' THEN 2 WHEN 'Outstanding' THEN 3 ELSE 4 END
 
 - name: WhoCaresAbout
-  description: Which constituencies care most about a TOPIC — open petitions whose demand mentions it, summed per seat across all 650. Absolute signatures favour engaged seats; the per-seat view of one petition is WherePetitionIsHot.
+  description: "Which constituencies care most about a TOPIC. Open petitions whose demand mentions it, summed per seat across all 650. Absolute signatures favour engaged seats; the per-seat view of one petition is WherePetitionIsHot. Open petitions only; signatures, not the people behind them."
   params:
     topic:
       type: string
       default: "animal"
-      description: "A word or phrase to match in petition demands, e.g. 'animal', 'water', 'school'."
+      description: "A word or phrase matched partially (any case, contains) in petition demands, e.g. 'animal', 'water', 'school'."
     limit:
       type: int
       default: 15
@@ -106,12 +106,12 @@
     ORDER BY signatures DESC LIMIT $limit
 
 - name: WherePetitionIsHot
-  description: The reverse lens — pick a petition by a word from its demand and see which constituencies signed it most. Matches the most-signed open petition containing the phrase.
+  description: "Which constituencies signed a petition most, picked by a word. The reverse lens — pick a petition by a word from its demand and see which constituencies signed it most. Matches the most-signed open petition containing the phrase. Open petitions only; the word is a partial match on the demand."
   params:
     petition:
       type: string
       default: "water"
-      description: "A word or phrase from the petition's demand, e.g. 'water', 'surrogacy'."
+      description: "A word or phrase from the petition's demand, matched partially (any case, contains), e.g. 'water', 'surrogacy'."
     limit:
       type: int
       default: 15
@@ -126,7 +126,7 @@
     ORDER BY signatures DESC LIMIT $limit
 
 - name: WhatMyPlacesCareAboutInBrief
-  description: One row per seat — the three petitions with the strongest local backing (per-10,000 share of each petition's national signatures), rendered as a single plain sentence. When one cause clearly outstrips the runner-up (1.5x, computed in Cypher, never judged by the model) the sentence says so, in wording that varies by seat. One model call per seat.
+  description: "Each seat's three most locally backed petitions, as one sentence. One row per seat — the three petitions with the strongest local backing (per-10,000 share of each petition's national signatures), rendered as a single plain sentence. When one cause clearly outstrips the runner-up (1.5x, computed in Cypher, never judged by the model) the sentence says so, in wording that varies by seat. One model call per seat."
   cypher: |
     MATCH (p:UkPlace) WHERE p.constituencyCode IS NOT NULL
     WITH collect(DISTINCT p.constituencyCode) AS mine

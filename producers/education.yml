@@ -47,6 +47,8 @@
     commLangLitPercent: "comm_lang_lit_expected_children_percent"
     elgsExpectedAverage: "elgs_expected_average"
   fileCacheSeconds: 86400
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400 }
 
 # Pupil absence: persistent (10%+ of sessions missed) and severe (50%+)
@@ -73,6 +75,8 @@
     enrolments: "enrolment_count"
     enrolmentPercent: "enrolment_percent"
   fileCacheSeconds: 86400
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400 }
 
 # Key stage 4: Attainment 8, the share achieving grade 5+ and 4+ in English
@@ -111,4 +115,6 @@
     ebaccEnteringPercent: "ebacc_entering_percent"
     progress8Average: "progress8_average"
   fileCacheSeconds: 86400
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400 }

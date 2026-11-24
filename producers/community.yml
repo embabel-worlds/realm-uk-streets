@@ -63,6 +63,8 @@
     newData: "New data"
   # Indicators update on their own calendars, monthly at the fastest; a day.
   fileCacheSeconds: 86400
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400 }
 
 - name: healthIndicatorsLowerTier
@@ -100,6 +102,8 @@
     comparedToEngland: "Compared to England value or percentiles"
     newData: "New data"
   fileCacheSeconds: 86400
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400 }
 
 # The SAME upper-tier file keyed by INDICATOR, so one indicator can be ranked
@@ -149,6 +153,8 @@
     comparedToEngland: "Compared to England value or percentiles"
     newData: "New data"
   fileCacheSeconds: 86400
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400 }
 
 # ── NOMIS claimant count — the monthly labour-market pulse ───────────────────
@@ -174,7 +180,10 @@
     claimants: obs_value.value
     month: time.description
   # Monthly release; a day of cache.
-  cache: { kind: ttl, seconds: 86400 }
+  # The NOMIS dataset's dimensions are fixed by the args above; that is what this door is. Nothing a
+  # query says narrows it further at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 86400, negativeTtlSeconds: 3600 }
 
 # …and for EVERY local authority in ONE call (TYPE432 — the district/unitary set
 # the claimant count is published on, 374 obs), the medianPayAllDistricts
@@ -200,7 +209,10 @@
     area: geography.description
     claimants: obs_value.value
     month: time.description
-  cache: { kind: ttl, seconds: 86400 }
+  # The NOMIS dataset's dimensions are fixed by the args above; that is what this door is. Nothing a
+  # query says narrows it further at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 86400, negativeTtlSeconds: 3600 }
 
 # ── ONS mid-year population by age band ──────────────────────────────────────
 # Five rows per place — all ages, 0-15, 16-64, 65+, 16-24 — so "how many
@@ -226,7 +238,10 @@
     persons: obs_value.value
     year: time.description
   # Annual estimate; a week.
-  cache: { kind: ttl, seconds: 604800 }
+  # The NOMIS dataset's dimensions are fixed by the args above; that is what this door is. Nothing a
+  # query says narrows it further at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 3600 }
 
 # ── English Indices of Deprivation 2025 (MHCLG, published 30 Oct 2025) ───────
 # File 10 v2: lower-tier district summaries on 2024 boundaries and LSOA 2021 —
@@ -260,6 +275,8 @@
     localConcentration: "IMD25 - Local concentration"
     rankOfLocalConcentration: "IMD25 - Rank of local concentration"
   fileCacheSeconds: 604800
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 604800 }
 
 # The whole 2025 table under the UkDistricts anchor — the deprivation axis on
@@ -288,4 +305,6 @@
     localConcentration: "IMD25 - Local concentration"
     rankOfLocalConcentration: "IMD25 - Rank of local concentration"
   fileCacheSeconds: 604800
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 604800 }

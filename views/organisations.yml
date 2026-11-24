@@ -5,12 +5,12 @@
 # The charity population of a place, from the Commission's own area-of-
 # operation declarations, joined to each charity's record.
 - name: CharitiesOperatingHere
-  description: "Registered charities declaring each watched place's local authority as an area of operation — name, legal form, registration status, registered date, latest income, town and postcode, company number where it is a company, and the trustees' activities text — from the Charity Commission's daily register. The Commission records operation by UPPER-TIER authority, so a place in a two-tier district reads its county's charities (Clacton reads Essex) — narrow with basedInPostcode ('CO15') for the ones based in the town. Removed charities included and marked. Largest income first. Ask 'which charities operate in Blackpool', 'who works with young people in Middlesbrough' (filter on activities), 'biggest charities here'. A place whose district name finds no rows may be a spelling mismatch with the Commission's name for the authority, not a charity-free district."
+  description: "Registered charities operating in each watched place's authority. Registered charities declaring each watched place's local authority as an area of operation — name, legal form, registration status, registered date, latest income, town and postcode, company number where it is a company, and the trustees' activities text — from the Charity Commission's daily register. The Commission records operation by UPPER-TIER authority, so a place in a two-tier district reads its county's charities (Clacton reads Essex) — narrow with basedInPostcode ('CO15') for the ones based in the town. Removed charities included and marked. Largest income first. Ask 'which charities operate in Blackpool', 'who works with young people in Middlesbrough' (filter on activities), 'biggest charities here'. A place whose district name finds no rows may be a spelling mismatch with the Commission's name for the authority, not a charity-free district."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     activityContains:
       type: string
       default: ""
@@ -50,12 +50,12 @@
 # The register as a time series: what changed for the place's charities in a
 # window — registrations, removals with the Commission's reason, mergers.
 - name: CharityChangesHere
-  description: "Charity Commission events for charities operating in each watched place's authority since a date — new registrations ('arrived'), removals with the Commission's reason ('left': ceased to exist, does not operate, merged), CIO registrations, asset transfers naming the other charity. Newest first. This is 'who came and who went', dated, from the register's own event log — the change feed a subscription reads. Ask 'which charities in Blackpool closed this year', 'new charities in Middlesbrough since March', 'what changed for the voluntary sector here'."
+  description: "Charity registrations, removals and changes in each place since a date. Charity Commission events for charities operating in each watched place's authority since a date — new registrations ('arrived'), removals with the Commission's reason ('left': ceased to exist, does not operate, merged), CIO registrations, asset transfers naming the other charity. Newest first. This is 'who came and who went', dated, from the register's own event log — the change feed a subscription reads. Ask 'which charities in Blackpool closed this year', 'new charities in Middlesbrough since March', 'what changed for the voluntary sector here'."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     since:
       type: string
       default: "2025-01-01"
@@ -85,12 +85,12 @@
 # Grant money into the place, by funder — the funding map a community
 # organisation assembles by hand.
 - name: WhoFundsThisPlace
-  description: "Grant funding into each watched place's district by FUNDER, from every publisher on the 360Giving standard (National Lottery distributors, community foundations, government departments, trusts): grants, total awarded, first and latest award dates, and how many distinct recipients — in a window of award years. Ask 'who funds Blackpool', 'how much lottery money has Middlesbrough had', 'biggest funders here since 2020'. Amounts are as awarded; a grant with a beneficiary in the district may go to a recipient based elsewhere."
+  description: "Grant funding into each watched place's district by FUNDER. From every publisher on the 360Giving standard (National Lottery distributors, community foundations, government departments, trusts): grants, total awarded, first and latest award dates, and how many distinct recipients — in a window of award years. Ask 'who funds Blackpool', 'how much lottery money has Middlesbrough had', 'biggest funders here since 2020'. Amounts are as awarded; a grant with a beneficiary in the district may go to a recipient based elsewhere."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     fromYear:
       type: string
       default: "2020"
@@ -118,12 +118,12 @@
 # read off the identifier scheme; the register record for any one of them
 # is one call away in WhatIsThisOrganisation.
 - name: FundedOrganisationsHere
-  description: "Organisations that received published grants into each watched place's district since a year — total received, grants, distinct funders, first and latest award — with what KIND of body each identifier says it is (registered charity GB-CHC, company GB-COH, education provider GB-UKPRN/GB-EDU, local authority GB-LAE, NHS, or a publisher-local id for an unregistered group or an individual). Most funded first. To see the register record behind one — still active or removed, registered when, latest income — run WhatIsThisOrganisation with its orgId. Ask 'who gets the grant money in Blackpool', 'most funded charities in Middlesbrough', 'which companies were funded here'."
+  description: "Organisations that received grants into each watched place's district. Organisations that received published grants into each watched place's district since a year — total received, grants, distinct funders, first and latest award — with what KIND of body each identifier says it is (registered charity GB-CHC, company GB-COH, education provider GB-UKPRN/GB-EDU, local authority GB-LAE, NHS, or a publisher-local id for an unregistered group or an individual). Most funded first. To see the register record behind one — still active or removed, registered when, latest income — run WhatIsThisOrganisation with its orgId. Ask 'who gets the grant money in Blackpool', 'most funded charities in Middlesbrough', 'which companies were funded here'."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     fromYear:
       type: string
       default: "2020"
@@ -131,7 +131,7 @@
     kind:
       type: string
       default: ""
-      description: "Keep one identifier scheme: 'GB-CHC' (charities), 'GB-COH' (companies), 'GB-UKPRN' (education), 'GB-LAE' (councils); empty = all registered bodies."
+      description: "Keep one identifier scheme, a prefix match on the org-id: 'GB-CHC' (charities), 'GB-COH' (companies), 'GB-UKPRN' (education), 'GB-LAE' (councils); empty = all registered bodies."
     limit:
       type: int
       default: 40
@@ -163,7 +163,7 @@
 
 # One organisation, resolved across the registers by its identifier.
 - name: WhatIsThisOrganisation
-  description: "The register record behind one organisation identifier — GB-CHC-1164883 (a charity number), GB-COH-09668396 (a Companies House number), GB-UKPRN-…, GB-LAE-… — from Find that Charity's nightly index over the Charity Commission, OSCR, CCNI, Companies House, GIAS and the mutuals register: name, whether it is still active, dates registered and removed, latest income, organisation types, postcode and HQ local authority. Use it on an orgId from FundedOrganisationsHere or on 'GB-CHC-' + a charity number from CharitiesOperatingHere. Charities resolve reliably; a company id resolves only when the index holds that company (it indexes companies linked to the voluntary sector, not every company on the register), and an empty answer for a GB-COH id means 'not indexed', not 'does not exist'. Ask 'what is GB-COH-13812519', 'is this recipient still active', 'who is charity 1164883'."
+  description: "The register record behind one organisation identifier. GB-CHC-1164883 (a charity number), GB-COH-09668396 (a Companies House number), GB-UKPRN-…, GB-LAE-… — from Find that Charity's nightly index over the Charity Commission, OSCR, CCNI, Companies House, GIAS and the mutuals register: name, whether it is still active, dates registered and removed, latest income, organisation types, postcode and HQ local authority. Use it on an orgId from FundedOrganisationsHere or on 'GB-CHC-' + a charity number from CharitiesOperatingHere. Charities resolve reliably; a company id resolves only when the index holds that company (it indexes companies linked to the voluntary sector, not every company on the register), and an empty answer for a GB-COH id means 'not indexed', not 'does not exist'. Ask 'what is GB-COH-13812519', 'is this recipient still active', 'who is charity 1164883'."
   params:
     orgId:
       type: string
@@ -183,12 +183,12 @@
 # Grants by year: is money into the place growing or shrinking, and from how
 # many funders.
 - name: GrantsIntoPlaceByYear
-  description: "Published grant funding into each watched place's district by award YEAR — grants, total awarded, distinct funders and recipients — so 'is funding here growing or shrinking' is a read. Later years are incomplete until funders publish, and a funder joining the 360Giving standard adds history it did not publish before; say both when presenting a trend. Ask 'grant funding into Blackpool over time', 'how much came into Middlesbrough each year'."
+  description: "Published grant funding into each watched place's district by award YEAR. Grants, total awarded, distinct funders and recipients — so 'is funding here growing or shrinking' is a read. Later years are incomplete until funders publish, and a funder joining the 360Giving standard adds history it did not publish before; say both when presenting a trend. Ask 'grant funding into Blackpool over time', 'how much came into Middlesbrough each year'."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     fromYear:
       type: string
       default: "2015"
@@ -207,12 +207,12 @@
 
 # The largest grants themselves, opened to their rows.
 - name: BiggestGrantsHere
-  description: "The largest published grants into each watched place's district since a year — amount, date, funder, programme, recipient (with charity or company number) and the funder's description — the rows behind any total in WhoFundsThisPlace. Ask 'biggest grants into Blackpool', 'what did the Lottery fund in Middlesbrough'."
+  description: "The largest published grants into each watched place's district since a year. Amount, date, funder, programme, recipient (with charity or company number) and the funder's description — the rows behind any total in WhoFundsThisPlace. Ask 'biggest grants into Blackpool', 'what did the Lottery fund in Middlesbrough'. Only grants published to 360Giving; most funders publish nothing."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     fromYear:
       type: string
       default: "2020"

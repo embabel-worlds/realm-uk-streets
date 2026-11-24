@@ -15,7 +15,9 @@
     action: attributes.action
     signatures: attributes.signature_count
     petitionState: attributes.state
-  cache: { kind: ttl, seconds: 3600 }
+  # The feed state is the key; the list endpoint takes no other filter a property here maps to.
+  pushdown: []
+  cache: { kind: ttl, seconds: 3600, negativeTtlSeconds: 3600 }
 
 # One petition's per-seat signature map — 650 records per petition, keyed by
 # the petition id the Petition node carries. Aggregate or filter to seats of
@@ -32,7 +34,9 @@
     constituency: name
     mp: mp
     signatures: signature_count
-  cache: { kind: ttl, seconds: 3600 }
+  # One petition by id: nothing left to filter at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 3600, negativeTtlSeconds: 3600 }
 
 # ── Contract awards ──────────────────────────────────────────────────────────
 # Awards published in an ISO window ('from/to' instants), the AusTender shape:
@@ -64,7 +68,10 @@
     amount: awards.0.value.amount
     currency: awards.0.value.currency
     awardDate: awards.0.date
-  cache: { kind: ttl, seconds: 21600 }
+  # The publication window is the key and `stages` is fixed; the search's other filters (value,
+  # buyer, location) are not properties of a ContractAward here, so they are left to the graph.
+  pushdown: []
+  cache: { kind: ttl, seconds: 21600, negativeTtlSeconds: 3600 }
 
 # ── Care quality (inert until CQC_SUBSCRIPTION_KEY is set) ───────────────────
 # Registered care locations for the place's OUTWARD code, with the official
@@ -83,4 +90,6 @@
     name: locationName
     postcode: postalCode
     rating: currentRatings.overall.rating
-  cache: { kind: ttl, seconds: 604800 }
+  # Locations by postcode: the CQC search's other filters are not properties here.
+  pushdown: []
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 3600 }

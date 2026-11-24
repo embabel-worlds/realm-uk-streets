@@ -22,5 +22,7 @@
     id: id
     category: category
     street: location.street.name
-  cache: { kind: ttl, seconds: 21600 }
+  # The 12 months are the periods the producer walks (`date` per call); nothing else is filtered at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 21600, negativeTtlSeconds: 3600 }
 

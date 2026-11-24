@@ -38,7 +38,10 @@
   # downloaded spreadsheet — and setting it here failed the ENTIRE file's
   # parse, taking this producer with it while the realm still reported no
   # problems. The only symptom was `Unknown producer` at query time.
-  cache: { kind: ttl, seconds: 604800 }
+  # The NOMIS dataset's dimensions are fixed by the args above; that is what this door is. Nothing a
+  # query says narrows it further at the source.
+  pushdown: []
+  cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 3600 }
 
 # Population density for EVERY district in ONE census call (TYPE154, the 2022
 # local-authority set — 331 obs), so the national crime model gains an URBANITY
@@ -66,6 +69,9 @@
   # suppressed cell ('[u1]', City of London) is the publisher's real answer, not a
   # value that arrives later. Without it the records are kept but every empty key
   # is re-asked for ever, which is what EMPTY_NOT_KEPT reports.
+  # The NOMIS dataset's dimensions are fixed by the args above; that is what this door is. Nothing a
+  # query says narrows it further at the source.
+  pushdown: []
   cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 604800 }
 
 # The young-adult share of every district in ONE census call — the DEMOGRAPHIC
@@ -94,6 +100,9 @@
   # suppressed cell ('[u1]', City of London) is the publisher's real answer, not a
   # value that arrives later. Without it the records are kept but every empty key
   # is re-asked for ever, which is what EMPTY_NOT_KEPT reports.
+  # The NOMIS dataset's dimensions are fixed by the args above; that is what this door is. Nothing a
+  # query says narrows it further at the source.
+  pushdown: []
   cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 604800 }
 
 # Every district's ethnic composition — all five top-level Census 2021 groups
@@ -122,4 +131,7 @@
   # suppressed cell ('[u1]', City of London) is the publisher's real answer, not a
   # value that arrives later. Without it the records are kept but every empty key
   # is re-asked for ever, which is what EMPTY_NOT_KEPT reports.
+  # The NOMIS dataset's dimensions are fixed by the args above; that is what this door is. Nothing a
+  # query says narrows it further at the source.
+  pushdown: []
   cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 604800 }

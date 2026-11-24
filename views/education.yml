@@ -2,12 +2,12 @@
 # authority, with the disadvantage gap beside every headline.
 
 - name: SchoolReadinessAtPlace
-  description: "School readiness for each watched place's authority — the share of five-year-olds reaching a good level of development at the end of Reception — for every published academic year, with the children assessed and the free-school-meals row beside the total so the disadvantage gap is visible. From the DfE early years foundation stage profile. Ask 'school readiness in Blackpool', 'how many children start school ready in Middlesbrough', 'the FSM gap in early years'."
+  description: "School readiness for each watched place's authority. The share of five-year-olds reaching a good level of development at the end of Reception — for every published academic year, with the children assessed and the free-school-meals row beside the total so the disadvantage gap is visible. From the DfE early years foundation stage profile. Ask 'school readiness in Blackpool', 'how many children start school ready in Middlesbrough', 'the FSM gap in early years'. Local-authority level only, not individual schools."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
   cypher: |
     MATCH (p:UkPlace)
     WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
@@ -29,12 +29,12 @@
     ORDER BY place, period
 
 - name: Ks4AttainmentAtPlace
-  description: "GCSE-year attainment for each watched place's authority, all state-funded schools, by academic year — Attainment 8, the share with grade 5+ and grade 4+ in English and maths, EBacc entry, and the disadvantaged pupils' Attainment 8 beside the total. From the DfE key stage 4 performance release; revised figures where published. Ask 'GCSE results in Blackpool', 'attainment 8 for Middlesbrough over time', 'the disadvantage gap at 16'."
+  description: "GCSE-year attainment for each watched place's authority. All state-funded schools, by academic year — Attainment 8, the share with grade 5+ and grade 4+ in English and maths, EBacc entry, and the disadvantaged pupils' Attainment 8 beside the total. From the DfE key stage 4 performance release; revised figures where published. Ask 'GCSE results in Blackpool', 'attainment 8 for Middlesbrough over time', 'the disadvantage gap at 16'. Local-authority level only, not individual schools."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
   cypher: |
     MATCH (p:UkPlace)
     WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
@@ -58,12 +58,12 @@
     ORDER BY place, period
 
 - name: PupilAbsenceAtPlace
-  description: "Persistent and severe absence for each watched place's authority by academic year and school phase — the share of enrolments missing 10%+ (persistent) and 50%+ (severe) of sessions — from the DfE pupil absence release. Ask 'absence in Blackpool schools', 'persistent absence in Middlesbrough secondaries over time'."
+  description: "Persistent and severe pupil absence for each watched place's authority. Persistent and severe absence for each watched place's authority by academic year and school phase — the share of enrolments missing 10%+ (persistent) and 50%+ (severe) of sessions — from the DfE pupil absence release. Ask 'absence in Blackpool schools', 'persistent absence in Middlesbrough secondaries over time'. Local-authority level only, not individual schools."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     phase:
       type: string
       default: "Total"
