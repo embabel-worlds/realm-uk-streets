@@ -5,7 +5,7 @@
 # carries force-area subtotals and "Combined Local Authorities" rows.
 
 - name: DistrictCrimeLeague
-  description: "England & Wales districts ranked by official recorded crime per 1,000 residents (year ending March 2024), worst first — headline rate with violence, theft and shoplifting beside it. Westminster tops any such list partly because crimes are counted where they happen and residents where they live; say so when presenting. City of London is null (supplier data unavailable). For safest-first, order ascending on the raw type."
+  description: "Districts of England and Wales ranked by recorded crime per 1,000. England & Wales districts ranked by official recorded crime per 1,000 residents (year ending March 2024), worst first — headline rate with violence, theft and shoplifting beside it. Westminster tops any such list partly because crimes are counted where they happen and residents where they live; say so when presenting. City of London is null (supplier data unavailable). For safest-first, order ascending on the raw type."
   params:
     limit:
       type: int
@@ -22,7 +22,7 @@
     ORDER BY totalPer1000 DESC LIMIT $limit
 
 - name: DistrictCrimeAtMyPlaces
-  description: "The official recorded-crime rates for each watched place's local authority (per 1,000 residents, year ending March 2024) — the district-wide complement to the 1-mile street view. A place in a merged authority (Buckinghamshire, East Suffolk) shows one row per legacy sub-area; a place whose district publishes only combined figures (parts of Devon, Kent, Worcestershire) shows none."
+  description: "Official recorded-crime rates for each watched place's authority. The official recorded-crime rates for each watched place's local authority (per 1,000 residents, year ending March 2024) — the district-wide complement to the 1-mile street view. A place in a merged authority (Buckinghamshire, East Suffolk) shows one row per legacy sub-area; a place whose district publishes only combined figures (parts of Devon, Kent, Worcestershire) shows none."
   params:
     limit:
       type: int
@@ -39,7 +39,7 @@
     ORDER BY totalPer1000 DESC LIMIT $limit
 
 - name: CrimeVsIncomeAcrossDistricts
-  description: "Every district's official crime rate beside its median full-time pay — the national cross-section (roughly 290 districts), poorest first, so the association is visible as you read down. Crime is per 1,000 residents (year ending March 2024); pay is ASHE median gross annual pay. Association across areas, not causation, and not a claim about anyone."
+  description: "Every district's official crime rate beside its median full-time pay. The national cross-section (roughly 290 districts), poorest first, so the association is visible as you read down. Crime is per 1,000 residents (year ending March 2024); pay is ASHE median gross annual pay. Association across areas, not causation, and not a claim about anyone."
   params:
     limit:
       type: int
@@ -61,7 +61,7 @@
 # regress). On an older engine this view errors with an unknown function —
 # the row views above carry the same data either way.
 - name: WhatTracksDistrictCrime
-  description: "What are the best PREDICTORS of crime — 'what drives crime', 'run a regression on crime', 'which factors explain crime levels'? One statistical answer over the whole England & Wales district cross-section: the pay–crime correlation, and a least-squares fit of the crime rate on median pay and population, standardized betas ranking the predictors, with the districts most above and below their prediction by name. Asked per constituency or per area, the DISTRICT is the statistical unit the sources share. Deterministic arithmetic over official figures — association across areas, never causation, and Westminster's daytime-population inflation applies."
+  description: "What are the best PREDICTORS of crime. 'what drives crime', 'run a regression on crime', 'which factors explain crime levels'? One statistical answer over the whole England & Wales district cross-section: the pay–crime correlation, and a least-squares fit of the crime rate on median pay and population, standardized betas ranking the predictors, with the districts most above and below their prediction by name. Asked per constituency or per area, the DISTRICT is the statistical unit the sources share. Deterministic arithmetic over official figures — association across areas, never causation, and Westminster's daytime-population inflation applies."
   cypher: |
     MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
     WHERE c.districtCode =~ '^[EW]0.*'
@@ -76,7 +76,7 @@
 # other — ONS recorded crime, NOMIS ASHE pay, Census 2021 density — meeting on
 # the district code.
 - name: WhatBestPredictsCrime
-  description: "What is the best PREDICTOR of recorded crime across England — deprivation, urbanity, income, age structure, ethnic diversity, or population? A least-squares fit of each district's crime rate — offences per 1,000 RESIDENTS, the publisher's own per-capita figure, so this is not a population-size artefact — on median pay, population density, the share of residents aged 20-24, IoD2019 deprivation, ethnic DIVERSITY (an index over the whole composition — the chance two residents drawn at random belong to different groups, never any single group's share) and population together, with STANDARDIZED betas so all six are directly comparable, honest R², and the districts furthest above and below their prediction by name. Joins six registers on the district code: ONS recorded crime, NOMIS ASHE pay, Census 2021 density, Census 2021 age structure, Census 2021 ethnic composition, MHCLG IoD2019. England only once deprivation is in the fit — Wales measures deprivation on a separate, non-comparable index. Read a beta as strength of association ACROSS AREAS: it is a statement about places, never about the people in them, and a variable that looks strong alone and weak here had its apparent effect belonging to a variable it travels with. Two warnings the numbers cannot carry: recorded crime counts where offences HAPPEN and residents where they LIVE, which inflates city-centre and retail districts (Westminster above all); and R² here is modest by design — the joinable open data holds economic and structural variables, not the policing, reporting and opportunity factors that drive much of the remainder."
+  description: "What is the best PREDICTOR of recorded crime across England. Deprivation, urbanity, income, age structure, ethnic diversity, or population? A least-squares fit of each district's crime rate — offences per 1,000 RESIDENTS, the publisher's own per-capita figure, so this is not a population-size artefact — on median pay, population density, the share of residents aged 20-24, IoD2019 deprivation, ethnic DIVERSITY (an index over the whole composition — the chance two residents drawn at random belong to different groups, never any single group's share) and population together, with STANDARDIZED betas so all six are directly comparable, honest R², and the districts furthest above and below their prediction by name. Joins six registers on the district code: ONS recorded crime, NOMIS ASHE pay, Census 2021 density, Census 2021 age structure, Census 2021 ethnic composition, MHCLG IoD2019. England only once deprivation is in the fit — Wales measures deprivation on a separate, non-comparable index. Read a beta as strength of association ACROSS AREAS: it is a statement about places, never about the people in them, and a variable that looks strong alone and weak here had its apparent effect belonging to a variable it travels with. Two warnings the numbers cannot carry: recorded crime counts where offences HAPPEN and residents where they LIVE, which inflates city-centre and retail districts (Westminster above all); and R² here is modest by design — the joinable open data holds economic and structural variables, not the policing, reporting and opportunity factors that drive much of the remainder."
   cypher: |
     MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
     WHERE c.districtCode =~ '^[EW]0.*'
@@ -107,7 +107,7 @@
 # above can be read against what each variable claims on its own — the gap
 # between them IS the confounding.
 - name: CrimePredictorsOneByOne
-  description: "Each candidate predictor of district crime measured ALONE — deprivation, density, the 20-24 share, ethnic diversity, pay and population each correlated with the crime rate on its own, with a confidence interval and whether the association is DETECTABLE. Read beside WhatBestPredictsCrime: a variable that looks strong here and weak there is one whose apparent effect belonged to a variable it travels with. Association across areas, never causation."
+  description: "Each candidate predictor of district crime measured ALONE. Deprivation, density, the 20-24 share, ethnic diversity, pay and population each correlated with the crime rate on its own, with a confidence interval and whether the association is DETECTABLE. Read beside WhatBestPredictsCrime: a variable that looks strong here and weak there is one whose apparent effect belonged to a variable it travels with. Association across areas, never causation."
   cypher: |
     MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c:DistrictCrime)
     WHERE c.districtCode =~ '^[EW]0.*'
@@ -149,7 +149,7 @@
 # maps them back by the fixed order below: deprivation, density, youngAdults,
 # pay, diversity, population.
 - name: CrimeModelWithPredictors
-  description: "A least-squares fit of district crime rate on WHICHEVER of the six predictors the caller enables — deprivation, population density, the 20-24 share, median pay, ethnic diversity and population — with standardized betas, R², and the districts furthest above and below prediction. Enabling exactly one gives that predictor's association measured ALONE (a solo standardized beta is its correlation), so the same view answers 'what does this variable claim by itself' and 'what survives beside the others', which is the comparison that matters. The district set is identical for every combination (263, England only, since deprivation is England-only), so a beta that moves moved because the model changed, not the sample. Predictors are returned as x1..xn in this fixed order: deprivation, density, youngAdults, pay, diversity, population. Association across areas, never causation, and never a statement about any person."
+  description: "A regression of district crime on the predictors the caller enables. A least-squares fit of district crime rate on WHICHEVER of the six predictors the caller enables — deprivation, population density, the 20-24 share, median pay, ethnic diversity and population — with standardized betas, R², and the districts furthest above and below prediction. Enabling exactly one gives that predictor's association measured ALONE (a solo standardized beta is its correlation), so the same view answers 'what does this variable claim by itself' and 'what survives beside the others', which is the comparison that matters. The district set is identical for every combination (263, England only, since deprivation is England-only), so a beta that moves moved because the model changed, not the sample. Predictors are returned as x1..xn in this fixed order: deprivation, density, youngAdults, pay, diversity, population. Association across areas, never causation, and never a statement about any person."
   params:
     deprivation: { type: boolean, default: true, description: "Include IoD2019 average deprivation score." }
     density: { type: boolean, default: true, description: "Include Census 2021 population density." }
@@ -194,7 +194,7 @@
 # general; this is the districts themselves, so a reader can find somewhere they
 # know and see where it sits on every axis the model uses.
 - name: DistrictsRanked
-  description: "Every English district in the crime model, worst crime rate first, with the value of each predictor beside it — deprivation, density, the 20-24 share, median pay and ethnic diversity. The same 263 districts and the same figures the model fits, so a reader can find a place they know and see where it actually sits rather than taking the coefficients on trust. Crime is offences per 1,000 residents (ONS, year ending March 2024); Westminster's is inflated by its daytime population."
+  description: "Every English district in the crime model. Worst crime rate first, with the value of each predictor beside it — deprivation, density, the 20-24 share, median pay and ethnic diversity. The same 263 districts and the same figures the model fits, so a reader can find a place they know and see where it actually sits rather than taking the coefficients on trust. Crime is offences per 1,000 residents (ONS, year ending March 2024); Westminster's is inflated by its daytime population."
   params:
     limit:
       type: int

@@ -15,7 +15,8 @@
         "parameters": [
           { "name": "lat", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Latitude, decimal degrees." },
           { "name": "long", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Longitude, decimal degrees." },
-          { "name": "dist", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Radius in km, e.g. 15." }
+          { "name": "dist", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Radius in km, e.g. 15." },
+          { "name": "min-severity", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Only warnings at this severity level or worse: 1 severe flood warning, 2 flood warning, 3 flood alert, 4 no longer in force." }
         ],
         "responses": { "200": { "description": "Active alerts under items; empty means no flood risk right now.", "content": { "application/json": { "schema": { "type": "object" } } } } }
       }

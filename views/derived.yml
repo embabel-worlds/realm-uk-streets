@@ -5,12 +5,12 @@
 # One hop of succession: every recorded transfer between two charities operating in the
 # place, with the Commission's date and reason.
 - name: CharitySuccessionHere
-  description: "Recorded asset transfers between charities operating in each watched place's authority — predecessor, successor, the Charity Commission's date and its reason (Amalgamated, Funds transferred, Ceased to exist…), with each party's status and latest income. Concluded by the charity-succession rule set from the register's event log: an event names the other party by number, and the edge is the join no register line draws. A transfer to a charity outside every watched authority is not shown — the successor is a number on the event, not a node here. Ask 'which charities in Blackpool merged', 'where did X's assets go', 'charity mergers in Middlesbrough since 2020'."
+  description: "Recorded asset transfers between charities in each watched place. Recorded asset transfers between charities operating in each watched place's authority — predecessor, successor, the Charity Commission's date and its reason (Amalgamated, Funds transferred, Ceased to exist…), with each party's status and latest income. Concluded by the charity-succession rule set from the register's event log: an event names the other party by number, and the edge is the join no register line draws. A transfer to a charity outside every watched authority is not shown — the successor is a number on the event, not a node here. Ask 'which charities in Blackpool merged', 'where did X's assets go', 'charity mergers in Middlesbrough since 2020'."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     since:
       type: string
       default: "2000-01-01"
@@ -33,12 +33,12 @@
 
 # The recursion: charities that gathered others over time, with the depth of the chain.
 - name: CharityLineageHere
-  description: "Charities in each watched place's authority that stand at the end of a chain of recorded asset transfers — the consolidators — with `predecessors`, the length of the deepest chain of transfers ending at them (1 = one transfer in; 2 and up = a chain, such as a chapel into a district into a circuit), the charities that transferred in directly, their status and income. From the charity-lineage rule set over SUCCEEDED_BY, evaluated to a fixpoint, so depth is unbounded. A count of recorded transfers, never a judgement. Ask 'which charities in Middlesbrough absorbed others', 'the consolidators in Essex', 'longest merger chain here'."
+  description: "Charities at the end of a chain of asset transfers, per watched place. Charities in each watched place's authority that stand at the end of a chain of recorded asset transfers — the consolidators — with `predecessors`, the length of the deepest chain of transfers ending at them (1 = one transfer in; 2 and up = a chain, such as a chapel into a district into a circuit), the charities that transferred in directly, their status and income. From the charity-lineage rule set over SUCCEEDED_BY, evaluated to a fixpoint, so depth is unbounded. A count of recorded transfers, never a judgement. Ask 'which charities in Middlesbrough absorbed others', 'the consolidators in Essex', 'longest merger chain here'."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     minPredecessors:
       type: int
       default: 1
@@ -63,12 +63,12 @@
 
 # Money that reached an organisation through a publishing intermediary.
 - name: RegrantedMoneyHere
-  description: "Published grants into each watched place's district that were regranted: the origin funder and grant, the final recipient and grant, and the number of grants in the chain (2 = one intermediary), from the regranting rule set over 360Giving — each recipient the next funder, in date order, all awarded in the same year. A chain exists only where the intermediary PUBLISHES its own grants: Birmingham City Council does, Blackpool and Middlesbrough councils do not, so an empty answer in a district is a fact about publication, not about money. The edge asserts the sequence of publications, never that the same pounds moved or that the origin intended the final recipient. Ask 'what did government money in Birmingham become', 'grants regranted through the council', 'which local groups got Lottery money via an intermediary'."
+  description: "Published grants into each watched place's district that were regranted. The origin funder and grant, the final recipient and grant, and the number of grants in the chain (2 = one intermediary), from the regranting rule set over 360Giving — each recipient the next funder, in date order, all awarded in the same year. A chain exists only where the intermediary PUBLISHES its own grants: Birmingham City Council does, Blackpool and Middlesbrough councils do not, so an empty answer in a district is a fact about publication, not about money. The edge asserts the sequence of publications, never that the same pounds moved or that the origin intended the final recipient. Ask 'what did government money in Birmingham become', 'grants regranted through the council', 'which local groups got Lottery money via an intermediary'."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     originContains:
       type: string
       default: ""
@@ -92,12 +92,12 @@
 # The regranting picture summed: origin funders and how much of their money into the
 # district went on to be regranted, by intermediary.
 - name: RegrantingByIntermediary
-  description: "For each watched place's district, the intermediaries through which published grants were regranted — the intermediary, how many published grants it received (origins), and the count and total of the downstream grants it published — from the regranting rule set. Only intermediaries that publish to 360Giving appear. Ask 'how much did the council regrant', 'who are the regranting intermediaries in Birmingham'."
+  description: "The intermediaries through which grants were regranted, per place. For each watched place's district, the intermediaries through which published grants were regranted — the intermediary, how many published grants it received (origins), and the count and total of the downstream grants it published — from the regranting rule set. Only intermediaries that publish to 360Giving appear. Ask 'how much did the council regrant', 'who are the regranting intermediaries in Birmingham'."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     limit:
       type: int
       default: 20

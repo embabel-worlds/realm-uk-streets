@@ -9,12 +9,12 @@
 # missing row (a two-tier district's children's indicators sit with its
 # county), never a zero.
 - name: PlaceProfile
-  description: "The community profile of each watched place's local authority in one table: residents and children (ONS mid-year estimate), claimant count (latest month), deprivation rank and the share of neighbourhoods in England's most deprived tenth (IoD 2025), school readiness, first-time entrants to the youth justice system, 16-17 NEET, children in low-income families, under-18 conceptions, Year 6 overweight, life expectancy — each with its period. Fingertips figures are the headline rows (Persons, no breakdown, latest period) for the CHILDREN'S-SERVICES authority named in childrensServicesAuthority — the county for a place in a two-tier district, so Clacton's school readiness is Essex's. A blank cell is a figure the publisher does not hold, not a zero. Ask 'profile Blackpool' / 'what is Middlesbrough like' / 'community profile of my places'."
+  description: "The community profile of each watched place's local authority in one table. Residents and children (ONS mid-year estimate), claimant count (latest month), deprivation rank and the share of neighbourhoods in England's most deprived tenth (IoD 2025), school readiness, first-time entrants to the youth justice system, 16-17 NEET, children in low-income families, under-18 conceptions, Year 6 overweight, life expectancy — each with its period. Fingertips figures are the headline rows (Persons, no breakdown, latest period) for the CHILDREN'S-SERVICES authority named in childrensServicesAuthority — the county for a place in a two-tier district, so Clacton's school readiness is Essex's. A blank cell is a figure the publisher does not hold, not a zero. Ask 'profile Blackpool' / 'what is Middlesbrough like' / 'community profile of my places'."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name to profile; empty = every watched place."
+      description: "A watched place's name to profile, matched partially (any case, contains); empty = every watched place."
   cypher: |
     MATCH (p:UkPlace)
     WHERE $place = '' OR toLower(p.name) CONTAINS toLower($place)
@@ -64,12 +64,12 @@
 # own significance test. Everything the authority is significantly worse
 # than England on, then better, with the figure and the period.
 - name: WhereThisPlaceStandsOut
-  description: "Where each watched place's local authority is significantly WORSE or BETTER than England, on the publisher's own test (OHID Fingertips' 'Compared to England'), across fourteen children's, health and wellbeing indicators — the figure, England's polarity-aware judgement, the period and the recent trend. This is the honest version of a 'smart insights' feature: no score of ours, the statistical comparison the publisher made. 'Similar' rows are left out by default. Ask 'what stands out about Blackpool', 'where is my place worse than England', 'what is Middlesbrough better at than the country'."
+  description: "Where each watched place's authority is worse or better than England. Where each watched place's local authority is significantly WORSE or BETTER than England, on the publisher's own test (OHID Fingertips' 'Compared to England'), across fourteen children's, health and wellbeing indicators — the figure, England's polarity-aware judgement, the period and the recent trend. This is the honest version of a 'smart insights' feature: no score of ours, the statistical comparison the publisher made. 'Similar' rows are left out by default. Ask 'what stands out about Blackpool', 'where is my place worse than England', 'what is Middlesbrough better at than the country'. Only the publisher's own significance test; nothing is tested here."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     includeSimilar:
       type: boolean
       default: false
@@ -99,12 +99,12 @@
 # Every period of one indicator for a place — the trend line behind a chart,
 # with the confidence interval and the comparison on every point.
 - name: IndicatorTrendAtPlace
-  description: "The full published series of ONE indicator for a watched place's authority — every period, value, 95% confidence interval and the England comparison at each point — the data behind a trend chart. Indicator ids: 90631 school readiness (all), 90632 school readiness (free school meals), 10401 youth justice first-time entrants, 93203 16-17 NEET, 93701 children in absolute low income, 20401 under-18 conceptions, 20602 Year 6 overweight, 93085 smoking at delivery, 20101 low birth weight, 30309 MMR one dose at 2, 41001 suicide rate, 90366 life expectancy, 92313 employment rate, 93562 disability-free life expectancy. Ask 'how has school readiness in Blackpool changed', 'youth justice trend for Middlesbrough'."
+  description: "The full published series of ONE indicator for a watched place's authority. Every period, value, 95% confidence interval and the England comparison at each point — the data behind a trend chart. Indicator ids: 90631 school readiness (all), 90632 school readiness (free school meals), 10401 youth justice first-time entrants, 93203 16-17 NEET, 93701 children in absolute low income, 20401 under-18 conceptions, 20602 Year 6 overweight, 93085 smoking at delivery, 20101 low birth weight, 30309 MMR one dose at 2, 41001 suicide rate, 90366 life expectancy, 92313 employment rate, 93562 disability-free life expectancy. Ask 'how has school readiness in Blackpool changed', 'youth justice trend for Middlesbrough'."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     indicatorId:
       type: string
       default: "90631"
@@ -128,7 +128,7 @@
 # Population by age for each place — the denominators, and "how many
 # children live here" as a read.
 - name: WhoLivesHere
-  description: "Each watched place's local-authority population by age band from the latest ONS mid-year estimate — all ages, 0-15, 16-64, 65+, 16-24 — with each band's share of the total. Ask 'how many children live in Blackpool', 'how old is Middlesbrough', 'population of my places'."
+  description: "Each watched place's authority population by age band, with shares. Each watched place's local-authority population by age band from the latest ONS mid-year estimate — all ages, 0-15, 16-64, 65+, 16-24 — with each band's share of the total. Ask 'how many children live in Blackpool', 'how old is Middlesbrough', 'population of my places'. The whole local authority, not the street."
   params:
     limit:
       type: int
@@ -152,7 +152,7 @@
 # period, headline row only — worst first by default. The comparison column
 # says which way is bad.
 - name: IndicatorAcrossEngland
-  description: "ONE indicator for EVERY upper-tier local authority in England at its latest period, ranked — with the England comparison on each row so the reader knows which direction is bad. Indicator ids as in IndicatorTrendAtPlace (default 10401, youth justice first-time entrants). Ask 'which councils have the worst school readiness', 'rank authorities by children in low income', 'where is youth justice entry highest'. The rows are the publisher's headline figures (Persons, no breakdown); a council absent from the list has no published figure."
+  description: "One health indicator for every upper-tier authority in England, ranked. ONE indicator for EVERY upper-tier local authority in England at its latest period, ranked — with the England comparison on each row so the reader knows which direction is bad. Indicator ids as in IndicatorTrendAtPlace (default 10401, youth justice first-time entrants). Ask 'which councils have the worst school readiness', 'rank authorities by children in low income', 'where is youth justice entry highest'. The rows are the publisher's headline figures (Persons, no breakdown); a council absent from the list has no published figure."
   params:
     indicatorId:
       type: string
@@ -182,7 +182,7 @@
 # Deprivation 2025 across every lower-tier district — both measures, so a
 # reader can tell "poor on average" from "concentrated poverty".
 - name: MostDeprivedDistricts2025
-  description: "England's lower-tier districts ranked by the Indices of Deprivation 2025 — by average score (overall level) or by the proportion of neighbourhoods in the most deprived tenth (concentration), most deprived first, with both measures on every row. Blackpool and Middlesbrough lead on concentration. Ask 'most deprived places in England', 'where is poverty most concentrated', 'how deprived is my district compared to the rest'."
+  description: "England's lower-tier districts ranked by the Indices of Deprivation 2025. By average score (overall level) or by the proportion of neighbourhoods in the most deprived tenth (concentration), most deprived first, with both measures on every row. Blackpool and Middlesbrough lead on concentration. Ask 'most deprived places in England', 'where is poverty most concentrated', 'how deprived is my district compared to the rest'."
   params:
     by:
       type: string
@@ -209,7 +209,7 @@
 # the raw count nationally and joins pay and deprivation on the district code
 # — three registers that do not know each other, on one key.
 - name: ClaimantsPayAndDeprivation
-  description: "Every local authority's claimant count (latest month) beside its median full-time pay (ASHE) and its 2025 deprivation rank, joined on the district code — the labour-market cross-section. Counts are people, not rates: read beside pay and deprivation rather than ranking small districts against cities. Ask 'claimant count across the country', 'do low-pay districts have more claimants', 'claimants vs deprivation'."
+  description: "Every authority's claimant count beside its median pay and deprivation. Every local authority's claimant count (latest month) beside its median full-time pay (ASHE) and its 2025 deprivation rank, joined on the district code — the labour-market cross-section. Counts are people, not rates: read beside pay and deprivation rather than ranking small districts against cities. Ask 'claimant count across the country', 'do low-pay districts have more claimants', 'claimants vs deprivation'."
   params:
     limit:
       type: int
@@ -239,12 +239,12 @@
 # publisher's confidence interval. Nothing here is a score of ours: it is a rank,
 # a share, and an arithmetic distance, each reproducible from the rows.
 - name: SmartInsights
-  description: "Where each watched place's authority stands against EVERY upper-tier authority in England on fourteen children's, health and wellbeing indicators — ranked from the bad end. For each indicator: the value, England's value, the period, the share of authorities doing BETTER (0 = the best in England, 100 = the worst), the rank from worst, the distance from England in standard errors (from the publisher's confidence interval), the publisher's own 'compared to England' judgement and trend. The DIAL is a minimum extremity (how far from the national middle, 0–100): 0 lists all fourteen most-extreme-first, 50 keeps the outer half, 80 the outer fifth, 90 the outer tenth. Polarity is declared per indicator (higher NEET is worse; higher school readiness is better), never inferred. Ask 'what is most striking about Blackpool', 'where is Middlesbrough near the bottom nationally', 'smart insights for my place at 80'."
+  description: "Where each watched place's authority ranks in England on 14 indicators. Where each watched place's authority stands against EVERY upper-tier authority in England on fourteen children's, health and wellbeing indicators — ranked from the bad end. For each indicator: the value, England's value, the period, the share of authorities doing BETTER (0 = the best in England, 100 = the worst), the rank from worst, the distance from England in standard errors (from the publisher's confidence interval), the publisher's own 'compared to England' judgement and trend. The DIAL is a minimum extremity (how far from the national middle, 0–100): 0 lists all fourteen most-extreme-first, 50 keeps the outer half, 80 the outer fifth, 90 the outer tenth. Polarity is declared per indicator (higher NEET is worse; higher school readiness is better), never inferred. Ask 'what is most striking about Blackpool', 'where is Middlesbrough near the bottom nationally', 'smart insights for my place at 80'."
   params:
     place:
       type: string
       default: ""
-      description: "A watched place's name; empty = every watched place."
+      description: "A watched place's name, matched partially (any case, contains); empty = every watched place."
     dial:
       type: int
       default: 60

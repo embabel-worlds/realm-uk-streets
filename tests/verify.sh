@@ -15,18 +15,28 @@
 #                envelope flags in `warnings` all pass. These once produced petition
 #                signatures dressed as an "asian population estimate" (me#1214/#1223).
 #
-# Usage:  EMBABEL_AUTH=user:pass [APPLIANCE_BASE=http://localhost:11043] [ADVERSARIAL_RUNS=3] tests/verify.sh
+# Always run: pass 1 (VIEWS) and the SOURCE check — median pay for every Westminster seat read
+# through the realm cold, against NOMIS directly (L2), in one source call (L3). Passes 2 and 3
+# ask questions about watched places and call a model, so they are stochastic, cost money and
+# need watched places: they run with FULL=1. Keyless, except CareNearMyPlaces, which reads CQC
+# with CQC_SUBSCRIPTION_KEY and says so when it is missing. The last line on success is exactly
+# `ALL CHECKS PASS`.
+#
+# Usage:  APPLIANCE=http://localhost:11043 AUTH=user:pass [FULL=1] [ADVERSARIAL_RUNS=3] tests/verify.sh
+#         (EMBABEL_AUTH=user:pass and APPLIANCE_BASE still work)
 # Refuses to run without EMBABEL_AUTH — a harness that assumes credentials will
 # eventually hammer someone else's box.
 set -euo pipefail
 cd "$(dirname "$0")"
 
-: "${EMBABEL_AUTH:?set EMBABEL_AUTH=user:pass for the target appliance}"
-BASE="${APPLIANCE_BASE:-http://localhost:11043}"
+EMBABEL_AUTH="${AUTH:-${EMBABEL_AUTH:-}}"
+: "${EMBABEL_AUTH:?set AUTH=user:pass for the target appliance}"
+BASE="${APPLIANCE:-${APPLIANCE_BASE:-${APPLIANCE_URL:-http://localhost:11043}}}"
 RUNS="${ADVERSARIAL_RUNS:-3}"
 
 python3 - "$BASE" "$EMBABEL_AUTH" "$RUNS" <<'PY'
-import base64, json, re, sys, time, urllib.request, urllib.error
+import base64, json, os, re, sys, time, urllib.request, urllib.error
+FULL = bool(os.environ.get("FULL"))
 
 base, auth, runs = sys.argv[1], sys.argv[2], int(sys.argv[3])
 hdr = {"Authorization": "Basic " + base64.b64encode(auth.encode()).decode(),
@@ -80,7 +90,7 @@ def top_figure(rows, column):
 def numeric_cells(row):
     return [float(v) for v in row.values() if isinstance(v, (int, float))]
 
-for item in questions:
+for item in (questions if FULL else []):
     q, expect = item["question"], item["expect"]
     label = f"battery [{q[:48]}]"
     if "matchesView" not in expect:
@@ -146,7 +156,7 @@ for item in questions:
             print(f"FAIL {label}: {len(rows)} row(s), needed {need}")
 
 # ── 3. ADVERSARIAL ─────────────────────────────────────────────────────────────────
-schema = call("/api/v1/admin/kg/schema")
+schema = call("/api/v1/admin/kg/schema") if FULL else {"labels": []}
 props_by_label = {l["label"].lower(): {p["name"].lower() for p in l["properties"]}
                   for l in schema["labels"] if l["properties"]}
 VAR_LABEL = re.compile(r"\((\w+)\s*:\s*(\w+)")
@@ -187,7 +197,7 @@ ADVERSARIAL = [
     # wording is a standing alias trap, so it earns the repeated fabrication checks.
     "what are the best predictors of crime in a constituency, use linear algebra",
 ]
-for q in ADVERSARIAL:
+for q in (ADVERSARIAL if FULL else []):
     for i in range(runs):
         d = call("/api/v1/admin/kg/ask", {"question": q})
         label = f"adversarial [{q[:44]}] run {i + 1}"
@@ -207,11 +217,33 @@ for q in ADVERSARIAL:
             note = " (flagged)" if une else ""
             print(f"ok   {label}: honest{note}, rows={d.get('rowCount')}")
 
+# ── SOURCE: L2 against NOMIS, L3 one call ─────────────────────────────────────────
+# Median full-time pay (ASHE) for every Westminster seat: through the realm read cold
+# (`ai: {fresh: true}`), and from NOMIS directly with the producer's own arguments.
+NOMIS = ("https://www.nomisweb.co.uk/api/v01/dataset/NM_30_1.data.json?"
+         "geography=TYPE172&sex=8&item=2&pay=7&measures=20100&time=latest")
+with urllib.request.urlopen(NOMIS, timeout=120) as r:
+    want = {o["geography"]["geogcode"]: float(o["obs_value"]["value"]) for o in json.load(r)["obs"]
+            if isinstance(o["obs_value"]["value"], (int, float))}
+d = call("/api/v1/admin/kg/execute", {"cypher":
+    "MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY {ai: {fresh: true}}]->(cp:ConstituencyPay) "
+    "RETURN cp.constituencyCode AS code, toFloat(cp.annualPay) AS pay"})
+got = {r["code"]: r["pay"] for r in d.get("rows", []) if r.get("pay") is not None}
+diff = {k: (got.get(k), want.get(k)) for k in set(got) | set(want) if got.get(k) != want.get(k)}
+ok = not diff and len(got) > 600
+print(f"{'ok  ' if ok else 'FAIL'} source: pay for {len(got)} seats = NOMIS's {len(want)}" + ("" if ok else f"  {dict(list(diff.items())[:3])}"))
+if not ok:
+    fails.append(f"source: constituency pay differs from NOMIS on {len(diff)} seat(s)")
+calls = d.get("apiCalls")
+print(f"{'ok  ' if calls == 1 else 'FAIL'} source: every seat's pay in {calls} source call(s)")
+if calls != 1:
+    fails.append(f"source: constituency pay took {calls} calls, not 1")
+
 print()
 if fails:
     print(f"{len(fails)} FAILURE(S):")
     for f in fails:
         print(" -", f)
     sys.exit(1)
-print("verify: all green")
+print("ALL CHECKS PASS")
 PY

@@ -3,7 +3,7 @@
 # stores for a unitary, met or London borough.
 
 - name: SchoolReadiness
-  description: "One row of the DfE early years foundation stage profile for a local authority: the share of children reaching a GOOD LEVEL OF DEVELOPMENT at the end of Reception (age 5) — school readiness — with the count behind it, plus 'at expected level in all early learning goals' and 'in communication, language and literacy'. Reached from a watched place via HAS_SCHOOL_READINESS. Many rows per authority: every academic year (period '202425' = 2024/25) and every breakdown; the HEADLINE is breakdownTopic 'Total', breakdown 'Total', sex 'Total' at the greatest period. Other breakdownTopic values cut by free school meals, SEN, ethnicity and first language — compare the FSM row with the Total row for the disadvantage gap. Values are strings; toFloat(). Keyed on upperTierCode, so a two-tier district's place reads its county's rows."
+  description: "One record, identified by `id`. One row of the DfE early years foundation stage profile for a local authority: the share of children reaching a GOOD LEVEL OF DEVELOPMENT at the end of Reception (age 5) — school readiness — with the count behind it, plus 'at expected level in all early learning goals' and 'in communication, language and literacy'. Reached from a watched place via HAS_SCHOOL_READINESS. Many rows per authority: every academic year (period '202425' = 2024/25) and every breakdown; the HEADLINE is breakdownTopic 'Total', breakdown 'Total', sex 'Total' at the greatest period. Other breakdownTopic values cut by free school meals, SEN, ethnicity and first language — compare the FSM row with the Total row for the disadvantage gap. Values are strings; toFloat(). Keyed on upperTierCode, so a two-tier district's place reads its county's rows."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_SCHOOL_READINESS
@@ -19,7 +19,9 @@
         identity: "true"
     key: "The authority code the row was found by — the join link."
     period: "Academic year as six digits, e.g. '202425' for 2024/25 — sortable as a string."
-    level: "'Local authority' for every row this join returns."
+    level:
+      description: "'Local authority' for every row this join returns."
+      values: ["Local authority"]
     laCode:
       description: "The authority's GSS code — equals UkPlace.districtCode."
       metadata:
@@ -50,7 +52,7 @@
       description: "Average number of early learning goals (of 17) at the expected level."
 
 - name: PupilAbsence
-  description: "One row of DfE pupil absence for a local authority: the share of enrolments that were PERSISTENT absentees (missed 10%+ of sessions) or SEVERE absentees (50%+), by school phase, from 2011/12. Reached from a watched place via HAS_PUPIL_ABSENCE. Rows are (period × phase × absenceType); the headline is phase 'Total' and absenceType 'Persistent absence' at the latest period, read enrolmentPercent. 'z' in a value means not applicable; toFloat() reads it as null."
+  description: "One record, identified by `id`. One row of DfE pupil absence for a local authority: the share of enrolments that were PERSISTENT absentees (missed 10%+ of sessions) or SEVERE absentees (50%+), by school phase, from 2011/12. Reached from a watched place via HAS_PUPIL_ABSENCE. Rows are (period × phase × absenceType); the headline is phase 'Total' and absenceType 'Persistent absence' at the latest period, read enrolmentPercent. 'z' in a value means not applicable; toFloat() reads it as null."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_PUPIL_ABSENCE
@@ -66,7 +68,9 @@
         identity: "true"
     key: "The authority code — the join link."
     period: "Academic year as six digits, e.g. '202425'."
-    level: "'Local authority'."
+    level:
+      description: "'Local authority' for every row this join returns."
+      values: ["Local authority"]
     laCode:
       description: "The authority's GSS code — equals UkPlace.districtCode."
       metadata:
@@ -98,7 +102,9 @@
         identity: "true"
     key: "The authority code — the join link."
     period: "Academic year as six digits."
-    level: "'Local authority'."
+    level:
+      description: "'Local authority' for every row this join returns."
+      values: ["Local authority"]
     laCode:
       description: "The authority's GSS code."
       metadata:
@@ -108,9 +114,13 @@
     establishmentType: "'All state-funded' for the headline rows."
     breakdownTopic: "'Total', or the cut this row is: 'Disadvantage status', 'FSM status', 'Sex'…"
     sex: "'Total', 'Boys', 'Girls'."
-    fsmStatus: "'Total' or the FSM cut."
+    fsmStatus:
+      description: "Free-school-meals cut: 'Total', 'FSM eligible' or 'Not known to be FSM eligible'."
+      values: ["Total", "FSM eligible", "Not known to be FSM eligible"]
     disadvantageStatus: "'Total', 'Disadvantaged', 'All other pupils'."
-    senStatus: "'Total' or the SEN cut."
+    senStatus:
+      description: "Special-educational-needs cut: 'Total', 'Any special educational need' or 'No identified special educational need'."
+      values: ["Total", "Any special educational need", "No identified special educational need"]
     ethnicityMajor: "'Total' or the ethnicity cut."
     schools:
       type: int

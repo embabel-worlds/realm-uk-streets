@@ -90,7 +90,7 @@
 #     MATCH (p:UkPlace) OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
 #     RETURN p.name, count(c) AS incidents ORDER BY incidents ASC
 - name: CrimeIncident
-  description: "A police-recorded street-level crime within one mile of a watched UkPlace, latest published month, from data.police.uk. Reached via HAS_CRIME. Street names are anonymised localities ('On or near Shopping Area'), not addresses; outcome is absent while under investigation. Coverage: England, Wales, NI — but NOT Scotland, and NOT Greater Manchester (GMP stopped publishing street-level data in 2019 after its records-system failure). A low count in those areas is a coverage fact, not calm."
+  description: "One record, identified by `id`. A police-recorded street-level crime within one mile of a watched UkPlace, latest published month, from data.police.uk. Reached via HAS_CRIME. Street names are anonymised localities ('On or near Shopping Area'), not addresses; outcome is absent while under investigation. Coverage: England, Wales, NI — but NOT Scotland, and NOT Greater Manchester (GMP stopped publishing street-level data in 2019 after its records-system failure). A low count in those areas is a coverage fact, not calm."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_CRIME
@@ -105,10 +105,12 @@
       metadata:
         identity: "true"
     key: "The coordinate pair whose 1-mile radius found this incident — the join link, not the incident's location."
-    category: "Crime category slug: violent-crime, anti-social-behaviour, burglary, vehicle-crime, shoplifting, robbery, drugs, criminal-damage-arson, public-order, theft-from-the-person, bicycle-theft, other-theft, possession-of-weapons, other-crime."
+    category:
+      description: "Crime category slug: violent-crime, anti-social-behaviour, burglary, vehicle-crime, shoplifting, robbery, drugs, criminal-damage-arson, public-order, theft-from-the-person, bicycle-theft, other-theft, possession-of-weapons, other-crime."
+      values: ["anti-social-behaviour", "bicycle-theft", "burglary", "criminal-damage-arson", "drugs", "other-theft", "possession-of-weapons", "public-order", "robbery", "shoplifting", "theft-from-the-person", "vehicle-crime", "violent-crime", "other-crime"]
     month: "The month the incident was recorded, YYYY-MM."
     street: "Anonymised street-level locality, e.g. 'On or near Petticoat Lane'."
-    outcome: "Latest outcome category, e.g. 'Investigation complete; no suspect identified' — absent while under investigation."
+    outcome: "Latest outcome category, e.g. 'Investigation complete; no suspect identified' or 'Under investigation'; absent when police.uk gives none."
     crimeLat: "Anonymised snap-point latitude — approximate by design."
     crimeLon: "Anonymised snap-point longitude — approximate by design."
 
@@ -139,12 +141,12 @@
     street: "Street name, uppercase as registered."
     town: "Town as registered."
     propertyType: "detached / semi-detached / terraced / flat-maisonette / other."
-    estate: "Freehold or Leasehold."
+    estate: "Tenure as the Land Registry labels it: 'Freehold' or 'Leasehold'."
     newBuild: "true when the sale was a new build."
 
 # The district's official House Price Index — a monthly average-price series.
 - name: HousePriceMonth
-  description: "ONE MONTH of the UK House Price Index for a watched place's local authority — official average prices by property type, 13 monthly nodes per place via HAS_HOUSE_PRICES. When comparing areas, pin or aggregate the month (max(), or sort by month and take the head) — otherwise every month of an expensive district out-sorts every other area."
+  description: "One record, identified by `id`. ONE MONTH of the UK House Price Index for a watched place's local authority — official average prices by property type, 13 monthly nodes per place via HAS_HOUSE_PRICES. When comparing areas, pin or aggregate the month (max(), or sort by month and take the head) — otherwise every month of an expensive district out-sorts every other area."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_HOUSE_PRICES
@@ -178,7 +180,7 @@
 
 # ── The district axis ────────────────────────────────────────────────────────
 - name: AreaIncome
-  description: "Median gross ANNUAL pay for full-time workers in a watched place's local authority, from ONS ASHE. One row per place, reached via HAS_INCOME. District-level: it describes where the place is, not the person next door."
+  description: "One record, identified by `id`. Median gross ANNUAL pay for full-time workers in a watched place's local authority, from ONS ASHE. One row per place, reached via HAS_INCOME. District-level: it describes where the place is, not the person next door."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_INCOME
@@ -196,7 +198,7 @@
     annualPay:
       type: number
       description: "Median gross annual pay, GBP, full-time workers."
-    area: "The district's name as ONS states it."
+    area: "The district's name as ONS states it (a name, not a measure in units)."
     year: "The ASHE reference year."
   examples:
     # STEERING — pinned defect: asked for the highest median pay among watched places, the
@@ -211,7 +213,7 @@
 
 # ── The neighbourhood (LSOA) axis ────────────────────────────────────────────
 - name: EthnicGroupShare
-  description: "One ethnic group's share of residents in a watched place's immediate neighbourhood (LSOA), Census 2021 — five top-level groups per place, percentages. Reached via HAS_ETHNICITY. Absent at outcode level."
+  description: "One record, identified by `id`. One ethnic group's share of residents in a watched place's immediate neighbourhood (LSOA), Census 2021 — five top-level groups per place, percentages. Reached via HAS_ETHNICITY. Absent at outcode level."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_ETHNICITY
@@ -230,11 +232,11 @@
     percent:
       type: number
       description: "Percent of the neighbourhood's residents, Census 2021."
-    area: "The LSOA name."
+    area: "The LSOA name (a name, not a measure in units)."
 
 # ── The coordinate axis ──────────────────────────────────────────────────────
 - name: FoodPlace
-  description: "An inspected food business near a watched place, with its official hygiene rating — the NEAREST businesses within a mile, up to 500 per place. Reached via HAS_FOOD. rating is a STRING — '0'-'5' but also 'AwaitingInspection'/'Exempt' — guard before toFloat()."
+  description: "One record, identified by `fhrsId`. An inspected food business near a watched place, with its official hygiene rating — the NEAREST businesses within a mile, up to 500 per place. Reached via HAS_FOOD. rating is a STRING — '0'-'5' but also 'AwaitingInspection'/'Exempt' — guard before toFloat()."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_FOOD
@@ -252,7 +254,7 @@
     name: "The business's name."
     businessType: "Restaurant/Cafe/Canteen, Takeaway, School, Pub…"
     rating: "The official rating: '5' (best) to '0', or 'AwaitingInspection'/'Exempt'."
-    ratedOn: "When it was last inspected."
+    ratedOn: "Date of its last hygiene inspection, as the FSA writes it (ISO 8601 date-time)."
     distanceMiles:
       type: number
       description: "Distance from the place, miles. The largest value in a place's rows is the radius actually covered."
@@ -270,13 +272,15 @@
   properties:
     key: "The coordinate pair searched — the join link."
     severity: "'Flood alert', 'Flood warning' or 'Severe flood warning'."
-    severityLevel: "1 severe, 2 warning, 3 alert — lower is worse."
-    area: "The area the alert covers."
-    raisedAt: "When it was raised."
+    severityLevel:
+      type: int
+      description: "1 severe flood warning, 2 flood warning, 3 flood alert, 4 warning no longer in force — lower is worse. A `<=` bound is asked of the source."
+    area: "Name of the area the alert covers (a place name, not a measure in units)."
+    raisedAt: "Date-time (ISO 8601, UTC) the alert was raised."
 
 # ── The constituency axis ────────────────────────────────────────────────────
 - name: Seat
-  description: "The parliamentary seat covering a watched place: current MP, party and the party's brand colour. Reached via HAS_SEAT. The seat then anchors ITS OWN join — (:Seat)-[:HAS_RESULT]->(:SeatResult) — for the margin."
+  description: "One record, identified by `seatId`. The parliamentary seat covering a watched place: current MP, party and the party's brand colour. Reached via HAS_SEAT. The seat then anchors ITS OWN join — (:Seat)-[:HAS_RESULT]->(:SeatResult) — for the margin."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_SEAT
@@ -299,7 +303,7 @@
 
 # A virtual node anchoring a virtual join: the Seat's latest election result.
 - name: SeatResult
-  description: "The seat's latest general-election result: winner, majority, electorate, turnout. Reached from Seat via HAS_RESULT — so 'my places, their MPs, and how safe each seat is' is a two-hop MATCH."
+  description: "One record, identified by `key`. The seat's latest general-election result: winner, majority, electorate, turnout. Reached from Seat via HAS_RESULT — so 'my places, their MPs, and how safe each seat is' is a two-hop MATCH."
   virtualJoins:
     - anchorLabel: Seat
       relationship: HAS_RESULT
@@ -329,7 +333,7 @@
 # ratings: Ofsted publishes judgements as downloads, not an API, so this realm
 # reports what is THERE and never grades it.
 - name: School
-  description: "A school within ~1.5 km of a watched place, from Wikidata (Q3914 and subclasses). Reached via HAS_SCHOOL. Coverage tracks Wikidata: real schools can be absent, so a low count means poorly-mapped, not school-less. No ratings: Ofsted publishes judgements as downloads, not an API."
+  description: "One record, identified by `id`. A school within ~1.5 km of a watched place, from Wikidata (Q3914 and subclasses). Reached via HAS_SCHOOL. Coverage tracks Wikidata: real schools can be absent, so a low count means poorly-mapped, not school-less. No ratings: Ofsted publishes judgements as downloads, not an API."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_SCHOOL
@@ -353,7 +357,7 @@
 # of a place's history costs twelve paced calls; every read after that costs
 # only the newest month (closed months never re-fetch).
 - name: CrimeMonthIncident
-  description: "A police-recorded incident near a watched place within one of the last 12 published months, month-stamped — the raw material of crime trends. Reached via HAS_CRIME_HISTORY; aggregate by month, never enumerate. Coverage as CrimeIncident: no Scotland, no Greater Manchester."
+  description: "One record, identified by `id`. A police-recorded incident near a watched place within one of the last 12 published months, month-stamped — the raw material of crime trends. Reached via HAS_CRIME_HISTORY; aggregate by month, never enumerate. Coverage as CrimeIncident: no Scotland, no Greater Manchester."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_CRIME_HISTORY
@@ -369,7 +373,9 @@
         identity: "true"
     key: "The coordinate pair whose radius found it — the join link."
     month: "The month the incident belongs to, YYYY-MM — the period stamp."
-    category: "Crime category slug."
+    category:
+      description: "Crime category slug, one of police.uk's 14, e.g. 'violent-crime', 'burglary'."
+      values: ["anti-social-behaviour", "bicycle-theft", "burglary", "criminal-damage-arson", "drugs", "other-theft", "possession-of-weapons", "public-order", "robbery", "shoplifting", "theft-from-the-person", "vehicle-crime", "violent-crime", "other-crime"]
     street: "Anonymised street-level locality."
 
 
@@ -378,7 +384,7 @@
 # packed city centre is SAFER per person than 300 on a quiet coast. The rate
 # assumes the LSOA's density holds across the mile — say so when presenting.
 - name: AreaDensity
-  description: "Census 2021 population density (persons per square km) of a watched place's immediate neighbourhood (LSOA). Reached via HAS_DENSITY — AT MOST ONE row per place, so it needs no aggregation and a place with none (an outcode-level watch) simply has no row. The denominator for crime rates: estimated residents within the 1-mile circle = density x 8.14 km², so a per-head rate is `1000.0 * crimes / (density * 8.14)`. Rank on that, never on a raw incident count: a count rewards emptiness, and the places without a density belong at the END of a safest-first list rather than at the top."
+  description: "One record, identified by `id`. Census 2021 population density (persons per square km) of a watched place's immediate neighbourhood (LSOA). Reached via HAS_DENSITY — AT MOST ONE row per place, so it needs no aggregation and a place with none (an outcode-level watch) simply has no row. The denominator for crime rates: estimated residents within the 1-mile circle = density x 8.14 km², so a per-head rate is `1000.0 * crimes / (density * 8.14)`. Rank on that, never on a raw incident count: a count rewards emptiness, and the places without a density belong at the END of a safest-first list rather than at the top."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_DENSITY
@@ -396,7 +402,7 @@
     density:
       type: number
       description: "Usual residents per square kilometre, Census 2021."
-    area: "The LSOA name."
+    area: "The LSOA name (a name, not a measure in units)."
 
 
 # ── The official district crime table (ONS/Home Office, Table C5) ────────────
@@ -405,7 +411,7 @@
 # so the WHOLE country's crime table (and every district's median pay) hangs
 # off one anchor for cross-district analysis.
 - name: DistrictCrime
-  description: "One area's official police-recorded crime RATES per 1,000 population for headline offence groups, year ending March 2024 (ONS Community Safety Partnership tables). Reached two ways: (p:UkPlace)-[:HAS_DISTRICT_CRIME]->(c) for a watched place's district, or nationally via MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c) for all ~300 districts at once. National rows include force-area subtotals and combined-CSP rows with no real code — filter districtCode =~ '^[EW]0.*' before ranking. Rates are the publisher's own population correction, so they rank directly; a cell ONS does not publish ('[x]' on the force and combined-CSP rows, '[u1]' for City of London's rates) arrives as null, never as text, so count() skips it and ORDER BY puts it last. Westminster's rate is inflated by its daytime population — crimes are counted where they happen, residents where they live."
+  description: "One record, identified by `id`. One area's official police-recorded crime RATES per 1,000 population for headline offence groups, year ending March 2024 (ONS Community Safety Partnership tables). Reached two ways: (p:UkPlace)-[:HAS_DISTRICT_CRIME]->(c) for a watched place's district, or nationally via MATCH (u:UkDistricts {set:'england-and-wales'})-[:LISTS_CRIME]->(c) for all ~300 districts at once. National rows include force-area subtotals and combined-CSP rows with no real code — filter districtCode =~ '^[EW]0.*' before ranking. Rates are the publisher's own population correction, so they rank directly; a cell ONS does not publish ('[x]' on the force and combined-CSP rows, '[u1]' for City of London's rates) arrives as null, never as text, so count() skips it and ORDER BY puts it last. Westminster's rate is inflated by its daytime population — crimes are counted where they happen, residents where they live."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_DISTRICT_CRIME
@@ -513,7 +519,7 @@
 # per-seat signatures, and they share the July 2024 GSS codes without either
 # knowing the other exists. Joining them is what this type is for.
 - name: DistrictEthnicGroup
-  description: "One ethnic group's share of one local authority's residents, Census 2021 — five top-level groups per district, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_ETHNIC_GROUP]->(g) — ONE call returns every district's full composition (1,655 rows); join to the other district types on districtCode. FIVE rows per district, not one, because a district's ethnic MIX is a property of the whole composition and cannot be read off any single group's share: use these to compute a diversity index (1 - the sum of squared shares, the chance two residents drawn at random belong to different groups), which is what 'mix' means. A single group's share is NOT a measure of mix and ranking districts by one is not an analysis."
+  description: "One record, identified by `id`. One ethnic group's share of one local authority's residents, Census 2021 — five top-level groups per district, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_ETHNIC_GROUP]->(g) — ONE call returns every district's full composition (1,655 rows); join to the other district types on districtCode. FIVE rows per district, not one, because a district's ethnic MIX is a property of the whole composition and cannot be read off any single group's share: use these to compute a diversity index (1 - the sum of squared shares, the chance two residents drawn at random belong to different groups), which is what 'mix' means. A single group's share is NOT a measure of mix and ranking districts by one is not an analysis."
   virtualJoins:
     - anchorLabel: UkDistricts
       relationship: HAS_ETHNIC_GROUP
@@ -532,7 +538,7 @@
       description: "Local authority GSS code — equals DistrictCrime.districtCode."
       metadata:
         joinKey: "gss-lad"
-    area: "The district's name as the census styles it."
+    area: "The district's name as the census styles it (a name, not a measure in units)."
     group:
       description: "The top-level census group, e.g. 'White', 'Asian, Asian British or Asian Welsh'. These five are the WHOLE domain — a query must use one verbatim, never a short form like 'Asian'."
       values:
@@ -546,7 +552,7 @@
       description: "That group's percent of the district's usual residents, Census 2021."
 
 - name: DistrictYoungAdults
-  description: "The share of one local authority's residents aged 20-24, Census 2021, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_AGE_STRUCTURE]->(y) — ONE call returns all 331 districts; join to DistrictCrime, DistrictIncome and DistrictDensity on matching districtCode. This is the DEMOGRAPHIC axis: criminology's most durable finding is the age-crime curve, so a district's age structure predicts recorded crime independently of its income and its urbanity. A university city reads high for reasons that are about who lives there, not about disorder."
+  description: "One record, identified by `id`. The share of one local authority's residents aged 20-24, Census 2021, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_AGE_STRUCTURE]->(y) — ONE call returns all 331 districts; join to DistrictCrime, DistrictIncome and DistrictDensity on matching districtCode. This is the DEMOGRAPHIC axis: criminology's most durable finding is the age-crime curve, so a district's age structure predicts recorded crime independently of its income and its urbanity. A university city reads high for reasons that are about who lives there, not about disorder."
   virtualJoins:
     - anchorLabel: UkDistricts
       relationship: HAS_AGE_STRUCTURE
@@ -565,13 +571,13 @@
       description: "Local authority GSS code — equals DistrictCrime.districtCode."
       metadata:
         joinKey: "gss-lad"
-    area: "The district's name as the census styles it."
+    area: "The district's name as the census styles it (a name, not a measure in units)."
     youngAdultPct:
       type: number
       description: "Percent of usual residents aged 20-24, Census 2021."
 
 - name: DistrictDensity
-  description: "Usual residents per square kilometre for one local authority, Census 2021, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DENSITY_STAT]->(d) — ONE call returns all 331 districts; join to DistrictCrime and DistrictIncome on matching districtCode. This is the URBANITY axis: recorded crime concentrates where people, premises and opportunity concentrate, so a crime model without density attributes to income what actually belongs to city-ness. England and Wales; 2022 local-authority boundaries, so authorities merged since find no partner."
+  description: "One record, identified by `id`. Usual residents per square kilometre for one local authority, Census 2021, from the all-districts batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DENSITY_STAT]->(d) — ONE call returns all 331 districts; join to DistrictCrime and DistrictIncome on matching districtCode. This is the URBANITY axis: recorded crime concentrates where people, premises and opportunity concentrate, so a crime model without density attributes to income what actually belongs to city-ness. England and Wales; 2022 local-authority boundaries, so authorities merged since find no partner."
   virtualJoins:
     - anchorLabel: UkDistricts
       relationship: HAS_DENSITY_STAT
@@ -590,13 +596,13 @@
       description: "Local authority GSS code — equals DistrictCrime.districtCode and DistrictIncome.districtCode."
       metadata:
         joinKey: "gss-lad"
-    area: "The district's name as the census styles it."
+    area: "The district's name as the census styles it (a name, not a measure in units)."
     density:
       type: number
       description: "Usual residents per square kilometre, Census 2021."
 
 - name: ConstituencyPay
-  description: "Median gross ANNUAL pay (ASHE, full-time) for one Westminster parliamentary constituency, July 2024 boundaries, from the all-seats NOMIS batch. Reached via MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY]->(cp) — ONE call returns every seat (632 of 650). `constituencyCode` is the GSS code the rest of the constituency world uses: it EQUALS ConstituencySignal.onsCode (petition signatures per seat) and UkPlace.constituencyCode, so 'what does a seat earn' joins to 'what does that seat petition for' on a shared key. Great Britain only — ASHE excludes Northern Ireland, so the 18 NI seats have no row and a join simply finds none. Pay is measured where the JOB is, not where the worker lives: a commuter seat reports the pay of jobs located in it."
+  description: "One record, identified by `id`. Median gross ANNUAL pay (ASHE, full-time) for one Westminster parliamentary constituency, July 2024 boundaries, from the all-seats NOMIS batch. Reached via MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY]->(cp) — ONE call returns every seat (632 of 650). `constituencyCode` is the GSS code the rest of the constituency world uses: it EQUALS ConstituencySignal.onsCode (petition signatures per seat) and UkPlace.constituencyCode, so 'what does a seat earn' joins to 'what does that seat petition for' on a shared key. Great Britain only — ASHE excludes Northern Ireland, so the 18 NI seats have no row and a join simply finds none. Pay is measured where the JOB is, not where the worker lives: a commuter seat reports the pay of jobs located in it."
   virtualJoins:
     - anchorLabel: UkConstituencies
       relationship: HAS_CONSTITUENCY_PAY
@@ -624,7 +630,7 @@
 
 # cross-district views, so crime-vs-income never costs 300 keyed calls.
 - name: DistrictIncome
-  description: "Median gross annual pay (ASHE, full-time) for one local authority, from the all-districts NOMIS batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_PAY]->(i) — one call returns every district; join to DistrictCrime rows on matching districtCode. The NOMIS geography set is a 2021 vintage: post-2023 unitaries (Buckinghamshire, North Yorkshire, Somerset) are absent, and their crime rows simply find no pay row. The 28 districts those unitaries replaced are listed by NOMIS with no figure and are dropped, so every row is a district that exists. City of London and the Isles of Scilly are rows with annualPay ABSENT — ONS suppresses their estimate as statistically unreliable; never read that as zero."
+  description: "One record, identified by `id`. Median gross annual pay (ASHE, full-time) for one local authority, from the all-districts NOMIS batch. Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_PAY]->(i) — one call returns every district; join to DistrictCrime rows on matching districtCode. The NOMIS geography set is a 2021 vintage: post-2023 unitaries (Buckinghamshire, North Yorkshire, Somerset) are absent, and their crime rows simply find no pay row. The 28 districts those unitaries replaced are listed by NOMIS with no figure and are dropped, so every row is a district that exists. City of London and the Isles of Scilly are rows with annualPay ABSENT — ONS suppresses their estimate as statistically unreliable; never read that as zero."
   virtualJoins:
     - anchorLabel: UkDistricts
       relationship: HAS_PAY
@@ -643,7 +649,7 @@
       description: "Local authority GSS code — equals DistrictCrime.districtCode and UkPlace.districtCode."
       metadata:
         joinKey: "gss-lad"
-    area: "The district's name as NOMIS styles it."
+    area: "The district's name as NOMIS styles it (a name, not a measure in units)."
     annualPay:
       type: number
       description: "Median gross ANNUAL pay in GBP, full-time jobs held in the district."
@@ -653,7 +659,7 @@
 # Every English district's deprivation summary in one cached file read — the
 # deprivation axis of the cross-district views, beside crime and pay.
 - name: DistrictDeprivation
-  description: "One English district's summary from the Indices of Multiple Deprivation 2019 (MHCLG File 10, lower-tier LAD). Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DEPRIVATION]->(d) — one read returns all 317 districts; join to DistrictCrime and DistrictIncome rows on matching districtCode. HIGHER score = MORE deprived and rank 1 = most deprived of 317 — say which way is up when presenting. England only: Welsh districts (W06) have no row (WIMD is a separate, non-comparable index). Boundaries are 2019 LADs, so authorities merged since (Buckinghamshire, North Northamptonshire, Cumberland, Somerset) find no partner in the current crime table."
+  description: "One record, identified by `id`. One English district's summary from the Indices of Multiple Deprivation 2019 (MHCLG File 10, lower-tier LAD). Reached via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DEPRIVATION]->(d) — one read returns all 317 districts; join to DistrictCrime and DistrictIncome rows on matching districtCode. HIGHER score = MORE deprived and rank 1 = most deprived of 317 — say which way is up when presenting. England only: Welsh districts (W06) have no row (WIMD is a separate, non-comparable index). Boundaries are 2019 LADs, so authorities merged since (Buckinghamshire, North Northamptonshire, Cumberland, Somerset) find no partner in the current crime table."
   virtualJoins:
     - anchorLabel: UkDistricts
       relationship: HAS_DEPRIVATION

@@ -2,7 +2,7 @@
 # PetitionFeed is a LITERAL-SEEDED anchor — `MATCH (f:PetitionFeed
 # {state:'open'})` mints it per query; nothing is stored.
 - name: Petition
-  description: "A petition to Parliament from the most-signed page of a state's list (top 25). Reached from the literal-seeded feed: MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition). `signatures` is the nationwide total; the per-seat split is one more hop (HAS_SIGNATURES)."
+  description: "One record, identified by `id`. A petition to Parliament from the most-signed page of a state's list (top 25). Reached from the literal-seeded feed: MATCH (f:PetitionFeed {state:'open'})-[:LISTS]->(pt:Petition). `signatures` is the nationwide total; the per-seat split is one more hop (HAS_SIGNATURES)."
   virtualJoins:
     - anchorLabel: PetitionFeed
       relationship: LISTS
@@ -16,7 +16,7 @@
       description: "The petition's id. Identity, and the key its signature map joins on."
       metadata:
         identity: "true"
-    feedState: "The feed state that listed it — the join link."
+    feedState: "The petitions feed state that listed it, e.g. 'open' or 'closed' — the join link (a label, not a measure in units)."
     action: "The petition's demand, verbatim."
     signatures:
       type: int
@@ -62,7 +62,7 @@
 
 # ── Contract awards: where public money lands ────────────────────────────────
 - name: ContractAward
-  description: "A UK government contract award published in a window, from Contracts Finder (OCDS). Reached from the literal-seeded window: MATCH (w:AwardWindow {window:'2026-08-01T00:00:00Z/2026-08-27T00:00:00Z'})-[:PUBLISHED]->(c:ContractAward). The supplier's registered address is free text whose tail is a postcode — match outcodes with CONTAINS, and present it as the supplier's REGISTERED location, not where work happens."
+  description: "One record, identified by `ocid`. A UK government contract award published in a window, from Contracts Finder (OCDS). Reached from the literal-seeded window: MATCH (w:AwardWindow {window:'2026-08-01T00:00:00Z/2026-08-27T00:00:00Z'})-[:PUBLISHED]->(c:ContractAward). The supplier's registered address is free text whose tail is a postcode — match outcodes with CONTAINS, and present it as the supplier's REGISTERED location, not where work happens."
   virtualJoins:
     - anchorLabel: AwardWindow
       relationship: PUBLISHED
@@ -83,13 +83,13 @@
     supplierAddress: "The supplier's registered address, free text ending in a postcode."
     amount:
       type: number
-      description: "Award value."
-    currency: "Its currency."
-    awardDate: "The award's date."
+      description: "Award value in major units (pounds, not pence) of the currency in `currency`."
+    currency: "ISO 4217 code of the award value's currency, e.g. 'GBP'."
+    awardDate: "Date the contract was awarded, as Contracts Finder publishes it (ISO 8601 date-time)."
 
 # ── Care quality (inert until CQC_SUBSCRIPTION_KEY is set) ───────────────────
 - name: CareLocation
-  description: "A CQC-registered care location (care home, GP practice, hospital) in a watched place's outward postcode area, with its OFFICIAL inspection rating. Reached from UkPlace via HAS_CARE. Requires the free CQC_SUBSCRIPTION_KEY; without it this join reports the missing credential rather than pretending there is no care nearby."
+  description: "One record, identified by `id`. A CQC-registered care location (care home, GP practice, hospital) in a watched place's outward postcode area, with its OFFICIAL inspection rating. Reached from UkPlace via HAS_CARE. Requires the free CQC_SUBSCRIPTION_KEY; without it this join reports the missing credential rather than pretending there is no care nearby."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_CARE

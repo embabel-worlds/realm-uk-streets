@@ -44,4 +44,6 @@
   # suppressed cell ('[u1]', City of London) is the publisher's real answer, not a
   # value that arrives later. Without it the records are kept but every empty key
   # is re-asked for ever, which is what EMPTY_NOT_KEPT reports.
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 604800, negativeTtlSeconds: 604800 }

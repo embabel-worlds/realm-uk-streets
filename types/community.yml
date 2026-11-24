@@ -7,7 +7,7 @@
 # (or 'Female' for female-only indicators) at the latest period — a view that
 # forgets this counts every year and every breakdown as a fact about today.
 - name: AreaIndicator
-  description: "One published row of a public-health indicator for a local authority, from OHID Fingertips — school readiness (all children, and children on free school meals), first-time entrants to the youth justice system, 16-17 NEET, children in absolute low-income families, under-18 conceptions, Year 6 overweight, smoking at delivery, low birth weight, MMR coverage, suicide rate, life expectancy, employment rate, disability-free life expectancy. Reached from a watched place via HAS_CHILD_INDICATOR (upper-tier authorities: unitaries, mets, London boroughs — where the children's indicators are published) or HAS_LOCAL_INDICATOR (lower-tier districts); a unitary answers on both, so read ONE edge. Many rows per indicator: every period, each sex, and breakdowns under categoryType. THE HEADLINE ROW has categoryType empty and sex 'Persons' (or 'Female' for under-18 conceptions and smoking at delivery) at the greatest periodSortable. comparedToEngland is the PUBLISHER'S significance test — Better / Worse / Similar / Not compared — and already encodes polarity, so 'where does this place stand out' reads that column rather than inventing a score. Values are strings; toFloat() them."
+  description: "One record, identified by `id`. One published row of a public-health indicator for a local authority, from OHID Fingertips — school readiness (all children, and children on free school meals), first-time entrants to the youth justice system, 16-17 NEET, children in absolute low-income families, under-18 conceptions, Year 6 overweight, smoking at delivery, low birth weight, MMR coverage, suicide rate, life expectancy, employment rate, disability-free life expectancy. Reached from a watched place via HAS_CHILD_INDICATOR (upper-tier authorities: unitaries, mets, London boroughs — where the children's indicators are published) or HAS_LOCAL_INDICATOR (lower-tier districts); a unitary answers on both, so read ONE edge. Many rows per indicator: every period, each sex, and breakdowns under categoryType. THE HEADLINE ROW has categoryType empty and sex 'Persons' (or 'Female' for under-18 conceptions and smoking at delivery) at the greatest periodSortable. comparedToEngland is the PUBLISHER'S significance test — Better / Worse / Similar / Not compared — and already encodes polarity, so 'where does this place stand out' reads that column rather than inventing a score. Values are strings; toFloat() them."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_CHILD_INDICATOR
@@ -79,12 +79,12 @@
       description: "GSS code of the area the row describes — equals UkPlace.districtCode for the place joins."
       metadata:
         joinKey: "gss-lad"
-    area: "The area's name as Fingertips styles it."
-    areaType: "'Counties & UAs (from Apr 2023)' or 'Districts & UAs (from Apr 2023)'."
+    area: "The area's name as Fingertips styles it (a name, not a measure in units)."
+    areaType: "'Counties & UAs (from Apr 2023)' or 'Districts & UAs (from Apr 2023)' (a name, not a measure in units)."
     sex: "'Persons', 'Male' or 'Female'. Headline rows are 'Persons' except for female-only indicators."
     age: "The age band the indicator covers, e.g. '10-17 yrs', '<16 yrs', '5 yrs'."
     categoryType: "Empty for the headline row; a breakdown name ('LSOA21 deprivation deciles within area', 'Disability') otherwise."
-    category: "The breakdown value when categoryType is set."
+    category: "The breakdown value when categoryType is set, e.g. 'Most deprived decile (IMD2019)' or 'Male'; absent on the area's headline row."
     period: "The publisher's period label, e.g. '2024/25' or '2025'."
     periodSortable:
       type: int
@@ -115,7 +115,7 @@
 # The count of people claiming unemployment-related benefits — monthly, the
 # fastest-moving official figure a place has. Reached per place or nationally.
 - name:  ClaimantCount
-  description: "People claiming Jobseeker's Allowance or Universal Credit principally because they are unemployed, in one local authority, latest published month (ONS/DWP Claimant Count via NOMIS; rounded to 5). Reached from a watched place via HAS_CLAIMANTS, or for every local authority at once via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_CLAIMANTS]->(c) — one call, 374 rows; join to PopulationBand or DistrictIncome on districtCode to make a rate. A count, not a rate: divide by the 16-64 PopulationBand before comparing places."
+  description: "One record, identified by `id`. People claiming Jobseeker's Allowance or Universal Credit principally because they are unemployed, in one local authority, latest published month (ONS/DWP Claimant Count via NOMIS; rounded to 5). Reached from a watched place via HAS_CLAIMANTS, or for every local authority at once via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_CLAIMANTS]->(c) — one call, 374 rows; join to PopulationBand or DistrictIncome on districtCode to make a rate. A count, not a rate: divide by the 16-64 PopulationBand before comparing places."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_CLAIMANTS
@@ -141,7 +141,7 @@
       description: "Local authority GSS code — equals UkPlace.districtCode."
       metadata:
         joinKey: "gss-lad"
-    area: "The area's name as NOMIS styles it."
+    area: "The area's name as NOMIS styles it (a name, not a measure in units)."
     claimants:
       type: int
       description: "Claimant count, persons, rounded to 5."
@@ -149,7 +149,7 @@
 
 # Population by age band — the denominators, with a year on them.
 - name: PopulationBand
-  description: "ONS mid-year population estimate for one local authority in one age band — five rows per place via HAS_POPULATION: 'All Ages', 'Aged 0 to 15', 'Aged 16 to 64', 'Aged 65+', 'Aged 16 to 24'. The denominators for any per-head figure in the realm, and the direct answer to 'how many children live here'. Pin the band in a WHERE; summing across bands double-counts."
+  description: "One record, identified by `id`. ONS mid-year population estimate for one local authority in one age band — five rows per place via HAS_POPULATION: 'All Ages', 'Aged 0 to 15', 'Aged 16 to 64', 'Aged 65+', 'Aged 16 to 24'. The denominators for any per-head figure in the realm, and the direct answer to 'how many children live here'. Pin the band in a WHERE; summing across bands double-counts."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_POPULATION
@@ -168,7 +168,7 @@
       description: "Local authority GSS code — equals UkPlace.districtCode."
       metadata:
         joinKey: "gss-lad"
-    area: "The area's name as NOMIS styles it."
+    area: "The area's name as NOMIS styles it (a name, not a measure in units)."
     band:
       description: "The age band. These five are the whole domain; use one verbatim."
       values: ["All Ages", "Aged 0 to 15", "Aged 16 to 64", "Aged 65+", "Aged 16 to 24"]
@@ -179,7 +179,7 @@
 
 # The CURRENT deprivation index, on current boundaries.
 - name: DistrictDeprivation2025
-  description: "One English lower-tier district's summary from the Indices of Deprivation 2025 (MHCLG File 10 v2, 2024 boundaries, LSOA 2021 build) — the index to READ for a place today; DistrictDeprivation is the 2019 edition the crime model is fitted on. Reached from a watched place via HAS_DEPRIVATION_2025, or for all 296 districts via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DEPRIVATION_2025]->(d). HIGHER score = MORE deprived; rank 1 = MOST deprived — say which way is up. England only. Two measures answer different questions: averageScore is the district's overall level; proportionMostDeprived is how much concentrated poverty it holds (Blackpool and Middlesbrough lead the second at 40-50% of their neighbourhoods in England's most deprived tenth). Not comparable with 2019 at neighbourhood level — the boundaries changed."
+  description: "One record, identified by `id`. One English lower-tier district's summary from the Indices of Deprivation 2025 (MHCLG File 10 v2, 2024 boundaries, LSOA 2021 build) — the index to READ for a place today; DistrictDeprivation is the 2019 edition the crime model is fitted on. Reached from a watched place via HAS_DEPRIVATION_2025, or for all 296 districts via MATCH (u:UkDistricts {set:'england-and-wales'})-[:HAS_DEPRIVATION_2025]->(d). HIGHER score = MORE deprived; rank 1 = MOST deprived — say which way is up. England only. Two measures answer different questions: averageScore is the district's overall level; proportionMostDeprived is how much concentrated poverty it holds (Blackpool and Middlesbrough lead the second at 40-50% of their neighbourhoods in England's most deprived tenth). Not comparable with 2019 at neighbourhood level — the boundaries changed."
   virtualJoins:
     - anchorLabel: UkPlace
       relationship: HAS_DEPRIVATION_2025

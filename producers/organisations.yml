@@ -47,6 +47,8 @@
     parentAreaType: "parent_geographic_area_type"
     parentArea: "parent_geographic_area_description"
   fileCacheSeconds: 86400
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400 }
 
 # The charity itself, keyed on its registered number: name, status, dates
@@ -90,6 +92,8 @@
     inAdministration: "charity_in_administration"
     activities: "charity_activities"
   fileCacheSeconds: 86400
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400 }
 
 # The register's own EVENT LOG, keyed on the charity number: registration,
@@ -120,6 +124,8 @@
     associatedCharityNumber: "assoc_registered_charity_number"
     associatedCharityName: "assoc_charity_name"
   fileCacheSeconds: 86400
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400 }
 
 # ── 360Giving GrantNav — every published grant into a district ───────────────
@@ -174,6 +180,8 @@
     beneficiaryArea: "Beneficiary Location:0:Name"
     beneficiaryAreaCode: "Beneficiary Location:0:Geographic Code"
   fileCacheSeconds: 86400
+  # A published file read whole and indexed by its key column: nothing is asked of the source but the file.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400 }
 
 # ── Find that Charity — the org-id bridge ────────────────────────────────────
@@ -207,4 +215,6 @@
     hqAreaCode: location.0.geoCode
     hqArea: location.0.name
     dateModified: dateModified
+  # One organisation by org-id: nothing left to filter at the source.
+  pushdown: []
   cache: { kind: ttl, seconds: 86400, negativeTtlSeconds: 86400 }

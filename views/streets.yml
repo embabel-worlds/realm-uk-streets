@@ -4,7 +4,7 @@
 # AGGREGATES rather than listing raw rows.
 
 - name: CrimeAroundMyPlaces
-  description: Recorded crime around each watched UK place, latest month, by category — as a RATE per 1,000 estimated residents within the mile (census density x 8.14 km²), raw count beside it. Rate null where density is unknown (outcodes).
+  description: "Recorded crime around each watched UK place, latest month, by category. As a RATE per 1,000 estimated residents within the mile (census density x 8.14 km²), raw count beside it. Rate null where density is unknown (outcodes). Within a mile of the place, the latest month only."
   params:
     limit:
       type: int
@@ -21,7 +21,7 @@
     ORDER BY place, incidents DESC LIMIT $limit
 
 - name: SafestPlace
-  description: Watched UK places ranked by recorded crime PER 1,000 estimated residents within the mile (radius count ÷ census density x 8.14 km²), safest first — a raw count rewards emptiness, so the rate is the ranking and the count rides beside it. Places without a neighbourhood density (outcodes) rank by raw count at the end. Zero can also mean Scotland or Greater Manchester, where the source has no coverage.
+  description: "Watched places ranked by recorded crime per 1,000 residents, safest first. Watched UK places ranked by recorded crime PER 1,000 estimated residents within the mile (radius count ÷ census density x 8.14 km²), safest first — a raw count rewards emptiness, so the rate is the ranking and the count rides beside it. Places without a neighbourhood density (outcodes) rank by raw count at the end. Zero can also mean Scotland or Greater Manchester, where the source has no coverage."
   params:
     limit:
       type: int
@@ -40,7 +40,7 @@
     LIMIT $limit
 
 - name: TopCrimeStreets
-  description: The streets with the most recorded incidents around your watched places, latest month — raw counts BY NECESSITY (no population exists for an anonymised street locality), so compare streets within one place, never places against each other; the place views carry the rates.
+  description: "The streets with the most recorded incidents around your watched places. Latest month — raw counts BY NECESSITY (no population exists for an anonymised street locality), so compare streets within one place, never places against each other; the place views carry the rates."
   params:
     limit:
       type: int
@@ -53,7 +53,7 @@
     ORDER BY incidents DESC LIMIT $limit
 
 - name: ViolenceAndRobbery
-  description: Violent crime and robbery around each watched place, latest month, RANKED BY RATE per 1,000 estimated residents within the mile — the categories people mean by "is it safe", corrected for how many people are actually there. Raw counts ride beside; rate null where density is unknown (outcodes rank last).
+  description: "Violent crime and robbery around each watched place. Latest month, RANKED BY RATE per 1,000 estimated residents within the mile — the categories people mean by \"is it safe\", corrected for how many people are actually there. Raw counts ride beside; rate null where density is unknown (outcodes rank last). Within a mile of the place, the latest month only."
   params:
     limit:
       type: int
@@ -75,7 +75,7 @@
 # rows are all public data; the join is what nobody else serves.
 
 - name: PlaceDossier
-  description: The whole picture per watched place, one row each — crime level, median income, average house price, top ethnic group, MP, party and majority. Fires every producer; the first read is the slow one.
+  description: "The whole picture per watched place, one row each. Crime level, median income, average house price, top ethnic group, MP, party and majority. Fires every producer; the first read is the slow one."
   params:
     limit:
       type: int
@@ -109,7 +109,7 @@
     ORDER BY place LIMIT $limit
 
 - name: CrimeVsIncome
-  description: Crime RATE (per 1,000 estimated residents within the mile) against the district's median full-time pay, per watched place — the affluence-and-safety scatter, population-corrected, from sources that never meet anywhere else.
+  description: "Crime rate within a mile of each watched place against district pay. Crime RATE (per 1,000 estimated residents within the mile) against the district's median full-time pay, per watched place — the affluence-and-safety scatter, population-corrected, from sources that never meet anywhere else."
   params:
     limit:
       type: int
@@ -129,7 +129,7 @@
     ORDER BY crimeRatePerThousand IS NULL, crimeRatePerThousand DESC LIMIT $limit
 
 - name: MyPlaces
-  description: "The places being watched — name, postcode and coordinates. The realm's roster: every other view starts from these."
+  description: "The places being watched — name, postcode and coordinates. The realm's roster: every other view starts from these. Places only, not their data."
   cypher: |
     MATCH (p:UkPlace)
     RETURN p.name AS place, p.postcode AS postcode,
@@ -137,7 +137,7 @@
     ORDER BY place
 
 - name: PayAtMyPlaces
-  description: "District median full-time annual pay (ONS ASHE) at each watched place, highest first — 'where do people earn the most among my places'. District-level: it describes where the place is, not the person next door."
+  description: "District median full-time annual pay (ONS ASHE) at each watched place. Highest first — 'where do people earn the most among my places'. District-level: it describes where the place is, not the person next door."
   params:
     limit:
       type: int
@@ -150,7 +150,7 @@
     LIMIT $limit
 
 - name: SeatsAndMargins
-  description: Every watched place's MP, party, majority and turnout — with the district's median pay beside it, so "what do the safe seats earn" is the same table as "who holds the marginals".
+  description: "Every watched place's MP, party, majority and turnout. With the district's median pay beside it, so \"what do the safe seats earn\" is the same table as \"who holds the marginals\". The latest general election only."
   params:
     limit:
       type: int
@@ -167,7 +167,7 @@
     ORDER BY majority ASC LIMIT $limit
 
 - name: IncomeByParty
-  description: Average district median pay grouped by the party holding each watched place's seat — "what does a Labour street earn vs a Reform one", computed live from ONS pay and Parliament's own record.
+  description: "Average district median pay by the party holding each place's seat. Average district median pay grouped by the party holding each watched place's seat — \"what does a Labour street earn vs a Reform one\", computed live from ONS pay and Parliament's own record. Watched places only, so not a national verdict on any party."
   cypher: |
     MATCH (p:UkPlace)-[:HAS_SEAT]->(s:Seat)
     MATCH (p)-[:HAS_INCOME]->(i:AreaIncome)
@@ -177,7 +177,7 @@
     ORDER BY avgDistrictMedianPay DESC
 
 - name: NeighbourhoodMosaic
-  description: Census 2021 ethnic composition of each watched place's immediate neighbourhood — five groups, percentages, LSOA-level, so two places in the same borough can still read completely differently.
+  description: "Census 2021 ethnic composition of each watched place's immediate neighbourhood. Five groups, percentages, LSOA-level, so two places in the same borough can still read completely differently. The place's own LSOA only, not the district."
   params:
     limit:
       type: int
@@ -190,7 +190,7 @@
     ORDER BY place, percent DESC LIMIT $limit
 
 - name: WhatHomesActuallySold
-  description: The latest registered sales at each watched place's postcode — real prices paid from the Land Registry, not estimates. Empty for outcode-level places.
+  description: "The latest registered sales at each watched place's postcode. Real prices paid from the Land Registry, not estimates. Empty for outcode-level places."
   params:
     limit:
       type: int
@@ -203,7 +203,7 @@
     ORDER BY place LIMIT $limit
 
 - name: PriceTrendAtMyPlaces
-  description: The official average house price in each watched place's district, this month against a year ago, with the annual change computed — the estate agent's chart, from the actual index.
+  description: "The official average house price in each watched place's district. This month against a year ago, with the annual change computed — the estate agent's chart, from the actual index. District level, not the street; the latest 13 months only."
   cypher: |
     MATCH (p:UkPlace)-[:HAS_HOUSE_PRICES]->(h:HousePriceMonth)
     WITH p, h ORDER BY h.month DESC
@@ -217,7 +217,7 @@
     ORDER BY annualChangePct DESC
 
 - name: WhereNotToEat
-  description: Food businesses near watched places rated 2 or worse at their last official hygiene inspection — the whole mile in a town, the nearest 500 businesses in a dense city centre — with the district's median pay beside them, because a low rating in a wealthy postcode is a story.
+  description: "Food businesses near watched places rated 2 or worse for hygiene. Food businesses near watched places rated 2 or worse at their last official hygiene inspection — the whole mile in a town, the nearest 500 businesses in a dense city centre — with the district's median pay beside them, because a low rating in a wealthy postcode is a story. Only businesses rated 2 or worse; exempt and awaiting-inspection premises are left out."
   params:
     limit:
       type: int
@@ -233,21 +233,21 @@
     ORDER BY f.rating ASC LIMIT $limit
 
 - name: FloodWatch
-  description: Live Environment Agency flood alerts near watched places, worst first — empty is the answer you want.
+  description: "Live Environment Agency flood alerts near watched places, worst first. Empty is the answer you want."
   cypher: |
     MATCH (p:UkPlace)-[:HAS_FLOOD_ALERT]->(f:FloodAlert)
     RETURN p.name AS place, f.severity AS severity, f.area AS area, f.raisedAt AS raisedAt
     ORDER BY toInteger(f.severityLevel) ASC
 
 - name: SchoolsNearMyPlaces
-  description: Schools within 1.5 km of each watched place, from Wikidata — counts plus the named ones. Where schools are, not how they are rated.
+  description: "Schools within 1.5 km of each watched place, from Wikidata. Counts plus the named ones. Where schools are, not how they are rated."
   cypher: |
     MATCH (p:UkPlace)-[:HAS_SCHOOL]->(s:School)
     RETURN p.name AS place, count(s) AS schools, collect(s.name)[0..8] AS sample
     ORDER BY schools DESC
 
 - name: CrimeByParty
-  description: Watched places grouped by the party holding each seat, ranked within party by crime RATE per 1,000 estimated residents — "Labour seats with the lowest crime" corrected for how many people live there. Raw count beside; rate null where density is unknown.
+  description: "Watched places grouped by the party holding each seat. Ranked within party by crime RATE per 1,000 estimated residents — \"Labour seats with the lowest crime\" corrected for how many people live there. Raw count beside; rate null where density is unknown. Watched places only, so not a national verdict on any party."
   cypher: |
     MATCH (p:UkPlace)-[:HAS_SEAT]->(s:Seat)
     OPTIONAL MATCH (p)-[:HAS_CRIME]->(c:CrimeIncident)
@@ -261,7 +261,7 @@
     ORDER BY party, ratePerThousand IS NULL, ratePerThousand ASC
 
 - name: CrimeTrend
-  description: Each watched place's monthly crime counts over the last year, with the percent change from the first to the latest month — rising first. The first run per place is twelve paced source calls; after that the past is cached and only the newest month refreshes.
+  description: "Each watched place's monthly crime counts over the last year. With the percent change from the first to the latest month — rising first. The first run per place is twelve paced source calls; after that the past is cached and only the newest month refreshes."
   cypher: |
     MATCH (p:UkPlace)-[:HAS_CRIME_HISTORY]->(c:CrimeMonthIncident)
     WITH p, c.month AS month, count(*) AS incidents
