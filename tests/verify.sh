@@ -56,6 +56,65 @@ except ImportError:
 
 fails = []
 
+# Whether an engine answer is the whole truth. A source that failed under load, a capped page or a
+# refused hop leaves the rows looking like an answer while the figure is short; reading the figure
+# and ignoring the rest reports drift that is not the realm's. short(d) is None when the answer is
+# whole, else what to print in place of the figure: "REFUSED: <why>" or "PARTIAL <n>: <reason>".
+# Query answers carry `error`, `reason`, `run` and string `warnings` opening with the engine's code;
+# a view envelope carries `status`, `outcome` and `warnings` as {code, message}.
+# Raw warning codes that mean rows or values may be missing (the engine's incompleteness kinds).
+# Cost notes (FILTERED_IN_GRAPH, AGGREGATE_NOT_PUSHED, EMPTY_NOT_KEPT, PUSHDOWN_VALUE_UNMATCHED),
+# FILTER_STARVED (an honest empty), STALE_COPY, FIELDS_WITHHELD and UNKNOWN_VIA leave every row in place.
+SHORT_CODES = (
+    "PARTIAL_RESULT", "PRODUCER_ERROR", "NEEDS_FILTER", "NEEDS_PRODUCER", "FILTER_REJECTED",
+    "UNPUSHED_FILTER", "AMBIGUOUS_LABEL", "INCOMPLETE_TRAVERSAL", "INCOMPLETE_RANKING",
+    "INCOMPLETE_AGGREGATE", "INCOMPLETE_INPUT", "MATERIALIZATION_FAILED", "REDUCTION_FAILED",
+    "UNPARSEABLE_ANSWER", "TERMS_UNAVAILABLE", "COMPUTE_FAILED", "PROPERTY_NOT_STORED",
+    "FOLLOW_CAPPED", "UNLINKED_CHILDREN", "RESOLUTION_DROPPED", "AGENTIC_DEGRADED",
+    "SOURCE_UNANSWERED",
+)
+# The typed `reason` a query result carries when it is not a clean answer and not an honest empty.
+SHORT_REASONS = ("UNBOUNDED", "PARTIAL_NOT_MATCHED", "UNPUSHED_FILTER", "DISCONNECTED",
+                 "INTERNAL_ERROR", "WRITE_IN_PROGRESS", "KILLED", "TOO_EXPENSIVE")
+# Public warning codes on a view envelope that mean the same.
+SHORT_PUBLIC = ("PARTIAL", "REDUCTION_FAILED", "COMPUTE_FAILED", "PROPERTY_NOT_STORED",
+                "AGENTIC_DEGRADED", "RATE_LIMITED", "SOURCE_UNAVAILABLE", "SOURCE_REJECTED",
+                "INVALID_FILTER", "UNPUSHED_FILTER", "TOO_BROAD", "FETCH_CAPPED",
+                "INDEX_UNAVAILABLE", "ARGUMENT_REFUSED")
+
+
+def short(d, figure=None):
+    tag = "PARTIAL" if figure is None else "PARTIAL %s" % (figure,)
+    if not isinstance(d, dict):
+        return "REFUSED: not an engine answer: " + str(d)[:160]
+    if "outcome" in d or "status" in d:  # a view envelope
+        err = d.get("error") or {}
+        if d.get("status") != "SUCCEEDED":
+            return "REFUSED: %s %s" % (d.get("status"), (err.get("code", "") + " " + err.get("message", "")).strip()[:160] if isinstance(err, dict) else str(err)[:160])
+        ws = [w for w in d.get("warnings") or [] if isinstance(w, dict) and w.get("code") in SHORT_PUBLIC]
+        if d.get("outcome") not in ("OK", "EMPTY") or ws:
+            why = ws[0]["code"] + ": " + ws[0].get("message", "") if ws else "outcome " + str(d.get("outcome"))
+            return "%s: %s" % (tag, why[:200])
+        return None
+    if d.get("error"):
+        return "REFUSED: " + str(d["error"])[:160]
+    if d.get("run"):
+        return "%s: the run had not finished (%s)" % (tag, d["run"])
+    ws = [w for w in d.get("warnings") or [] if isinstance(w, str) and w.split(":", 1)[0].strip() in SHORT_CODES]
+    if ws:
+        return "%s: %s" % (tag, ws[0][:200])
+    if d.get("reason") in SHORT_REASONS:
+        return "%s: reason %s" % (tag, d["reason"])
+    return None
+
+def whole(d, what, figure=None):
+    """Flag a short answer as a failure with the engine's reason; True when the answer is whole."""
+    s = short(d, figure)
+    if s:
+        fails.append(f"{what}: {s}")
+        print(f"FAIL {what}: {s}")
+    return s is None
+
 # ── 1. VIEWS ────────────────────────────────────────────────────────────────────────
 # THIS realm's views only: the world carries other realms' and the host's views too, and a
 # harness that smoke-tests a neighbour's surface fails on defects it has no right to fix.
@@ -66,11 +125,7 @@ for name in names:
     try:
         d = call(f"/api/v1/admin/kg/views/{name}/run", {})
         rows = len(d.get("rows", []))
-        err = d.get("error")
-        if err:
-            fails.append(f"view {name}: error {err[:120]}")
-            print(f"FAIL view {name}: {err[:120]}")
-        else:
+        if whole(d, f"view {name}", rows):
             print(f"ok   view {name}: {rows} row(s)")
     except urllib.error.HTTPError as e:
         body = e.read().decode()[:200]
@@ -96,10 +151,15 @@ for item in (questions if FULL else []):
     if "matchesView" not in expect:
         d = call("/api/v1/admin/kg/ask", {"question": q})
         rows = d.get("rows", [])
+        if not whole(d, label, len(rows)):
+            continue
     if "countOfView" in expect:
         # The COUNT form reconciles against the LIST form: the answer's figure must equal
         # the named view's row count.
-        want = float(len(call(f"/api/v1/admin/kg/views/{expect['countOfView']}/run", {}).get("rows", [])))
+        ref = call(f"/api/v1/admin/kg/views/{expect['countOfView']}/run", {})
+        if not whole(ref, f"{label}: reference view {expect['countOfView']}", len(ref.get("rows", []))):
+            continue
+        want = float(len(ref.get("rows", [])))
         # Two honest shapes for a count question: the FIGURE, or the enumerated set itself
         # (view selection may route "how many X" to the roster view — 2 rows a reader counts
         # is a correct answer; 72 rows of something else was the defect this assertion killed).
@@ -121,10 +181,17 @@ for item in (questions if FULL else []):
         # invocation and still pass.
         args = {"args": mv["args"]} if mv.get("args") else {}
         try:
-            before = top_figure(call(f"/api/v1/admin/kg/views/{mv['name']}/run", args).get("rows", []), mv["column"])
+            ref_before = call(f"/api/v1/admin/kg/views/{mv['name']}/run", args)
             d = call("/api/v1/admin/kg/ask", {"question": q})
             rows = d.get("rows", [])
-            after = top_figure(call(f"/api/v1/admin/kg/views/{mv['name']}/run", args).get("rows", []), mv["column"])
+            ref_after = call(f"/api/v1/admin/kg/views/{mv['name']}/run", args)
+            # Each of the three readings is flagged on its own: a short one is no bracket end.
+            short_seen = [not whole(r, f"{label}: {what}", len(r.get("rows", [])))
+                          for r, what in ((ref_before, f"view {mv['name']} before"), (d, "ask"), (ref_after, f"view {mv['name']} after"))]
+            if any(short_seen):
+                continue
+            before = top_figure(ref_before.get("rows", []), mv["column"])
+            after = top_figure(ref_after.get("rows", []), mv["column"])
         except urllib.error.HTTPError as e:
             fails.append(f"{label}: view {mv['name']} unreachable: HTTP {e.code}")
             print(f"FAIL {label}: view {mv['name']} HTTP {e.code}")
@@ -228,6 +295,8 @@ with urllib.request.urlopen(NOMIS, timeout=120) as r:
 d = call("/api/v1/admin/kg/execute", {"cypher":
     "MATCH (u:UkConstituencies {set:'westminster-2024'})-[:HAS_CONSTITUENCY_PAY {ai: {fresh: true}}]->(cp:ConstituencyPay) "
     "RETURN cp.constituencyCode AS code, toFloat(cp.annualPay) AS pay"})
+# A short read is the source's or the engine's say-so that seats are missing: flagged, not compared.
+whole(d, "source: constituency pay", len(d.get("rows", [])))
 got = {r["code"]: r["pay"] for r in d.get("rows", []) if r.get("pay") is not None}
 diff = {k: (got.get(k), want.get(k)) for k in set(got) | set(want) if got.get(k) != want.get(k)}
 ok = not diff and len(got) > 600
