@@ -37,7 +37,7 @@ description: |
   app (`apps/community-profile.html`) puts a place's profile on one page.
 
   No API keys and no accounts — the realm works the moment it is installed.
-version: 0.5.2
+version: 0.5.3
 author: rod
 url: https://github.com/embabel-worlds/realm-uk-streets
 category: government

@@ -1,0 +1,19 @@
+# The one key this realm can use (realm-spec: keys.yml). Everything else it reads is keyless.
+#
+# Declared so the console offers a field for it under Settings → Keys, checks a value before
+# keeping it, and so a world that lacks it says "set it under Settings → Keys for realm-uk-streets"
+# rather than pointing a person at a server's .env file.
+
+- name: cqc
+  displayName: Care Quality Commission
+  description: Official ratings of care homes, hospitals and GP practices in England, for the places you watch. Free key.
+  getKeyUrl: https://api-portal.service.cqc.org.uk/
+  fields:
+    - variable: CQC_SUBSCRIPTION_KEY
+      displayName: Subscription key
+  validate:
+    api: cqc
+    operation: careLocations
+    args: { postalCode: "SW1A 1AA", perPage: 1 }
+    # The portal answers a missing or wrong subscription key 401; anything else is the service, not the key.
+    refusedOn: [401]
